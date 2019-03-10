@@ -19,6 +19,7 @@ methods = (
     'unmap_buffer',
     'start',
     'stop',
+    'get_payload',
 )
 vmethods = (
     'do_interrupted',

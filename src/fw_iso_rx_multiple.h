@@ -53,7 +53,8 @@ struct _HinokoFwIsoRxMultipleClass {
 	 *
 	 * When any packet is available, the handler of
 	 * #HinokoFwIsoRxMultipleClass::interrupted is called with the number of
-	 * available packets.
+	 * available packets. In the handler, payload of received packet is
+	 * available by a call of #hinoko_fw_iso_rx_multiple_get_payload().
 	 */
 	void (*interrupted)(HinokoFwIsoRxMultiple *self, guint count);
 };
@@ -80,6 +81,10 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 				     HinokoFwIsoCtxMatchFlag tags,
 				     guint chunks_per_irq, GError **exception);
 void hinoko_fw_iso_rx_multiple_stop(HinokoFwIsoRxMultiple *self);
+
+void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
+					guint index, const guint8 **payload,
+					guint *length, GError **exception);
 
 G_END_DECLS
 

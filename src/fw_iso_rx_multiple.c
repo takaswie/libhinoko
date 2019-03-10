@@ -13,6 +13,10 @@
  * A #HinokoFwIsoRxMultiple receives isochronous packets for several channels by
  * IR context for buffer-fill mode in 1394 OHCI.
  */
+struct ctx_payload {
+	unsigned int offset;
+	unsigned int length;
+};
 struct _HinokoFwIsoRxMultiplePrivate {
 	GByteArray *channels;
 	guint chunks_per_irq;
@@ -20,6 +24,10 @@ struct _HinokoFwIsoRxMultiplePrivate {
 	guint maximum_chunk_count;
 
 	guint prev_offset;
+
+	struct ctx_payload *ctx_payloads;
+	unsigned int ctx_payload_count;
+	guint8 *concat_frames;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -57,7 +65,9 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 	 * @count: The number of packets available in this interrupt.
 	 *
 	 * When any packet is available, the #HinokoFwIsoRxMultiple::interrupted
-	 * signal is emitted with the number of available packets.
+	 * signal is emitted with the number of available packets. In the
+	 * handler, payload of received packet is available by a call of
+	 * #hinoko_fw_iso_rx_multiple_get_payload().
 	 */
 	fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED] =
 		g_signal_new("interrupted",
@@ -194,6 +204,7 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 					  GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
+	GValue val = G_VALUE_INIT;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
@@ -207,8 +218,30 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	bytes_per_chunk = (bytes_per_chunk + 3) / 4;
 	bytes_per_chunk *= 4;
 
+	priv->concat_frames = calloc(4, bytes_per_chunk);
+	if (priv->concat_frames == NULL) {
+		raise(exception, ENOMEM);
+		return;
+	}
+
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
 				     chunks_per_buffer, exception);
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "bytes-per-chunk", &val);
+	bytes_per_chunk = g_value_get_uint(&val);
+	g_value_unset(&val);
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "chunks-per-buffer", &val);
+	chunks_per_buffer = g_value_get_uint(&val);
+
+	priv->ctx_payloads = calloc(bytes_per_chunk * chunks_per_buffer / 8 / 2,
+				    sizeof(*priv->ctx_payloads));
+	if (priv->ctx_payloads == NULL) {
+		hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
+		raise(exception, ENOMEM);
+	}
 }
 
 /**
@@ -220,11 +253,19 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
  */
 void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self)
 {
+	HinokoFwIsoRxMultiplePrivate *priv;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	hinoko_fw_iso_rx_multiple_stop(self);
 
 	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
+
+	if (priv->concat_frames != NULL)
+		free(priv->concat_frames);
+
+	priv->concat_frames = NULL;
 }
 
 static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
@@ -320,9 +361,9 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 	unsigned int bytes_per_buffer;
 	unsigned int accum_end;
 	unsigned int accum_length;
-	guint pkt_count;
 	unsigned int chunk_pos;
 	unsigned int chunk_end;
+	struct ctx_payload *ctx_payload;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
@@ -343,7 +384,8 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 		accum_end += bytes_per_buffer;
 
 	accum_length = 0;
-	pkt_count = 0;
+	ctx_payload = priv->ctx_payloads;
+	priv->ctx_payload_count = 0;
 	while (TRUE) {
 		unsigned int avail = accum_end - priv->prev_offset - accum_length;
 		guint offset;
@@ -371,7 +413,10 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 		if (avail < length)
 			break;
 
-		++pkt_count;
+		ctx_payload->offset = offset;
+		ctx_payload->length = length;
+		++ctx_payload;
+		++priv->ctx_payload_count;
 
 		// For next position.
 		accum_length += length;
@@ -379,7 +424,7 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 
 	g_signal_emit(self,
 		fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED],
-		0, pkt_count);
+		0, priv->ctx_payload_count);
 
 	chunk_pos = priv->prev_offset / bytes_per_chunk;
 	chunk_end = (priv->prev_offset + accum_length) / bytes_per_chunk;
@@ -391,4 +436,53 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 
 	priv->prev_offset += accum_length;
 	priv->prev_offset %= bytes_per_buffer;
+}
+
+/**
+ * hinoko_fw_iso_rx_multiple_get_payload:
+ * @self: A #HinokoFwIsoRxMultiple.
+ * @index: the index of packet available in this interrupt.
+ * @payload: (element-type guint8) (array length=length) (out callee-allocates):
+ *	     An array with bytes for payload.
+ * @length: (out): The number of bytes in the above @payload.
+ * @exception: A #GError.
+ */
+void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
+					guint index, const guint8 **payload,
+					guint *length, GError **exception)
+{
+	HinokoFwIsoRxMultiplePrivate *priv;
+	struct ctx_payload *ctx_payload;
+	guint frame_size;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	if (index >= priv->ctx_payload_count) {
+		raise(exception, ENODATA);
+		return;
+	}
+	ctx_payload = &priv->ctx_payloads[index];
+
+	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self),
+				      ctx_payload->offset, ctx_payload->length,
+				      payload, &frame_size);
+
+	if (frame_size < ctx_payload->length) {
+		unsigned int done = frame_size;
+		unsigned int rest = ctx_payload->length - frame_size;
+
+		memcpy(priv->concat_frames, *payload, done);
+		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), 0, rest,
+					      payload, &frame_size);
+		if (frame_size != rest) {
+			raise(exception, EIO);
+			return;
+		}
+		memcpy(priv->concat_frames + done, *payload, rest);
+
+		*payload = priv->concat_frames;
+	}
+
+	*length = ctx_payload->length;
 }

@@ -61,6 +61,10 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 				 GError **exception);
 void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self);
 
+void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
+			    GError **exception);
+void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self);
+
 G_END_DECLS
 
 #endif

@@ -128,5 +128,41 @@ void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
 
+	hinoko_fw_iso_tx_stop(self);
+
 	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
+}
+
+/**
+ * hinoko_fw_iso_tx_start:
+ * @self: A #HinokoFwIsoTx.
+ * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable):
+ * 		 The isochronous cycle to start packet processing. The first
+ * 		 element should be the second part of isochronous cycle, up to
+ * 		 3. The second element should be the cycle part of isochronous
+ * 		 cycle, up to 7999.
+ * @exception: A #GError.
+ *
+ * Start IT context.
+ */
+void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
+			    GError **exception)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+
+	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, 0, 0,
+				exception);
+}
+
+/**
+ * hinoko_fw_iso_tx_stop:
+ * @self: A #HinokoFwIsoTx.
+ *
+ * Stop IT context.
+ */
+void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+
+	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
 }

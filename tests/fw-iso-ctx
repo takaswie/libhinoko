@@ -11,7 +11,9 @@ from gi.repository import Hinoko
 
 target = Hinoko.FwIsoCtx
 props = ()
-methods = ()
+methods = (
+    'get_cycle_timer',
+)
 vmethods = ()
 signals = ()
 

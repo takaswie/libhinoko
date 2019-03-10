@@ -47,6 +47,10 @@ struct _HinokoFwIsoCtxClass {
 
 GType hinoko_fw_iso_ctx_get_type(void) G_GNUC_CONST;
 
+void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self,
+				       guint16 *cycle_timer, GTimeVal *tv,
+				       GError **exception);
+
 G_END_DECLS
 
 #endif

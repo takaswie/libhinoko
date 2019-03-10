@@ -11,6 +11,7 @@ HINOKO_0_1_0 {
 
     "hinoko_fw_iso_rx_single_get_type";
     "hinoko_fw_iso_rx_single_new";
+    "hinoko_fw_iso_rx_single_quark";
   local:
     *;
 };

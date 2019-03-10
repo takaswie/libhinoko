@@ -16,6 +16,12 @@
 G_DEFINE_TYPE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single,
 	      HINOKO_TYPE_FW_ISO_CTX)
 
+// For error handling.
+G_DEFINE_QUARK("HinokoFwIsoRxSingle", hinoko_fw_iso_rx_single)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinoko_fw_iso_rx_single_quark(), errno,	\
+		    "%d: %s", __LINE__, strerror(errno))
+
 static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 {
 	return;

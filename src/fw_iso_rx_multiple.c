@@ -13,7 +13,7 @@
  * IR context for buffer-fill mode in 1394 OHCI.
  */
 struct _HinokoFwIsoRxMultiplePrivate {
-	int tmp;
+	GByteArray *channels;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -78,10 +78,13 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 					guint channels_length,
 					GError **exception)
 {
+	HinokoFwIsoRxMultiplePrivate *priv;
+
 	guint64 channel_flags;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (channels_length == 0) {
 		raise(exception, EINVAL);
@@ -108,6 +111,18 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 					  &channel_flags, exception);
 	if (*exception != NULL)
 		return;
+	if (channel_flags == 0) {
+		raise(exception, ENODATA);
+		return;
+	}
+
+	priv->channels = g_byte_array_new();
+	for (i = 0; i < 64; ++i) {
+		if (!(channel_flags & (G_GUINT64_CONSTANT(1) << i)))
+			continue;
+
+		g_byte_array_append(priv->channels, (const guint8 *)&i, 1);
+	}
 }
 
 /**
@@ -118,7 +133,64 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
  */
 void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self)
 {
+	HinokoFwIsoRxMultiplePrivate *priv;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	hinoko_fw_iso_rx_multiple_unmap_buffer(self);
 
 	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
+
+	if (priv->channels != NULL)
+		g_byte_array_unref(priv->channels);
+	priv->channels = NULL;
+}
+
+/**
+ * hinoko_fw_iso_rx_multiple_map_buffer:
+ * @self: A #HinokoFwIsoRxMultiple.
+ * @bytes_per_chunk: The maximum number of bytes for payload of isochronous
+ *		     packet (not payload for isochronous context).
+ * @chunks_per_buffer: The number of chunks in buffer.
+ * @exception: A #GError.
+ *
+ * Map an intermediate buffer to share payload of IR context with 1394 OHCI
+ * controller.
+ */
+void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
+					  guint bytes_per_chunk,
+					  guint chunks_per_buffer,
+					  GError **exception)
+{
+	HinokoFwIsoRxMultiplePrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	if (priv->channels == NULL) {
+		raise(exception, ENODATA);
+		return;
+	}
+
+	// The size of each chunk should be aligned to quadlet.
+	bytes_per_chunk = (bytes_per_chunk + 3) / 4;
+	bytes_per_chunk *= 4;
+
+	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
+				     chunks_per_buffer, exception);
+}
+
+/**
+ * hinoko_fw_iso_rx_multiple_unmap_buffer:
+ * @self: A #HinokoFwIsoRxMultiple.
+ *
+ * Unmap intermediate buffer shard with 1394 OHCI controller for payload
+ * of IR context.
+ */
+void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+
+	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
 }

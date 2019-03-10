@@ -26,6 +26,8 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_rx_multiple_quark";
     "hinoko_fw_iso_rx_multiple_allocate";
     "hinoko_fw_iso_rx_multiple_release";
+    "hinoko_fw_iso_rx_multiple_map_buffer";
+    "hinoko_fw_iso_rx_multiple_unmap_buffer";
   local:
     *;
 };

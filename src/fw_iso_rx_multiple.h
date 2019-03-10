@@ -57,6 +57,12 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 					GError **exception);
 void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self);
 
+void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
+					  guint bytes_per_chunk,
+					  guint chunks_per_buffer,
+					  GError **exception);
+void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self);
+
 G_END_DECLS
 
 #endif

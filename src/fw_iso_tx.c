@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 #include "internal.h"
+#include "hinoko_sigs_marshal.h"
 
 /**
  * SECTION:fw_iso_tx
@@ -32,11 +33,41 @@ static void fw_iso_tx_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinoko_fw_iso_tx_parent_class)->finalize(obj);
 }
 
+enum fw_iso_tx_sig_type {
+	FW_ISO_TX_SIG_TYPE_INTERRUPTED = 1,
+	FW_ISO_TX_SIG_TYPE_COUNT,
+};
+static guint fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_COUNT] = { 0 };
+
 static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_tx_finalize;
+
+	/**
+	 * HinokoFwIsoTx::interrupted:
+	 * @self: A #HinokoFwIsoTx.
+	 * @sec: sec part of isochronous cycle when interrupt occurs.
+	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
+	 * @tstamp: (array length=tstamp_length) (element-type guint8): A series
+	 *	    of timestamps for packets already handled.
+	 * @tstamp_length: the number of bytes for @tstamp.
+	 * @count: the number of handled packets.
+	 *
+	 * When registered packets are handled, #HinokoFwIsoTx::interrupted
+	 * signal is emitted with timestamps of the packet.
+	 */
+	fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_INTERRUPTED] =
+		g_signal_new("interrupted",
+			G_OBJECT_CLASS_TYPE(klass),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL, NULL,
+			hinoko_sigs_marshal_VOID__UINT_UINT_POINTER_UINT_UINT,
+			G_TYPE_NONE,
+			5, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_POINTER,
+			G_TYPE_UINT, G_TYPE_UINT);
 }
 
 static void hinoko_fw_iso_tx_init(HinokoFwIsoTx *self)
@@ -171,9 +202,15 @@ void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 				   struct fw_cdev_event_iso_interrupt *event,
 				   GError **exception)
 {
+	guint sec = (event->cycle & 0x0000e000) >> 13;
+	guint cycle = event->cycle & 0x00001fff;
+	unsigned int pkt_count = event->header_length / 4;
 	GValue val = G_VALUE_INIT;
 	unsigned int chunks_per_irq;
 	guint registered_chunk_count;
+
+	g_signal_emit(self, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_INTERRUPTED],
+		0, sec, cycle, event->header, event->header_length, pkt_count);
 
 	g_value_init(&val, G_TYPE_UINT);
 	g_object_get_property(G_OBJECT(self), "chunks_per_irq", &val);

@@ -10,8 +10,11 @@
  * A #HinokoFwIsoRxMultiple receives isochronous packets for several channels by
  * IR context for buffer-fill mode in 1394 OHCI.
  */
-G_DEFINE_TYPE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple,
-	      HINOKO_TYPE_FW_ISO_CTX)
+struct _HinokoFwIsoRxMultiplePrivate {
+	int tmp;
+};
+G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple,
+			   HINOKO_TYPE_FW_ISO_CTX)
 
 // For error handling.
 G_DEFINE_QUARK("HinokoFwIsoRxMultiple", hinoko_fw_iso_rx_multiple)

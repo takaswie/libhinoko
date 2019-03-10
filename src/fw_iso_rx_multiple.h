@@ -33,9 +33,12 @@ G_BEGIN_DECLS
 
 typedef struct _HinokoFwIsoRxMultiple		HinokoFwIsoRxMultiple;
 typedef struct _HinokoFwIsoRxMultipleClass	HinokoFwIsoRxMultipleClass;
+typedef struct _HinokoFwIsoRxMultiplePrivate	HinokoFwIsoRxMultiplePrivate;
 
 struct _HinokoFwIsoRxMultiple {
 	HinokoFwIsoCtx parent_instance;
+
+	HinokoFwIsoRxMultiplePrivate *priv;
 };
 
 struct _HinokoFwIsoRxMultipleClass {

@@ -6,6 +6,7 @@
 #include <glib-object.h>
 
 #include <fw_iso_ctx.h>
+#include <hinoko_enum_types.h>
 
 G_BEGIN_DECLS
 
@@ -48,6 +49,13 @@ struct _HinokoFwIsoRxMultipleClass {
 GType hinoko_fw_iso_rx_multiple_get_type(void) G_GNUC_CONST;
 
 HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void);
+
+void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
+					const char *path, HinokoFwScode scode,
+					const guint8 *channels,
+					guint channels_length,
+					GError **exception);
+void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self);
 
 G_END_DECLS
 

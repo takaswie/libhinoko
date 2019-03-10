@@ -13,6 +13,8 @@ target = Hinoko.FwIsoRxMultiple()
 props = ()
 methods = (
     'new',
+    'allocate',
+    'release',
 )
 vmethods = ()
 signals = ()

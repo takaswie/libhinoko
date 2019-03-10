@@ -693,12 +693,20 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	common = (struct fw_cdev_event_common *)src->buf;
 
 	exception = NULL;
-	if (common->type == FW_CDEV_EVENT_ISO_INTERRUPT &&
-	    HINOKO_IS_FW_ISO_RX_SINGLE(common->closure)) {
-		hinoko_fw_iso_rx_single_handle_event(
+	if (common->type == FW_CDEV_EVENT_ISO_INTERRUPT) {
+		if (HINOKO_IS_FW_ISO_RX_SINGLE(common->closure)) {
+			hinoko_fw_iso_rx_single_handle_event(
 				HINOKO_FW_ISO_RX_SINGLE(common->closure),
 				(struct fw_cdev_event_iso_interrupt *)common,
 				&exception);
+		} else if (HINOKO_IS_FW_ISO_TX(common->closure)) {
+			hinoko_fw_iso_tx_handle_event(
+				HINOKO_FW_ISO_TX(common->closure),
+				(struct fw_cdev_event_iso_interrupt *)common,
+				&exception);
+		} else {
+			goto end;
+		}
 		if (exception != NULL)
 			goto end;
 

@@ -166,3 +166,34 @@ void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
 
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
 }
+
+void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
+				   struct fw_cdev_event_iso_interrupt *event,
+				   GError **exception)
+{
+	GValue val = G_VALUE_INIT;
+	unsigned int chunks_per_irq;
+	guint registered_chunk_count;
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "chunks_per_irq", &val);
+	chunks_per_irq = g_value_get_uint(&val);
+	g_value_unset(&val);
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "registered-chunk-count", &val);
+	registered_chunk_count = g_value_get_uint(&val);
+
+	if (registered_chunk_count < chunks_per_irq) {
+		unsigned int count = chunks_per_irq - registered_chunk_count;
+		int i;
+
+		for (i = 0; i < count; ++i) {
+			hinoko_fw_iso_ctx_register_chunk(
+					HINOKO_FW_ISO_CTX(self), TRUE, 0, 0,
+					NULL, 0, 0, i == count - 1, exception);
+			if (*exception != NULL)
+				return;
+		}
+	}
+}

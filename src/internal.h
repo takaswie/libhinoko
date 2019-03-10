@@ -6,6 +6,7 @@
 #include <linux/firewire-constants.h>
 
 #include "fw_iso_ctx.h"
+#include "fw_iso_rx_single.h"
 
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,

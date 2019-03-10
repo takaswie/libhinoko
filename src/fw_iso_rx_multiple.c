@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 #include "internal.h"
+#include "hinoko_sigs_marshal.h"
 
 #include <errno.h>
 
@@ -29,6 +30,12 @@ G_DEFINE_QUARK("HinokoFwIsoRxMultiple", hinoko_fw_iso_rx_multiple)
 	g_set_error(exception, hinoko_fw_iso_rx_multiple_quark(), errno, \
 		    "%d: %s", __LINE__, strerror(errno))
 
+enum fw_iso_rx_multiple_sig_type {
+	FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED = 1,
+	FW_ISO_RX_MULTIPLE_SIG_TYPE_COUNT,
+};
+static guint fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_COUNT] = { 0 };
+
 static void fw_iso_rx_multiple_finalize(GObject *obj)
 {
 	HinokoFwIsoRxMultiple *self = HINOKO_FW_ISO_RX_MULTIPLE(obj);
@@ -43,6 +50,24 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_rx_multiple_finalize;
+
+	/**
+	 * HinokoFwIsoRxMultiple::interrupted:
+	 * @self: A #HinokoFwIsoRxMultiple.
+	 * @count: The number of packets available in this interrupt.
+	 *
+	 * When any packet is available, the #HinokoFwIsoRxMultiple::interrupted
+	 * signal is emitted with the number of available packets.
+	 */
+	fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED] =
+		g_signal_new("interrupted",
+			G_OBJECT_CLASS_TYPE(klass),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL, NULL,
+			g_cclosure_marshal_VOID__UINT,
+			G_TYPE_NONE,
+			1, G_TYPE_UINT);
 }
 
 static void hinoko_fw_iso_rx_multiple_init(HinokoFwIsoRxMultiple *self)
@@ -295,6 +320,7 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 	unsigned int bytes_per_buffer;
 	unsigned int accum_end;
 	unsigned int accum_length;
+	guint pkt_count;
 	unsigned int chunk_pos;
 	unsigned int chunk_end;
 
@@ -317,6 +343,7 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 		accum_end += bytes_per_buffer;
 
 	accum_length = 0;
+	pkt_count = 0;
 	while (TRUE) {
 		unsigned int avail = accum_end - priv->prev_offset - accum_length;
 		guint offset;
@@ -344,9 +371,15 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 		if (avail < length)
 			break;
 
+		++pkt_count;
+
 		// For next position.
 		accum_length += length;
 	}
+
+	g_signal_emit(self,
+		fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED],
+		0, pkt_count);
 
 	chunk_pos = priv->prev_offset / bytes_per_chunk;
 	chunk_end = (priv->prev_offset + accum_length) / bytes_per_chunk;

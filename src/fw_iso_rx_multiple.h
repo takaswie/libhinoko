@@ -7,6 +7,7 @@
 
 #include <fw_iso_ctx.h>
 #include <hinoko_enum_types.h>
+#include <hinoko_sigs_marshal.h>
 
 G_BEGIN_DECLS
 

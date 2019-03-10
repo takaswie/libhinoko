@@ -44,6 +44,24 @@ struct _HinokoFwIsoRxSingle {
 
 struct _HinokoFwIsoRxSingleClass {
 	HinokoFwIsoCtxClass parent_class;
+
+	/**
+	 * HinokoFwIsoRxSingleClass::interrupted:
+	 * @self: A #HinokoFwIsoRxSingle.
+	 * @sec: sec part of isochronous cycle when interrupt occurs.
+	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
+	 * @header: (array length=header_length) (element-type guint8): The
+	 * 	    headers of IR context for handled packets.
+	 * @header_length: the number of bytes for @header.
+	 * @count: the number of packets to handle.
+	 *
+	 * When any packet is available, the
+	 * #HinokoFwIsoRxSingleClass::interrupted handler is called with header
+	 * of the packet.
+	 */
+	void (*interrupted)(HinokoFwIsoRxSingle *self, guint sec, guint cycle,
+			    const guint8 *header, guint header_length,
+			    guint count);
 };
 
 GType hinoko_fw_iso_rx_single_get_type(void) G_GNUC_CONST;

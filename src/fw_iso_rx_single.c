@@ -69,7 +69,7 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 		g_signal_new("interrupted",
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
-			0,
+			G_STRUCT_OFFSET(HinokoFwIsoRxSingleClass, interrupted),
 			NULL, NULL,
 			hinoko_sigs_marshal_VOID__UINT_UINT_POINTER_UINT_UINT,
 			G_TYPE_NONE,

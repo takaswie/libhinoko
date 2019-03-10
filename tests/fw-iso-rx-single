@@ -20,7 +20,9 @@ methods = (
     'start',
     'stop',
 )
-vmethods = ()
+vmethods = (
+    'do_interrupted',
+)
 signals = (
     'interrupted',
 )

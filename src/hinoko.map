@@ -23,6 +23,7 @@ HINOKO_0_1_0 {
 
     "hinoko_fw_iso_rx_multiple_get_type";
     "hinoko_fw_iso_rx_multiple_new";
+    "hinoko_fw_iso_rx_multiple_quark";
   local:
     *;
 };

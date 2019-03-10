@@ -13,6 +13,12 @@
 G_DEFINE_TYPE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple,
 	      HINOKO_TYPE_FW_ISO_CTX)
 
+// For error handling.
+G_DEFINE_QUARK("HinokoFwIsoRxMultiple", hinoko_fw_iso_rx_multiple)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinoko_fw_iso_rx_multiple_quark(), errno, \
+		    "%d: %s", __LINE__, strerror(errno))
+
 static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *klass)
 {
 	return;

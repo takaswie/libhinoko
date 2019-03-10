@@ -90,5 +90,43 @@ void hinoko_fw_iso_tx_release(HinokoFwIsoTx *self)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
 
+	hinoko_fw_iso_tx_unmap_buffer(self);
+
 	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
+}
+
+/**
+ * hinoko_fw_iso_tx_map_buffer:
+ * @self: A #HinokoFwIsoTx.
+ * @maximum_bytes_per_payload: The number of bytes for payload of IT context.
+ * @payloads_per_buffer: The number of payloads of IT context in buffer.
+ * @exception: A #GError.
+ *
+ * Map intermediate buffer to share payload of IT context with 1394 OHCI
+ * controller.
+ */
+void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
+				 guint maximum_bytes_per_payload,
+				 guint payloads_per_buffer,
+				 GError **exception)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+
+	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
+				     maximum_bytes_per_payload,
+				     payloads_per_buffer, exception);
+}
+
+/**
+ * hinoko_fw_iso_tx_unmap_buffer:
+ * @self: A #HinokoFwIsoTx.
+ *
+ * Unmap intermediate buffer shard with 1394 OHCI controller for payload
+ * of IT context.
+ */
+void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+
+	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
 }

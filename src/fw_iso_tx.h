@@ -55,6 +55,12 @@ void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
 			       guint header_size, GError **exception);
 void hinoko_fw_iso_tx_release(HinokoFwIsoTx *self);
 
+void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
+				 guint maximum_bytes_per_payload,
+				 guint payloads_per_buffer,
+				 GError **exception);
+void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self);
+
 G_END_DECLS
 
 #endif

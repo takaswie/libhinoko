@@ -45,6 +45,23 @@ struct _HinokoFwIsoTx {
 
 struct _HinokoFwIsoTxClass {
 	HinokoFwIsoCtxClass parent_class;
+
+	/**
+	 * HinokoFwIsoTxClass::interrupted:
+	 * @self: A #HinokoFwIsoTx.
+	 * @sec: sec part of isochronous cycle when interrupt occurs.
+	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
+	 * @tstamp: (array length=tstamp_length) (element-type guint8): A series
+	 *	    of timestamps for packets already handled.
+	 * @tstamp_length: the number of bytes for @tstamp.
+	 * @count: the number of handled packets.
+	 *
+	 * When registered packets are handled, #HinokoFwIsoTxClass::interrupted
+	 * handler is called with timestamps of the packet.
+	 */
+	void (*interrupted)(HinokoFwIsoTx *self, guint sec, guint cycle,
+			    const guint8 *tstamp, guint tstamp_length,
+			    guint count);
 };
 
 GType hinoko_fw_iso_tx_get_type(void) G_GNUC_CONST;

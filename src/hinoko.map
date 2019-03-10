@@ -41,6 +41,7 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_tx_unmap_buffer";
     "hinoko_fw_iso_tx_start";
     "hinoko_fw_iso_tx_stop";
+    "hinoko_fw_iso_tx_register_packet";
   local:
     *;
 };

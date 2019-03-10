@@ -2,6 +2,8 @@
 #include "internal.h"
 #include "hinoko_sigs_marshal.h"
 
+#include <errno.h>
+
 /**
  * SECTION:fw_iso_tx
  * @Title: HinokoFwIsoTx
@@ -13,7 +15,7 @@
  * header and context payload in a manner of Linux FireWire subsystem.
  */
 struct _HinokoFwIsoTxPrivate {
-	int tmp;
+	guint offset;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -196,6 +198,74 @@ void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
 
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
+}
+
+/**
+ * hinoko_fw_iso_tx_register_packet:
+ * @self: A #HinokoFwIsoTx.
+ * @tags: The value of tag field for isochronous packet to register.
+ * @sy: The value of sy field for isochronous packet to register.
+ * @header: (array length=header_length) (element-type guint8) (in) (nullable):
+ * 	    The header of IT context for isochronous packet.
+ * @header_length: The number of bytes for the @header.
+ * @payload: (array length=payload_length) (element-type guint8) (in) (nullable):
+ * 	     The payload of IT context for isochronous packet.
+ * @payload_length: The number of bytes for the @payload.
+ * @interrupt: Whether to generate event notification after processing the packet.
+ * @exception: A #GError.
+ *
+ * Register packet data in a shape of header and payload of IT context.
+ */
+void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
+				HinokoFwIsoCtxMatchFlag tags, guint sy,
+				const guint8 *header, guint header_length,
+				const guint8 *payload, guint payload_length,
+				gboolean interrupt, GError **exception)
+{
+	HinokoFwIsoTxPrivate *priv;
+	gboolean skip = FALSE;
+	const guint8 *frames;
+	guint frame_size;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	if ((header == NULL && header_length > 0) ||
+	    (header != NULL && header_length == 0)) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	if ((payload == NULL && payload_length > 0) ||
+	    (payload != NULL && payload_length == 0)) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	if (header_length == 0 && payload_length == 0)
+		skip = TRUE;
+
+	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags,
+					 sy, header, header_length,
+					 payload_length, interrupt, exception);
+	if (*exception != NULL)
+		return;
+
+	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), priv->offset,
+				      payload_length, &frames, &frame_size);
+	memcpy((void *)frames, payload, frame_size);
+	priv->offset += frame_size;
+
+	if (frame_size != payload_length) {
+		guint rest = payload_length - frame_size;
+
+		payload += frame_size;
+		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), 0,
+					      rest, &frames, &frame_size);
+		memcpy((void *)frames, payload, frame_size);
+
+		priv->offset = frame_size;
+	}
 }
 
 void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,

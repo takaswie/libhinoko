@@ -56,6 +56,12 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 				      GError **exception);
 void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self);
 
+void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
+					guint maximum_bytes_per_payload,
+					guint payloads_per_buffer,
+					GError **exception);
+void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self);
+
 G_END_DECLS
 
 #endif

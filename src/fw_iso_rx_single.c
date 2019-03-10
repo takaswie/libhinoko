@@ -103,5 +103,44 @@ void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 
+	hinoko_fw_iso_rx_single_unmap_buffer(self);
 	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
+}
+
+/*
+ * hinoko_fw_iso_rx_single_map_buffer:
+ * @self: A #HinokoFwIsoRxSingle.
+ * @maximum_bytes_per_payload: The maximum number of bytes per payload of IR
+ *			       context.
+ * @payloads_per_buffer: The number of payload in buffer.
+ * @payloads_per_irq: The number of payload per interval of interrupt.
+ * @exception: A #GError.
+ *
+ * Map intermediate buffer to share payload of IR context with 1394 OHCI
+ * controller.
+ */
+void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
+					guint maximum_bytes_per_payload,
+					guint payloads_per_buffer,
+					GError **exception)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+
+	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
+				     maximum_bytes_per_payload,
+				     payloads_per_buffer, exception);
+}
+
+/**
+ * hinoko_fw_iso_rx_single_unmap_buffer:
+ * @self: A #HinokoFwIsoRxSingle.
+ *
+ * Unmap intermediate buffer shard with 1394 OHCI controller for payload
+ * of IR context.
+ */
+void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+
+	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
 }

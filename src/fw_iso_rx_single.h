@@ -33,9 +33,12 @@ G_BEGIN_DECLS
 
 typedef struct _HinokoFwIsoRxSingle		HinokoFwIsoRxSingle;
 typedef struct _HinokoFwIsoRxSingleClass	HinokoFwIsoRxSingleClass;
+typedef struct _HinokoFwIsoRxSinglePrivate	HinokoFwIsoRxSinglePrivate;
 
 struct _HinokoFwIsoRxSingle {
 	HinokoFwIsoCtx parent_instance;
+
+	HinokoFwIsoRxSinglePrivate *priv;
 };
 
 struct _HinokoFwIsoRxSingleClass {

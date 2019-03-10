@@ -13,8 +13,11 @@
  * FireWire subsystem.
  *
  */
-G_DEFINE_TYPE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single,
-	      HINOKO_TYPE_FW_ISO_CTX)
+struct _HinokoFwIsoRxSinglePrivate {
+	int tmp;
+};
+G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single,
+			   HINOKO_TYPE_FW_ISO_CTX)
 
 // For error handling.
 G_DEFINE_QUARK("HinokoFwIsoRxSingle", hinoko_fw_iso_rx_single)

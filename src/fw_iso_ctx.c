@@ -29,6 +29,13 @@ struct _HinokoFwIsoCtxPrivate {
 	guchar *addr;
 	guint bytes_per_chunk;
 	guint chunks_per_buffer;
+
+	// The number of entries equals to the value of chunks_per_buffer.
+	guint8 *data;
+	guint data_length;
+	guint alloc_data_length;
+
+	guint registered_chunk_count;
 };
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx,
 				    G_TYPE_OBJECT)
@@ -214,6 +221,7 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 				  guint chunks_per_buffer, GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
+	unsigned int datum_size;
 	int prot;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
@@ -234,6 +242,17 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 		raise(exception, EINVAL);
 		return;
 	}
+
+	datum_size = sizeof(struct fw_cdev_iso_packet);
+	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+		datum_size += priv->header_size;
+
+	priv->data = calloc(chunks_per_buffer, datum_size);
+	if (priv->data == NULL) {
+		raise(exception, ENOMEM);
+		return;
+	}
+	priv->alloc_data_length = chunks_per_buffer * datum_size;
 
 	prot = PROT_READ;
 	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
@@ -270,5 +289,128 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 		       priv->bytes_per_chunk * priv->chunks_per_buffer);
 	}
 
+	if (priv->data != NULL)
+		free(priv->data);
+
 	priv->addr = NULL;
+	priv->data = NULL;
+}
+
+/**
+ * hinoko_fw_iso_ctx_register_chunk:
+ * @self: A #HinokoFwIsoCtx.
+ * @skip: Whether to skip packet transmission or not.
+ * @tags: The value of tag field for isochronous packet to handle.
+ * @sy: The value of sy field for isochronous packet to handle.
+ * @header: (array length=header_length) (element-type guint8): The content of
+ * 	    header for IT context, nothing for IR context.
+ * @header_length: The number of bytes for @header.
+ * @payload_length: The number of bytes for payload of isochronous context.
+ * @interrupt: Whether to generate interrupt event for this chunk.
+ * @exception: A #GError.
+ *
+ * Register data on buffer for payload of isochronous context.
+ */
+void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
+				      HinokoFwIsoCtxMatchFlag tags, guint sy,
+				      const guint8 *header, guint header_length,
+				      guint payload_length, gboolean interrupt,
+				      GError **exception)
+{
+	HinokoFwIsoCtxPrivate *priv;
+	struct fw_cdev_iso_packet *datum;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	if (skip != TRUE && skip != FALSE) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	if (tags > 0 &&
+	    tags != HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 &&
+	    tags != HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 &&
+	    tags != HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 &&
+	    tags != HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	if (sy > 15) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+		if (!skip) {
+			if (header_length != priv->header_size) {
+				raise(exception, EINVAL);
+				return;
+			}
+
+			if (payload_length > priv->bytes_per_chunk) {
+				raise(exception, EINVAL);
+				return;
+			}
+		} else {
+			if (payload_length > 0 || header_length > 0 ||
+			    header != NULL) {
+				raise(exception, EINVAL);
+				return;
+			}
+		}
+	} else if (priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
+		   priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
+		if (tags > 0) {
+			raise(exception, EINVAL);
+			return;
+		}
+
+		if (sy > 0) {
+			raise(exception, EINVAL);
+			return;
+		}
+
+		if (header != NULL || header_length > 0) {
+			raise(exception, EINVAL);
+			return;
+		}
+
+		if (payload_length > 0) {
+			raise(exception, EINVAL);
+			return;
+		}
+	}
+
+	if (priv->data_length + sizeof(*datum) + header_length >
+						priv->alloc_data_length) {
+		raise(exception, ENOSPC);
+		return;
+	}
+
+	datum = (struct fw_cdev_iso_packet *)(priv->data + priv->data_length);
+	priv->data_length += sizeof(*datum) + header_length;
+
+	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+		if (!skip)
+			memcpy(datum->header, header, header_length);
+	} else {
+		payload_length = priv->bytes_per_chunk;
+
+		if (priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE)
+			header_length = priv->header_size;
+	}
+
+	datum->control =
+		FW_CDEV_ISO_PAYLOAD_LENGTH(payload_length) |
+		FW_CDEV_ISO_TAG(tags) |
+		FW_CDEV_ISO_SY(sy) |
+		FW_CDEV_ISO_HEADER_LENGTH(header_length);
+
+	if (skip)
+		datum->control |= FW_CDEV_ISO_SKIP;
+
+	if (interrupt)
+		datum->control |= FW_CDEV_ISO_INTERRUPT;
 }

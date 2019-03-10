@@ -21,6 +21,8 @@ struct _HinokoFwIsoRxSinglePrivate {
 	guint chunks_per_irq;
 	guint accumulate_chunk_count;
 	guint maximum_chunk_count;
+
+	const struct fw_cdev_event_iso_interrupt *ev;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -63,7 +65,9 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 	 * @count: the number of packets to handle.
 	 *
 	 * When any packet is available, the #HinokoFwIsoRxSingle::interrupted
-	 * signal is emitted with header of the packet.
+	 * signal is emitted with header of the packet. In a handler of the
+	 * signal, payload of received packet is available by a call of
+	 * #hinoko_fw_iso_rx_single_get_payload().
 	 */
 	fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_INTERRUPTED] =
 		g_signal_new("interrupted",
@@ -280,14 +284,78 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 	count = event->header_length / priv->header_size;
 
 	// TODO; handling error?
+	priv->ev = event;
 	g_signal_emit(self,
 		fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_INTERRUPTED],
 		0, sec, cycle, event->header, event->header_length, count);
+	priv->ev = NULL;
 
 	for (i = 0; i < priv->chunks_per_irq; ++i) {
 		// Register consumed chunks to reuse.
 		fw_iso_rx_single_register_chunk(self, FALSE, exception);
 		if (*exception != NULL)
 			return;
+	}
+}
+
+/**
+ * hinoko_fw_iso_rx_single_get_payload:
+ * @self: A #HinokoFwIsoRxSingle.
+ * @index: the index inner available packets.
+ * @payload: (element-type guint8) (array length=length) (out callee-allocates):
+ *	     An array with bytes for payload of IR context.
+ * @length: (out): The number of bytes in the above @payload.
+ * @exception: A #GError.
+ *
+ * Retrieve payload of IR context for a handled packet corresponding to index.
+ */
+void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
+					 const guint8 **payload, guint *length,
+					 GError **exception)
+{
+	HinokoFwIsoRxSinglePrivate *priv;
+	GValue val = G_VALUE_INIT;
+	unsigned int bytes_per_chunk;
+	unsigned int chunks_per_buffer;
+	unsigned int pos;
+	guint32 iso_header;
+	guint offset;
+	guint frame_size;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	if (priv->ev == NULL) {
+		raise(exception, ENODATA);
+		return;
+	}
+
+	if (index * priv->header_size >= priv->ev->header_length) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "bytes-per-chunk", &val);
+	bytes_per_chunk = g_value_get_uint(&val);
+	g_value_unset(&val);
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "chunks-per-buffer", &val);
+	chunks_per_buffer = g_value_get_uint(&val);
+
+	pos = index * priv->header_size / 4;
+	iso_header = GUINT32_FROM_BE(priv->ev->header[pos]);
+	*length = (iso_header & 0xffff0000) >> 16;
+	if (*length > bytes_per_chunk)
+		*length = bytes_per_chunk;
+
+	index = (priv->accumulate_chunk_count + index) % chunks_per_buffer;
+	offset = index * bytes_per_chunk;
+	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset, *length,
+				      payload, &frame_size);
+	if (frame_size != *length) {
+		raise(exception, EIO);
+		return;
 	}
 }

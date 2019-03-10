@@ -57,7 +57,8 @@ struct _HinokoFwIsoRxSingleClass {
 	 *
 	 * When any packet is available, the
 	 * #HinokoFwIsoRxSingleClass::interrupted handler is called with header
-	 * of the packet.
+	 * of the packet. In the handler, payload of received packet is
+	 * available by a call of #hinoko_fw_iso_rx_single_get_payload().
 	 */
 	void (*interrupted)(HinokoFwIsoRxSingle *self, guint sec, guint cycle,
 			    const guint8 *header, guint header_length,
@@ -85,6 +86,10 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 				   HinokoFwIsoCtxMatchFlag tags,
 				   guint packets_per_irq, GError **exception);
 void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self);
+
+void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
+					 const guint8 **payload, guint *length,
+					 GError **exception);
 
 G_END_DECLS
 

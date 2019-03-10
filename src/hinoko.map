@@ -19,6 +19,7 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_rx_single_start";
     "hinoko_fw_iso_rx_single_stop";
     "hinoko_sigs_marshal_VOID__UINT_UINT_POINTER_UINT_UINT";
+    "hinoko_fw_iso_rx_single_get_payload";
   local:
     *;
 };

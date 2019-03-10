@@ -31,9 +31,12 @@ G_BEGIN_DECLS
 
 typedef struct _HinokoFwIsoCtx		HinokoFwIsoCtx;
 typedef struct _HinokoFwIsoCtxClass	HinokoFwIsoCtxClass;
+typedef struct _HinokoFwIsoCtxPrivate	HinokoFwIsoCtxPrivate;
 
 struct _HinokoFwIsoCtx {
 	GObject parent_instance;
+
+	HinokoFwIsoCtxPrivate *priv;
 };
 
 struct _HinokoFwIsoCtxClass {

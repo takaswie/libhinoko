@@ -45,6 +45,17 @@ struct _HinokoFwIsoRxMultiple {
 
 struct _HinokoFwIsoRxMultipleClass {
 	HinokoFwIsoCtxClass parent_class;
+
+	/**
+	 * HinokoFwIsoRxMultipleClass::interrupted:
+	 * @self: A #HinokoFwIsoRxMultiple.
+	 * @count: The number of packets available in this interrupt.
+	 *
+	 * When any packet is available, the handler of
+	 * #HinokoFwIsoRxMultipleClass::interrupted is called with the number of
+	 * available packets.
+	 */
+	void (*interrupted)(HinokoFwIsoRxMultiple *self, guint count);
 };
 
 GType hinoko_fw_iso_rx_multiple_get_type(void) G_GNUC_CONST;

@@ -63,7 +63,7 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 		g_signal_new("interrupted",
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
-			0,
+			G_STRUCT_OFFSET(HinokoFwIsoRxMultipleClass, interrupted),
 			NULL, NULL,
 			g_cclosure_marshal_VOID__UINT,
 			G_TYPE_NONE,

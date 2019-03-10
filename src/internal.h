@@ -12,5 +12,8 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				guint channel, guint header_size,
 				GError **exception);
 void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self);
+void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
+				  guint chunks_per_buffer, GError **exception);
+void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self);
 
 #endif

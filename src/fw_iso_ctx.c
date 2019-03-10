@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include <errno.h>
 #include <linux/firewire-cdev.h>
 
@@ -25,6 +26,9 @@ struct _HinokoFwIsoCtxPrivate {
 
 	HinokoFwIsoCtxMode mode;
 	guint header_size;
+	guchar *addr;
+	guint bytes_per_chunk;
+	guint chunks_per_buffer;
 };
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx,
 				    G_TYPE_OBJECT)
@@ -187,8 +191,84 @@ void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
+	hinoko_fw_iso_ctx_unmap_buffer(self);
+
 	if (priv->fd >= 0)
 		close(priv->fd);
 
 	priv->fd = -1;
+}
+
+/**
+ * hinoko_fw_iso_ctx_map_buffer:
+ * @self: A #HinokoFwIsoCtx.
+ * @bytes_per_chunk: The number of bytes per chunk in buffer going to be
+ *		     allocated.
+ * @chunks_per_buffer: The number of chunks in buffer going to be allocated.
+ * @exception: A #GError.
+ *
+ * Map intermediate buffer to share payload of isochronous context with 1394
+ * OHCI controller.
+ */
+void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
+				  guint chunks_per_buffer, GError **exception)
+{
+	HinokoFwIsoCtxPrivate *priv;
+	int prot;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
+
+	if (priv->addr != NULL) {
+		raise(exception, EBUSY);
+		return;
+	}
+
+	if (bytes_per_chunk == 0 ||
+	    chunks_per_buffer == 0) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	prot = PROT_READ;
+	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+		prot |= PROT_WRITE;
+
+	// Align to size of page.
+	priv->addr = mmap(NULL, bytes_per_chunk * chunks_per_buffer, prot,
+			  MAP_SHARED, priv->fd, 0);
+	if (priv->addr == MAP_FAILED) {
+		raise(exception, errno);
+		return;
+	}
+
+	priv->bytes_per_chunk = bytes_per_chunk;
+	priv->chunks_per_buffer = chunks_per_buffer;
+}
+
+/**
+ * hinoko_fw_iso_ctx_unmap_buffer:
+ * @self: A #HinokoFwIsoCtx.
+ *
+ * Unmap intermediate buffer shard with 1394 OHCI controller for payload
+ * of isochronous context.
+ */
+void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
+{
+	HinokoFwIsoCtxPrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	if (priv->addr != NULL) {
+		munmap(priv->addr,
+		       priv->bytes_per_chunk * priv->chunks_per_buffer);
+	}
+
+	priv->addr = NULL;
 }

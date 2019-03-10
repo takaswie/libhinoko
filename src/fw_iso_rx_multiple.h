@@ -63,6 +63,12 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 					  GError **exception);
 void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self);
 
+void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
+				     const guint16 *cycle_match, guint32 sync,
+				     HinokoFwIsoCtxMatchFlag tags,
+				     guint chunks_per_irq, GError **exception);
+void hinoko_fw_iso_rx_multiple_stop(HinokoFwIsoRxMultiple *self);
+
 G_END_DECLS
 
 #endif

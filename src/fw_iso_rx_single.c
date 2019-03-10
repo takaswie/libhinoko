@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 #include "internal.h"
+#include "hinoko_sigs_marshal.h"
 
 #include <errno.h>
 
@@ -39,11 +40,41 @@ static void fw_iso_rx_single_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinoko_fw_iso_rx_single_parent_class)->finalize(obj);
 }
 
+enum fw_iso_rx_single_sig_type {
+	FW_ISO_RX_SINGLE_SIG_TYPE_INTERRUPTED = 1,
+	FW_ISO_RX_SINGLE_SIG_TYPE_COUNT,
+};
+static guint fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_COUNT] = { 0 };
+
 static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_rx_single_finalize;
+
+	/**
+	 * HinokoFwIsoRxSingle::interrupted:
+	 * @self: A #HinokoFwIsoRxSingle.
+	 * @sec: sec part of isochronous cycle when interrupt occurs.
+	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
+	 * @header: (array length=header_length) (element-type guint8): The
+	 * 	    headers of IR context for handled packets.
+	 * @header_length: the number of bytes for @header.
+	 * @count: the number of packets to handle.
+	 *
+	 * When any packet is available, the #HinokoFwIsoRxSingle::interrupted
+	 * signal is emitted with header of the packet.
+	 */
+	fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_INTERRUPTED] =
+		g_signal_new("interrupted",
+			G_OBJECT_CLASS_TYPE(klass),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL, NULL,
+			hinoko_sigs_marshal_VOID__UINT_UINT_POINTER_UINT_UINT,
+			G_TYPE_NONE,
+			5, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_POINTER,
+			G_TYPE_UINT, G_TYPE_UINT);
 }
 
 static void hinoko_fw_iso_rx_single_init(HinokoFwIsoRxSingle *self)
@@ -236,10 +267,22 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 				GError **exception)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
+	guint sec;
+	guint cycle;
+	guint count;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	sec = (event->cycle & 0x0000e000) >> 13;
+	cycle = event->cycle & 0x00001fff;
+	count = event->header_length / priv->header_size;
+
+	// TODO; handling error?
+	g_signal_emit(self,
+		fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_INTERRUPTED],
+		0, sec, cycle, event->header, event->header_length, count);
 
 	for (i = 0; i < priv->chunks_per_irq; ++i) {
 		// Register consumed chunks to reuse.

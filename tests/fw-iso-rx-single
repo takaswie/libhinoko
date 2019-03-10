@@ -21,7 +21,9 @@ methods = (
     'stop',
 )
 vmethods = ()
-signals = ()
+signals = (
+    'interrupted',
+)
 
 if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)

@@ -9,9 +9,11 @@ dependencies = [
 ]
 
 sources = [
+  'fw_iso_ctx.c',
 ]
 
 headers = [
+  'fw_iso_ctx.h',
 ]
 
 # Generate marshallers for GObject signals.

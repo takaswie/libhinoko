@@ -851,3 +851,39 @@ void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 	priv->data_length = 0;
 	priv->curr_offset = 0;
 }
+
+/**
+ * hinoko_fw_iso_ctx_read_frames:
+ * @self: A #HinokoFwIsoCtx.
+ * @offset: offset from head of buffer.
+ * @length: the number of bytes to read.
+ * @frames: (array length=frame_size) (element-type guint8) (out) (nullable):
+ * 	    A #GByteArray, filled with the same number of bytes as @frame_size.
+ * @frame_size: this value is for a case to truncate due to the end of buffer.
+ *
+ * Read frames to given buffer.
+ */
+void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
+				   guint length, const guint8 **frames,
+				   guint *frame_size)
+{
+	HinokoFwIsoCtxPrivate *priv;
+	unsigned int bytes_per_buffer;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	bytes_per_buffer = priv->bytes_per_chunk * priv->chunks_per_buffer;
+	if (offset > bytes_per_buffer) {
+		*frames = NULL;
+		*frame_size = 0;
+		return;
+	}
+
+	*frames = priv->addr + offset;
+
+	if (offset + length < bytes_per_buffer)
+		*frame_size = length;
+	else
+		*frame_size = bytes_per_buffer - offset;
+}

@@ -25,6 +25,9 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 			     guint32 sync, HinokoFwIsoCtxMatchFlag tags,
 			     GError **exception);
 void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self);
+void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
+				   guint length, const guint8 **frames,
+				   guint *frame_size);
 
 void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 				struct fw_cdev_event_iso_interrupt *event,

@@ -230,3 +230,21 @@ void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self)
 
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
 }
+
+void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
+				struct fw_cdev_event_iso_interrupt *event,
+				GError **exception)
+{
+	HinokoFwIsoRxSinglePrivate *priv;
+	int i;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	for (i = 0; i < priv->chunks_per_irq; ++i) {
+		// Register consumed chunks to reuse.
+		fw_iso_rx_single_register_chunk(self, FALSE, exception);
+		if (*exception != NULL)
+			return;
+	}
+}

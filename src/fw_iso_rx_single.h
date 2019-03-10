@@ -62,6 +62,12 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					GError **exception);
 void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self);
 
+void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
+				   const guint16 *cycle_match, guint32 sync,
+				   HinokoFwIsoCtxMatchFlag tags,
+				   guint packets_per_irq, GError **exception);
+void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self);
+
 G_END_DECLS
 
 #endif

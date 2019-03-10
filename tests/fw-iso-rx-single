@@ -17,6 +17,8 @@ methods = (
     'release',
     'map_buffer',
     'unmap_buffer',
+    'start',
+    'stop',
 )
 vmethods = ()
 signals = ()

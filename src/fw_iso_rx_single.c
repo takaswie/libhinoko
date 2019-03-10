@@ -17,6 +17,9 @@
  */
 struct _HinokoFwIsoRxSinglePrivate {
 	guint header_size;
+	guint chunks_per_irq;
+	guint accumulate_chunk_count;
+	guint maximum_chunk_count;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -142,5 +145,88 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 
+	hinoko_fw_iso_rx_single_stop(self);
 	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
+}
+
+static void fw_iso_rx_single_register_chunk(HinokoFwIsoRxSingle *self,
+					    gboolean skip, GError **exception)
+{
+	HinokoFwIsoRxSinglePrivate *priv;
+	gboolean irq;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	++priv->accumulate_chunk_count;
+	priv->accumulate_chunk_count %= priv->maximum_chunk_count;
+	if (priv->accumulate_chunk_count % priv->chunks_per_irq == 0)
+		irq = TRUE;
+	else
+		irq = FALSE;
+
+	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, 0, 0,
+					 NULL, 0, 0, irq, exception);
+}
+
+/**
+ * hinoko_fw_iso_rx_single_start:
+ * @self: A #HinokoFwIsoRxSingle.
+ * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable):
+ * 		 The isochronous cycle to start packet processing. The first
+ * 		 element should be the second part of isochronous cycle, up to
+ * 		 3. The second element should be the cycle part of isochronous
+ * 		 cycle, up to 7999.
+ * @sync: The value of sync field in isochronous header for packet processing,
+ * 	  up to 15.
+ * @tags: The value of tag field in isochronous header for packet processing.
+ * @packets_per_irq: The number of packets as interval of event. Skip cycles are
+ *		     ignored.
+ * @exception: A #GError.
+ *
+ * Start IR context.
+ */
+void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
+				   const guint16 *cycle_match, guint32 sync,
+				   HinokoFwIsoCtxMatchFlag tags,
+				   guint packets_per_irq, GError **exception)
+{
+	HinokoFwIsoRxSinglePrivate *priv;
+	GValue val = G_VALUE_INIT;
+	unsigned int chunks_per_buffer;
+	int i;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	priv->chunks_per_irq = packets_per_irq;
+	priv->maximum_chunk_count = G_MAXUINT / 2 / packets_per_irq;
+	priv->maximum_chunk_count *= packets_per_irq;
+	priv->accumulate_chunk_count = 0;
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "chunks-per-buffer", &val);
+	chunks_per_buffer = g_value_get_uint(&val);
+
+	for (i = 0; i < chunks_per_buffer; ++i) {
+		fw_iso_rx_single_register_chunk(self, FALSE, exception);
+		if (*exception != NULL)
+			return;
+	}
+
+	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync,
+				tags, exception);
+}
+
+/**
+ * hinoko_fw_iso_rx_single_stop:
+ * @self: A #HinokoFwIsoRxSingle.
+ *
+ * Stop IR context.
+ */
+void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+
+	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
 }

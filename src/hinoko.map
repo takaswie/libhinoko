@@ -16,6 +16,8 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_rx_single_release";
     "hinoko_fw_iso_rx_single_map_buffer";
     "hinoko_fw_iso_rx_single_unmap_buffer";
+    "hinoko_fw_iso_rx_single_start";
+    "hinoko_fw_iso_rx_single_stop";
   local:
     *;
 };

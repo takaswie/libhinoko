@@ -35,6 +35,8 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_tx_get_type";
     "hinoko_fw_iso_tx_new";
     "hinoko_fw_iso_tx_quark";
+    "hinoko_fw_iso_tx_allocate";
+    "hinoko_fw_iso_tx_release";
   local:
     *;
 };

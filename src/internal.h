@@ -8,6 +8,7 @@
 #include "fw_iso_ctx.h"
 #include "fw_iso_rx_single.h"
 #include "fw_iso_rx_multiple.h"
+#include "fw_iso_tx.h"
 
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,

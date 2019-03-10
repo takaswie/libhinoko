@@ -6,6 +6,7 @@
 #include <glib-object.h>
 
 #include <fw_iso_ctx.h>
+#include <hinoko_enum_types.h>
 
 G_BEGIN_DECLS
 
@@ -48,6 +49,11 @@ struct _HinokoFwIsoTxClass {
 GType hinoko_fw_iso_tx_get_type(void) G_GNUC_CONST;
 
 HinokoFwIsoTx *hinoko_fw_iso_tx_new(void);
+
+void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
+			       HinokoFwScode scode, guint channel,
+			       guint header_size, GError **exception);
+void hinoko_fw_iso_tx_release(HinokoFwIsoTx *self);
 
 G_END_DECLS
 

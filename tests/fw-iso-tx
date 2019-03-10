@@ -13,6 +13,8 @@ target = Hinoko.FwIsoTx()
 props = ()
 methods = (
     'new',
+    'allocate',
+    'release',
 )
 vmethods = ()
 signals = ()

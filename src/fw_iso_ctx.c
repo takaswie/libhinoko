@@ -34,8 +34,10 @@ struct _HinokoFwIsoCtxPrivate {
 	guint8 *data;
 	guint data_length;
 	guint alloc_data_length;
-
 	guint registered_chunk_count;
+
+	guint curr_offset;
+	gboolean running;
 };
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx,
 				    G_TYPE_OBJECT)
@@ -292,6 +294,8 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
+	hinoko_fw_iso_ctx_stop(self);
+
 	if (priv->addr != NULL) {
 		munmap(priv->addr,
 		       priv->bytes_per_chunk * priv->chunks_per_buffer);
@@ -443,6 +447,7 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 
 	datum = (struct fw_cdev_iso_packet *)(priv->data + priv->data_length);
 	priv->data_length += sizeof(*datum) + header_length;
+	++priv->registered_chunk_count;
 
 	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
 		if (!skip)
@@ -465,6 +470,93 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 
 	if (interrupt)
 		datum->control |= FW_CDEV_ISO_INTERRUPT;
+}
+
+static int fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self)
+{
+	HinokoFwIsoCtxPrivate *priv;
+	guint data_offset = 0;
+	int chunk_count = 0;
+	unsigned int bytes_per_buffer;
+	guint buf_offset;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), EINVAL);
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	bytes_per_buffer = priv->bytes_per_chunk * priv->chunks_per_buffer;
+	buf_offset = priv->curr_offset;
+
+	while (data_offset < priv->data_length) {
+		struct fw_cdev_queue_iso arg = {0};
+		guint buf_length = 0;
+		guint data_length = 0;
+
+		while (buf_offset + buf_length < bytes_per_buffer &&
+		       data_offset + data_length < priv->data_length) {
+			struct fw_cdev_iso_packet *datum;
+			guint payload_length;
+			guint header_length;
+			guint datum_length;
+
+			datum = (struct fw_cdev_iso_packet *)
+				(priv->data + data_offset + data_length);
+			payload_length = datum->control & 0x0000ffff;
+			header_length = (datum->control & 0xff000000) >> 24;
+
+			if (buf_offset + buf_length + payload_length >
+							bytes_per_buffer) {
+				buf_offset = 0;
+				break;
+			}
+
+			datum_length = sizeof(*datum);
+			if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+				datum_length += header_length;
+
+			g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d: %d",
+				chunk_count,
+				data_offset + data_length,
+				data_offset + data_length + datum_length,
+				priv->alloc_data_length,
+				buf_offset + buf_length,
+				buf_offset + buf_length + payload_length,
+				bytes_per_buffer,
+				!!(datum->control & FW_CDEV_ISO_INTERRUPT));
+
+			buf_length += payload_length;
+			data_length += datum_length;
+			++chunk_count;
+		}
+
+		arg.packets = (__u64)(priv->data + data_offset);
+		arg.size = data_length;
+		arg.data = (__u64)(priv->addr + buf_offset);
+		arg.handle = priv->handle;
+		if (ioctl(priv->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0)
+			return errno;
+
+		g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d",
+			chunk_count,
+			data_offset, data_offset + data_length,
+			priv->alloc_data_length,
+			buf_offset, buf_offset + buf_length,
+			bytes_per_buffer);
+
+		buf_offset += buf_length;
+		buf_offset %= bytes_per_buffer;
+
+		data_offset += data_length;
+	}
+
+	if (chunk_count != priv->registered_chunk_count)
+		; // Something wrong...
+
+	priv->curr_offset = buf_offset;
+
+	priv->data_length = 0;
+	priv->registered_chunk_count = 0;
+
+	return 0;
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -567,4 +659,125 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **src,
 	((FwIsoCtxSource *)*src)->tag =
 				g_source_add_unix_fd(*src, priv->fd, G_IO_IN);
 	((FwIsoCtxSource *)*src)->fd = priv->fd;
+}
+
+/**
+ * hinoko_fw_iso_ctx_start:
+ * @self: A #HinokoFwIsoCtx.
+ * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable):
+ * 		 The isochronous cycle to start packet processing. The first
+ * 		 element should be the second part of isochronous cycle, up to
+ * 		 3. The second element should be the cycle part of isochronous
+ * 		 cycle, up to 7999.
+ * @sync: The value of sync field in isochronous header for packet processing,
+ * 	  up to 15.
+ * @tags: The value of tag field in isochronous header for packet processing.
+ * @exception: A #GError.
+ *
+ * Start isochronous context.
+ */
+void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
+			     guint32 sync, HinokoFwIsoCtxMatchFlag tags,
+			     GError **exception)
+{
+	struct fw_cdev_start_iso arg = {0};
+	HinokoFwIsoCtxPrivate *priv;
+	gint cycle;
+	int err;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	if (priv->fd < 0 || priv->addr == NULL) {
+		raise(exception, ENXIO);
+		return;
+	}
+
+	if (cycle_match == NULL) {
+		cycle = -1;
+	} else {
+		if (cycle_match[0] > 3) {
+			raise(exception, EINVAL);
+			return;
+		}
+		if (cycle_match[1] > 7900) {
+			raise(exception, EINVAL);
+			return;
+		}
+
+		cycle = (cycle_match[0] << 13) | cycle_match[1];
+	}
+
+	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+		if (sync > 0) {
+			raise(exception, EINVAL);
+			return;
+		}
+
+		if (tags > 0) {
+			raise(exception, EINVAL);
+			return;
+		}
+	} else {
+		if (sync > 15) {
+			raise(exception, EINVAL);
+			return;
+		}
+
+		if (tags > (HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 |
+			    HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 |
+			    HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 |
+			    HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3)) {
+			raise(exception, EINVAL);
+			return;
+		}
+	}
+
+	// Not prepared.
+	if (priv->data_length == 0) {
+		raise(exception, ENODATA);
+		return;
+	}
+	err = fw_iso_ctx_queue_chunks(self);
+	if (err != 0) {
+		raise(exception, err);
+		return;
+	}
+
+	arg.sync = sync;
+	arg.cycle = cycle;
+	arg.tags = tags;
+	arg.handle = priv->handle;
+	if (ioctl(priv->fd, FW_CDEV_IOC_START_ISO, &arg) < 0) {
+		raise(exception, err);
+		return;
+	}
+
+	priv->running = TRUE;
+}
+
+/**
+ * hinoko_fw_iso_ctx_stop:
+ * @self: A #HinokoFwIsoCtx.
+ *
+ * Stop isochronous context.
+ */
+void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
+{
+	struct fw_cdev_stop_iso arg = {0};
+	HinokoFwIsoCtxPrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	if (!priv->running)
+		return;
+
+	arg.handle = priv->handle;
+	ioctl(priv->fd, FW_CDEV_IOC_STOP_ISO, &arg);
+
+	priv->running = FALSE;
+	priv->registered_chunk_count = 0;
+	priv->data_length = 0;
+	priv->curr_offset = 0;
 }

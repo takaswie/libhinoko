@@ -20,5 +20,9 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 				      const guint8 *header, guint header_length,
 				      guint payload_length, gboolean interrupt,
 				      GError **exception);
+void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
+			     guint32 sync, HinokoFwIsoCtxMatchFlag tags,
+			     GError **exception);
+void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self);
 
 #endif

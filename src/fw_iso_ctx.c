@@ -703,6 +703,16 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 			goto end;
 
 		fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(common->closure));
+	} else if (common->type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL &&
+		   HINOKO_IS_FW_ISO_RX_MULTIPLE(common->closure)) {
+		hinoko_fw_iso_rx_multiple_handle_event(
+				HINOKO_FW_ISO_RX_MULTIPLE(common->closure),
+				(struct fw_cdev_event_iso_interrupt_mc *)common,
+				&exception);
+		if (exception != NULL)
+			goto end;
+
+		fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(common->closure));
 	}
 end:
 	// Just be sure to continue to process this source.

@@ -37,4 +37,8 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 				struct fw_cdev_event_iso_interrupt *event,
 				GError **exception);
 
+void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
+				struct fw_cdev_event_iso_interrupt_mc *event,
+				GError **exception);
+
 #endif

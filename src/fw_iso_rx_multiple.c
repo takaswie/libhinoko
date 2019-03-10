@@ -17,6 +17,8 @@ struct _HinokoFwIsoRxMultiplePrivate {
 	guint chunks_per_irq;
 	guint accumulate_chunk_count;
 	guint maximum_chunk_count;
+
+	guint prev_offset;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -264,6 +266,7 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 			return;
 	}
 
+	priv->prev_offset = 0;
 	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync,
 				tags, exception);
 }
@@ -279,4 +282,80 @@ void hinoko_fw_iso_rx_multiple_stop(HinokoFwIsoRxMultiple *self)
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
+}
+
+void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
+				struct fw_cdev_event_iso_interrupt_mc *event,
+				GError **exception)
+{
+	HinokoFwIsoRxMultiplePrivate *priv;
+	GValue val = G_VALUE_INIT;
+	unsigned int bytes_per_chunk;
+	unsigned int chunks_per_buffer;
+	unsigned int bytes_per_buffer;
+	unsigned int accum_end;
+	unsigned int accum_length;
+	unsigned int chunk_pos;
+	unsigned int chunk_end;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "bytes-per-chunk", &val);
+	bytes_per_chunk = g_value_get_uint(&val);
+	g_value_unset(&val);
+
+	g_value_init(&val, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "chunks-per-buffer", &val);
+	chunks_per_buffer = g_value_get_uint(&val);
+
+	bytes_per_buffer = bytes_per_chunk * chunks_per_buffer;
+
+	accum_end = event->completed;
+	if (accum_end < priv->prev_offset)
+		accum_end += bytes_per_buffer;
+
+	accum_length = 0;
+	while (TRUE) {
+		unsigned int avail = accum_end - priv->prev_offset - accum_length;
+		guint offset;
+		const guint8 *frames;
+		const guint32 *buf;
+		guint32 iso_header;
+		guint frame_size;
+		unsigned int length;
+
+		if (avail < 4)
+			break;
+
+		offset = (priv->prev_offset + accum_length) % bytes_per_buffer;
+		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset,
+					      4, &frames, &frame_size);
+
+		buf = (const guint32 *)frames;
+		iso_header = GUINT32_FROM_LE(buf[0]);
+		length = (iso_header & 0xffff0000) >> 16;
+
+		// In buffer-fill mode, payload is sandwitched by heading
+		// isochronous header and trailing timestamp.
+		length += 8;
+
+		if (avail < length)
+			break;
+
+		// For next position.
+		accum_length += length;
+	}
+
+	chunk_pos = priv->prev_offset / bytes_per_chunk;
+	chunk_end = (priv->prev_offset + accum_length) / bytes_per_chunk;
+	for (; chunk_pos < chunk_end; ++chunk_pos) {
+		fw_iso_rx_multiple_register_chunk(self, FALSE, exception);
+		if (*exception != NULL)
+			return;
+	}
+
+	priv->prev_offset += accum_length;
+	priv->prev_offset %= bytes_per_buffer;
 }

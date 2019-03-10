@@ -5,6 +5,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
+#include <hinoko_enums.h>
+
 G_BEGIN_DECLS
 
 #define HINOKO_TYPE_FW_ISO_CTX	(hinoko_fw_iso_ctx_get_type())

@@ -9,6 +9,7 @@ images = [
 ]
 
 private_headers = [
+  'internal.h',
 ]
 
 gnome.gtkdoc('hinoko',

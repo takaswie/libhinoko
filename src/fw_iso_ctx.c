@@ -56,6 +56,43 @@ typedef struct {
 	void *buf;
 } FwIsoCtxSource;
 
+enum fw_iso_ctx_prop_type {
+	FW_ISO_CTX_PROP_TYPE_BYTES_PER_CHUNK = 1,
+	FW_ISO_CTX_PROP_TYPE_CHUNKS_PER_BUFFER,
+	FW_ISO_CTX_PROP_TYPE_REGISTERED_CHUNK_COUNT,
+	FW_ISO_CTX_PROP_TYPE_COUNT,
+};
+static GParamSpec *fw_iso_ctx_props[FW_ISO_CTX_PROP_TYPE_COUNT] = { NULL, };
+
+static void fw_iso_ctx_get_property(GObject *obj, guint id, GValue *val,
+				    GParamSpec *spec)
+{
+	HinokoFwIsoCtx *self = HINOKO_FW_ISO_CTX(obj);
+	HinokoFwIsoCtxPrivate *priv =
+				hinoko_fw_iso_ctx_get_instance_private(self);
+
+	switch (id) {
+	case FW_ISO_CTX_PROP_TYPE_BYTES_PER_CHUNK:
+		g_value_set_uint(val, priv->bytes_per_chunk);
+		break;
+	case FW_ISO_CTX_PROP_TYPE_CHUNKS_PER_BUFFER:
+		g_value_set_uint(val, priv->chunks_per_buffer);
+		break;
+	case FW_ISO_CTX_PROP_TYPE_REGISTERED_CHUNK_COUNT:
+		g_value_set_uint(val, priv->registered_chunk_count);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		break;
+	}
+}
+
+static void fw_iso_ctx_set_property(GObject *obj, guint id, const GValue *val,
+				    GParamSpec *spec)
+{
+	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+}
+
 static void fw_iso_ctx_finalize(GObject *obj)
 {
 	HinokoFwIsoCtx *self = HINOKO_FW_ISO_CTX(obj);
@@ -69,7 +106,30 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
+	gobject_class->get_property = fw_iso_ctx_get_property;
+	gobject_class->set_property = fw_iso_ctx_set_property;
 	gobject_class->finalize = fw_iso_ctx_finalize;
+
+	fw_iso_ctx_props[FW_ISO_CTX_PROP_TYPE_BYTES_PER_CHUNK] =
+		g_param_spec_uint("bytes-per-chunk", "bytes-per-chunk",
+				  "The number of bytes for chunk in buffer.",
+				  0, G_MAXUINT, 0,
+				  G_PARAM_READABLE);
+	fw_iso_ctx_props[FW_ISO_CTX_PROP_TYPE_CHUNKS_PER_BUFFER] =
+		g_param_spec_uint("chunks-per-buffer", "chunks-per-buffer",
+				  "The number of chunks in buffer.",
+				  0, G_MAXUINT, 0,
+				  G_PARAM_READABLE);
+	fw_iso_ctx_props[FW_ISO_CTX_PROP_TYPE_REGISTERED_CHUNK_COUNT] =
+		g_param_spec_uint("registered-chunk-count",
+				  "registered-chunk-count",
+				  "The number of chunk to be registered.",
+				  0, G_MAXUINT, 0,
+				  G_PARAM_READABLE);
+
+	g_object_class_install_properties(gobject_class,
+					  FW_ISO_CTX_PROP_TYPE_COUNT,
+					  fw_iso_ctx_props);
 }
 
 static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)

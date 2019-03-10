@@ -31,6 +31,9 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_rx_multiple_start";
     "hinoko_fw_iso_rx_multiple_stop";
     "hinoko_fw_iso_rx_multiple_get_payload";
+
+    "hinoko_fw_iso_tx_get_type";
+    "hinoko_fw_iso_tx_new";
   local:
     *;
 };

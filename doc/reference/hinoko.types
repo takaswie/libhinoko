@@ -3,4 +3,5 @@ hinoko_fw_iso_ctx_match_flag_get_type
 hinoko_fw_iso_ctx_mode_get_type
 hinoko_fw_iso_rx_multiple_get_type
 hinoko_fw_iso_rx_single_get_type
+hinoko_fw_iso_tx_get_type
 hinoko_fw_scode_get_type

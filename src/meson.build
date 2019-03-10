@@ -11,11 +11,13 @@ dependencies = [
 sources = [
   'fw_iso_ctx.c',
   'fw_iso_rx_single.c',
+  'fw_iso_rx_multiple.c',
 ]
 
 headers = [
   'fw_iso_ctx.h',
   'fw_iso_rx_single.h',
+  'fw_iso_rx_multiple.h',
 ]
 
 # Generate marshallers for GObject signals.

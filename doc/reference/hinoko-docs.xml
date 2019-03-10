@@ -39,6 +39,7 @@
         <title>Hinoko objects for isochronous context of 1394 OHCI.</title>
         <xi:include href="xml/fw_iso_ctx.xml"/>
         <xi:include href="xml/fw_iso_rx_single.xml"/>
+        <xi:include href="xml/fw_iso_rx_multiple.xml"/>
     </chapter>
 
     <index id="index-all">

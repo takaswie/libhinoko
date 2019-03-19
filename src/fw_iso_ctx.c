@@ -46,6 +46,14 @@ G_DEFINE_QUARK("HinokoFwIsoCtx", hinoko_fw_iso_ctx)
 	g_set_error(exception, hinoko_fw_iso_ctx_quark(), errno,	\
 		    "%d: %s", __LINE__, strerror(errno))
 
+typedef struct {
+	GSource src;
+	int fd;
+	gpointer tag;
+	unsigned int len;
+	void *buf;
+} FwIsoCtxSource;
+
 static void fw_iso_ctx_finalize(GObject *obj)
 {
 	HinokoFwIsoCtx *self = HINOKO_FW_ISO_CTX(obj);
@@ -457,4 +465,106 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 
 	if (interrupt)
 		datum->control |= FW_CDEV_ISO_INTERRUPT;
+}
+
+static gboolean prepare_src(GSource *src, gint *timeout)
+{
+	// Blocking this process to save CPU time.
+	*timeout = 200;
+
+	// This source is not ready, let's poll(2).
+	return FALSE;
+}
+
+static gboolean check_src(GSource *gsrc)
+{
+	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
+	GIOCondition condition;
+
+	condition = g_source_query_unix_fd(gsrc, src->tag);
+	if (condition & G_IO_ERR)
+		return FALSE;
+
+	// Don't go to dispatch if nothing available.
+	return !!(condition & G_IO_IN);
+}
+
+static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
+{
+	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
+	struct fw_cdev_event_common *common;
+	int len;
+
+	len = read(src->fd, src->buf, src->len);
+	if (len <= 0)
+		goto end;
+
+	common = (struct fw_cdev_event_common *)src->buf;
+	if (!HINOKO_IS_FW_ISO_CTX(common->closure))
+		goto end;
+
+	// TODO: dispatch event.
+end:
+	// Just be sure to continue to process this source.
+	return TRUE;
+}
+
+static void finalize_src(GSource *gsrc)
+{
+	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
+
+	g_free(src->buf);
+}
+
+/**
+ * hinoko_fw_iso_ctx_create_source:
+ * @self: A #hinokoFwIsoCtx.
+ * @src: (out): A #GSource.
+ * @exception: A #GError.
+ *
+ * Create Gsource for GMainContext to dispatch events for isochronous context.
+ */
+void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **src,
+				     GError **exception)
+{
+	static GSourceFuncs funcs = {
+		.prepare	= prepare_src,
+		.check		= check_src,
+		.dispatch	= dispatch_src,
+		.finalize	= finalize_src,
+	};
+	HinokoFwIsoCtxPrivate *priv;
+	void *buf;
+	unsigned int len;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	/*
+	 * MEMO: allocate one page because we cannot assume the size of
+	 * transaction frame.
+	 */
+	len = sysconf(_SC_PAGESIZE);
+	buf = g_malloc0(len);
+	if (buf == NULL) {
+		raise(exception, ENOMEM);
+		return;
+	}
+
+	*src = g_source_new(&funcs, sizeof(FwIsoCtxSource));
+	if (*src == NULL) {
+		raise(exception, ENOMEM);
+		g_free(buf);
+		return;
+	}
+
+	g_source_set_name(*src, "HinokoFwIsoCtx");
+	g_source_set_priority(*src, G_PRIORITY_HIGH_IDLE);
+	g_source_set_can_recurse(*src, TRUE);
+
+	((FwIsoCtxSource *)*src)->len = len;
+	((FwIsoCtxSource *)*src)->buf = buf;
+	((FwIsoCtxSource *)*src)->tag =
+				g_source_add_unix_fd(*src, priv->fd, G_IO_IN);
+	((FwIsoCtxSource *)*src)->fd = priv->fd;
 }

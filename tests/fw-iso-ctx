@@ -13,6 +13,7 @@ target = Hinoko.FwIsoCtx
 props = ()
 methods = (
     'get_cycle_timer',
+    'create_source',
 )
 vmethods = ()
 signals = ()

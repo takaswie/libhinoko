@@ -38,6 +38,12 @@ G_DEFINE_QUARK("HinokoFwIsoRxMultiple", hinoko_fw_iso_rx_multiple)
 	g_set_error(exception, hinoko_fw_iso_rx_multiple_quark(), errno, \
 		    "%d: %s", __LINE__, strerror(errno))
 
+enum fw_iso_rx_multiple_prop_type {
+	FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS = 1,
+	FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT,
+};
+static GParamSpec *fw_iso_rx_multiple_props[FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT] = { NULL, };
+
 enum fw_iso_rx_multiple_sig_type {
 	FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED = 1,
 	FW_ISO_RX_MULTIPLE_SIG_TYPE_COUNT,
@@ -53,11 +59,47 @@ static void fw_iso_rx_multiple_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinoko_fw_iso_rx_multiple_parent_class)->finalize(obj);
 }
 
+static void fw_iso_rx_multiple_get_property(GObject *obj, guint id, GValue *val,
+					    GParamSpec *spec)
+{
+	HinokoFwIsoRxMultiple *self = HINOKO_FW_ISO_RX_MULTIPLE(obj);
+	HinokoFwIsoRxMultiplePrivate *priv =
+			hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	switch (id) {
+	case FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS:
+		g_value_set_static_boxed(val, priv->channels);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		break;
+	}
+}
+
+static void fw_iso_rx_multiple_set_property(GObject *obj, guint id,
+					    const GValue *val, GParamSpec *spec)
+{
+	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+}
+
 static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_rx_multiple_finalize;
+	gobject_class->get_property = fw_iso_rx_multiple_get_property;
+	gobject_class->set_property = fw_iso_rx_multiple_set_property;
+
+	fw_iso_rx_multiple_props[FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS] =
+		g_param_spec_boxed("channels", "channels",
+				   "The array with elements to represent "
+				   "channels to be listened to",
+				   G_TYPE_BYTE_ARRAY,
+				   G_PARAM_READABLE);
+
+	g_object_class_install_properties(gobject_class,
+					  FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT,
+					  fw_iso_rx_multiple_props);
 
 	/**
 	 * HinokoFwIsoRxMultiple::interrupted:

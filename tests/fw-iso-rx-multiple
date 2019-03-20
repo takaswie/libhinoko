@@ -10,7 +10,9 @@ gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
 target = Hinoko.FwIsoRxMultiple()
-props = ()
+props = (
+    'channels',
+)
 methods = (
     'new',
     'allocate',

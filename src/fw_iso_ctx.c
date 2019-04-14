@@ -13,6 +13,12 @@
  */
 G_DEFINE_ABSTRACT_TYPE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
 
+// For error handling.
+G_DEFINE_QUARK("HinokoFwIsoCtx", hinoko_fw_iso_ctx)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinoko_fw_iso_ctx_quark(), errno,	\
+		    "%d: %s", __LINE__, strerror(errno))
+
 static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 {
 	return;

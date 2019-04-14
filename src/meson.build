@@ -1,10 +1,30 @@
 inc_dir = '@0@-@1@.0'.format(meson.project_name(), major_version)
 
+# Depends on glib-2.0 and gobject-2.0.
+gobject = dependency('gobject-2.0',
+  version: '>=2.34.0'
+)
+dependencies = [
+  gobject,
+]
+
 sources = [
 ]
 
 headers = [
 ]
+
+enums = gnome.mkenums('hinoko_enums',
+  sources: ['hinoko_enum_types.h'],
+  identifier_prefix: 'Hinoko',
+  symbol_prefix: 'hinoko',
+  c_template: 'hinoko_enums.c.template',
+  h_template: 'hinoko_enums.h.template',
+  install_header: true,
+  install_dir: join_paths(get_option('includedir'), inc_dir),
+)
+headers += 'hinoko_enum_types.h'
+sources += enums
 
 mapfile = 'hinoko.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
@@ -16,6 +36,7 @@ myself = library(meson.project_name(),
   install: true,
   link_args : vflag,
   link_depends : mapfile,
+  dependencies: dependencies,
 )
 
 install_headers(headers,

@@ -43,4 +43,21 @@ typedef enum {
 	HINOKO_FW_SCODE_BETA	= SCODE_BETA,
 } HinokoFwScode;
 
+/**
+ * HinokoFwIsoCtxMatchFlag:
+ * @HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0: The value of tag0 in 1394 OHCI.
+ * @HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1: The value of tag1 in 1394 OHCI.
+ * @HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2: The value of tag2 in 1394 OHCI.
+ * @HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3: The value of tag3 in 1394 OHCI.
+ *
+ * A representation of tag field of isochronous packet on IEEE 1394 bus.
+ */
+typedef enum /*< flags >*/
+{
+	HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 = FW_CDEV_ISO_CONTEXT_MATCH_TAG0,
+	HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 = FW_CDEV_ISO_CONTEXT_MATCH_TAG1,
+	HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 = FW_CDEV_ISO_CONTEXT_MATCH_TAG2,
+	HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3 = FW_CDEV_ISO_CONTEXT_MATCH_TAG3,
+} HinokoFwIsoCtxMatchFlag;
+
 #endif

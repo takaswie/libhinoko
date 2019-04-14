@@ -81,3 +81,8 @@ if get_option('gir')
     install: true,
   )
 endif
+
+myself_dep = declare_dependency(
+  link_with: myself,
+  dependencies: dependencies,
+)

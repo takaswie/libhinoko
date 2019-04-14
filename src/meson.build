@@ -14,6 +14,14 @@ sources = [
 headers = [
 ]
 
+# Generate marshallers for GObject signals.
+marshallers = gnome.genmarshal('hinoko_sigs_marshal',
+  prefix: 'hinoko_sigs_marshal',
+  sources: 'hinoko_sigs_marshal.list',
+  stdinc: true,
+)
+sources += marshallers
+
 enums = gnome.mkenums('hinoko_enums',
   sources: ['hinoko_enum_types.h'],
   identifier_prefix: 'Hinoko',

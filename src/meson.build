@@ -1,3 +1,5 @@
+inc_dir = '@0@-@1@.0'.format(meson.project_name(), major_version)
+
 sources = [
 ]
 
@@ -14,4 +16,8 @@ myself = library(meson.project_name(),
   install: true,
   link_args : vflag,
   link_depends : mapfile,
+)
+
+install_headers(headers,
+  subdir: join_paths(get_option('prefix'), get_option('includedir'), inc_dir),
 )

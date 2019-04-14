@@ -64,3 +64,20 @@ pkg.generate(
   filebase: meson.project_name(),
   subdirs: meson.project_name(),
 )
+
+if get_option('gir')
+  gnome.generate_gir(myself,
+    sources: sources + headers,
+    nsversion: '@0@.0'.format(major_version),
+    namespace: 'Hinoko',
+    symbol_prefix: 'hinoko_',
+    identifier_prefix: 'Hinoko',
+    export_packages: 'hinoko',
+    dependencies: dependencies,
+    includes: [
+      'GLib-2.0',
+      'GObject-2.0',
+    ],
+    install: true,
+  )
+endif

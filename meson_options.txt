@@ -1,0 +1,5 @@
+option('gir',
+  type: 'boolean',
+  value: true,
+  description: 'generate GObject Introspection data',
+)

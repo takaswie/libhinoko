@@ -1,4 +1,6 @@
 HINOKO_0_1_0 {
+  global:
+    "hinoko_fw_iso_ctx_mode_get_type";
   local:
     *;
 };

@@ -12,3 +12,4 @@ micro_version = version[2].to_int()
 gnome = import('gnome')
 
 subdir('src')
+subdir('tests')

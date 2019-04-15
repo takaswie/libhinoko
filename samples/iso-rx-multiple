@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+from threading import Timer
+from struct import unpack
+
+import gi
+gi.require_version('GLib', '2.0')
+from gi.repository import GLib
+gi.require_version('Hinoko', '0.0')
+from gi.repository import Hinoko
+
+class IsoRxMultiple(Hinoko.FwIsoRxMultiple):
+    def new(self, path, bytes_per_packet, syt_interval):
+        channels = [i for i in range(4)]
+        self.allocate(path, Hinoko.FwScode.S400, channels)
+
+        channels = self.get_property('channels')
+        bytes_per_chunk = len(channels) * bytes_per_packet * syt_interval
+
+        self.map_buffer(4096, 32)
+
+    def destroy(self):
+        self.unmap_buffer()
+        self.release()
+
+    def begin(self, dispatcher):
+        self.__src = self.create_source()
+        self.__src.attach(dispatcher.get_context())
+
+        tags = Hinoko.FwIsoCtxMatchFlag.TAG0 | \
+               Hinoko.FwIsoCtxMatchFlag.TAG1 | \
+               Hinoko.FwIsoCtxMatchFlag.TAG2 | \
+               Hinoko.FwIsoCtxMatchFlag.TAG3
+
+        self.start(None, 0, tags, 4)
+
+    def finish(self):
+        self.__src.destroy()
+        self.stop()
+
+    def do_interrupted(self, count):
+        for i in range(count):
+            data = self.get_payload(i)
+
+            iso_header = unpack('<I', data[0:4])[0]
+
+            frames = unpack('>{0}I'.format(len(data[4:-4]) // 4), data[4:-4])
+
+            tstamp = unpack('<I', data[-4:])[0]
+            sec = (tstamp & 0x0000e000) >> 13
+            cycle = tstamp & 0x00001fff
+
+            print('{0:d},{1:d},{2:08x},{3[0]:08x},{3[1]:08x}'.format(sec, cycle, iso_header, frames))
+            for i, frame in enumerate(frames):
+                print('    {0:2d}: {1:08x}'.format(i, frame))
+
+# 2 CIP headers + 19 quadlet per data block * 8 data block + iso header + tstamp
+bytes_per_packet = (2 + 19 * 8 + 2) * 4
+
+ctx = IsoRxMultiple()
+ctx.new('/dev/fw0', bytes_per_packet, 8)
+
+dispatcher = GLib.MainLoop.new(None, False)
+
+# Finish event loop after 4 seconds.
+Timer(4, lambda dispatcher: dispatcher.quit(), args=(dispatcher, )).start()
+
+ctx.begin(dispatcher)
+dispatcher.run()
+ctx.finish()
+ctx.destroy()
+
+del dispatcher
+del ctx

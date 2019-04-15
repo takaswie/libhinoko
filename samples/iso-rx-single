@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+
+from threading import Timer
+from struct import unpack
+
+import gi
+gi.require_version('GLib', '2.0')
+from gi.repository import GLib
+gi.require_version('Hinoko', '0.0')
+from gi.repository import Hinoko
+
+class IsoRxSingle(Hinoko.FwIsoRxSingle):
+    def new(self, path, channel, maximum_bytes_per_payload):
+        self.allocate(path, Hinoko.FwScode.S400, channel, 8)
+
+        # Use 10msec interval for I/O operation.
+        self.map_buffer(maximum_bytes_per_payload, 240)
+
+    def destroy(self):
+        self.unmap_buffer()
+        self.release()
+
+    def begin(self, dispatcher):
+        self.__src = self.create_source()
+        self.__src.attach(dispatcher.get_context())
+
+        tags = Hinoko.FwIsoCtxMatchFlag.TAG0 | \
+               Hinoko.FwIsoCtxMatchFlag.TAG1 | \
+               Hinoko.FwIsoCtxMatchFlag.TAG2 | \
+               Hinoko.FwIsoCtxMatchFlag.TAG3
+
+        cycle_timer = self.get_cycle_timer()
+        sec = cycle_timer[0];
+        cycle = cycle_timer[1];
+
+        # Start one half of second later.
+        cycle += 4000
+        if cycle >= 8000:
+            cycle %= 8000
+            sec += 1
+            if sec >= 128:
+                sec %= 128
+
+        # Scheduling is available with lower 2 bits of second field.
+        cycle_match = (sec & 0x3, cycle)
+
+        self.start(cycle_match, 0, tags, 80)
+
+    def finish(self):
+        self.stop()
+        self.__src.destroy()
+
+    def do_interrupted(self, sec, cycle, header, header_length, count):
+        headers = unpack('>{0}I'.format(header_length // 4), header)
+        for i in range(count):
+            iso_header, tstamp = headers[i * 2:(i + 1) * 2]
+
+            sec = (tstamp & 0x0000e000) >> 13
+            cycle = tstamp & 0x00001fff
+
+            data = self.get_payload(i)
+            frames = unpack('>{0}I'.format(len(data) // 4), data)
+
+            print('{0:d},{1:d},{2:08x}'.format(sec, cycle, iso_header))
+            for i, frame in enumerate(frames):
+                print('    {0:2d}: {1:08x}'.format(i, frame))
+
+# 2 CIP headers + 3 quadlet per data block * 8 data block
+channel = 3
+maximum_bytes_per_payload = (2 + 3 * 8) * 4
+
+ctx = IsoRxSingle()
+ctx.new('/dev/fw0', channel, maximum_bytes_per_payload)
+
+dispatcher = GLib.MainLoop.new(None, False)
+
+# Roughly finish event loop after 4 seconds.
+Timer(4, lambda dispatcher: dispatcher.quit(), args=(dispatcher,)).start()
+
+ctx.begin(dispatcher)
+dispatcher.run()
+ctx.finish()
+ctx.destroy()
+
+del dispatcher
+del ctx

@@ -413,6 +413,44 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self,
 }
 
 /**
+ * hinoko_fw_iso_ctx_set_rx_channels:
+ * @self: A #HinokoFwIsoCtx.
+ * @channel_flags: Flags for channels to listen to.
+ * @exception: A #GError.
+ *
+ * Indicate channels to listen to for IR context in buffer-fill mode.
+ */
+void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
+				       guint64 *channel_flags,
+				       GError **exception)
+{
+	HinokoFwIsoCtxPrivate *priv;
+	struct fw_cdev_set_iso_channels set = {0};
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
+
+	if (priv->mode != HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	set.channels = *channel_flags;
+	set.handle = priv->handle;
+	if (ioctl(priv->fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
+		raise(exception, errno);
+		return;
+	}
+
+	*channel_flags = set.channels;
+}
+
+/**
  * hinoko_fw_iso_ctx_register_chunk:
  * @self: A #HinokoFwIsoCtx.
  * @skip: Whether to skip packet transmission or not.

@@ -1,6 +1,7 @@
 tests = [
   'hinoko-enum',
   'fw-iso-ctx',
+  'fw-iso-rx-single',
 ]
 
 objdir = join_paths(meson.build_root(), 'src')

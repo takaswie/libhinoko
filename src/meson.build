@@ -48,7 +48,7 @@ myself = library(meson.project_name(),
 )
 
 install_headers(headers,
-  subdir: join_paths(get_option('prefix'), get_option('includedir'), inc_dir),
+  subdir: inc_dir,
 )
 
 pkg = import('pkgconfig')
@@ -62,7 +62,7 @@ pkg.generate(
   name: meson.project_name(),
   description: 'A library to operate OHCI 1394 controller for isochronous stream',
   filebase: meson.project_name(),
-  subdirs: meson.project_name(),
+  subdirs: inc_dir,
 )
 
 if get_option('gir')

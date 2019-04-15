@@ -1,0 +1,49 @@
+Source: libhinoko
+Section: libs
+Priority: optional
+Maintainer: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Build-Depends: debhelper-compat (= 11),
+    meson (>= 0.32.0),
+    libglib2.0-dev (>= 2.32.0),
+    gtk-doc-tools (>= 1.18-2),
+    gobject-introspection (>= 1.32.1),
+    libgirepository1.0-dev (>= 1.32.1),
+    python3-gi
+Standards-Version: 4.3.0
+Homepage: https://github.com/takaswie/libhinoko
+
+Package: libhinoko0
+Architecture: linux-any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    libglib2.0-0 (>= 2.32.0)
+Multi-Arch: same
+Description: I/O library for IEEE 1394 isochronous communication - development files
+ libhinoko is a shared library to interact with OHCI 1394 controller and
+ receive/transmit isochronous packets on IEEE 1394 bus.
+
+Package: gir1.2-hinoko-0.0
+Section: introspection
+Architecture: linux-any
+Depends: ${misc:Depends}, ${gir:Depends},
+    libhinoko0 (= ${binary:Version}),
+Description: GObject introspection data for the Hinoko library
+ This package contains introspection data for the Hinoko library.
+ .
+ It can be used by packages using the GIRepository format to generate
+ dynamic bindings.
+
+Package: libhinoko-dev
+Section: libdevel
+Architecture: linux-any
+Depends: ${misc:Depends},
+    libhinoko0 (= ${binary:Version}),
+    libglib2.0-dev (>= 2.32.0),
+    libgirepository1.0-dev (>= 1.32.1),
+    gir1.2-hinoko-0.0 (= ${binary:Version})
+Description: I/O library for IEEE 1394 isochronous communication - development filess
+ libhinoko is a shared library to interact with OHCI 1394 controller and
+ receive/transmit isochronous packets on IEEE 1394 bus.
+ .
+ This package contains files that are needed to build applications.
+

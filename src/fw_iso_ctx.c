@@ -160,6 +160,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
+	struct fw_cdev_get_info info = {0};
 	struct fw_cdev_create_iso_context create = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
@@ -234,6 +235,15 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	priv->fd = open(path, O_RDWR);
 	if  (priv->fd < 0) {
 		raise(exception, errno);
+		return;
+	}
+
+	// Support FW_CDEV_VERSION_AUTO_FLUSH_ISO_OVERFLOW.
+	info.version = 5;
+	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
+		raise(exception, errno);
+		close(priv->fd);
+		priv->fd = -1;
 		return;
 	}
 

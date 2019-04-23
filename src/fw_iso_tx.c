@@ -275,21 +275,15 @@ void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 	guint sec = (event->cycle & 0x0000e000) >> 13;
 	guint cycle = event->cycle & 0x00001fff;
 	unsigned int pkt_count = event->header_length / 4;
-	GValue val = G_VALUE_INIT;
 	unsigned int chunks_per_irq;
 	guint registered_chunk_count;
 
 	g_signal_emit(self, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_INTERRUPTED],
 		0, sec, cycle, event->header, event->header_length, pkt_count);
 
-	g_value_init(&val, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "chunks_per_irq", &val);
-	chunks_per_irq = g_value_get_uint(&val);
-	g_value_unset(&val);
-
-	g_value_init(&val, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "registered-chunk-count", &val);
-	registered_chunk_count = g_value_get_uint(&val);
+	g_object_get(G_OBJECT(self), "chunks_per_irq", &chunks_per_irq, NULL);
+	g_object_get(G_OBJECT(self), "registered-chunk-count",
+		     &registered_chunk_count, NULL);
 
 	if (registered_chunk_count < chunks_per_irq) {
 		unsigned int count = chunks_per_irq - registered_chunk_count;

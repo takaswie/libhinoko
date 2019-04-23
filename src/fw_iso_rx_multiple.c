@@ -246,7 +246,6 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 					  GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
-	GValue val = G_VALUE_INIT;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
@@ -269,14 +268,9 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
 				     chunks_per_buffer, exception);
 
-	g_value_init(&val, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "bytes-per-chunk", &val);
-	bytes_per_chunk = g_value_get_uint(&val);
-	g_value_unset(&val);
-
-	g_value_init(&val, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "chunks-per-buffer", &val);
-	chunks_per_buffer = g_value_get_uint(&val);
+	g_object_get(G_OBJECT(self), "bytes-per-chunk", &bytes_per_chunk, NULL);
+	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
+		     NULL);
 
 	priv->ctx_payloads = calloc(bytes_per_chunk * chunks_per_buffer / 8 / 2,
 				    sizeof(*priv->ctx_payloads));
@@ -352,7 +346,6 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 				     guint chunks_per_irq, GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
-	GValue val = G_VALUE_INIT;
 	unsigned int chunks_per_buffer;
 	int i;
 
@@ -364,9 +357,8 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 	priv->maximum_chunk_count *= chunks_per_irq;
 	priv->accumulate_chunk_count = 0;
 
-	g_value_init(&val, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "chunks-per-buffer", &val);
-	chunks_per_buffer = g_value_get_uint(&val);
+	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
+		     NULL);
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
 		fw_iso_rx_multiple_register_chunk(self, FALSE, exception);
@@ -397,7 +389,6 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 				GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
-	GValue val = G_VALUE_INIT;
 	unsigned int bytes_per_chunk;
 	unsigned int chunks_per_buffer;
 	unsigned int bytes_per_buffer;
@@ -410,14 +401,9 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
-	g_value_init(&val, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "bytes-per-chunk", &val);
-	bytes_per_chunk = g_value_get_uint(&val);
-	g_value_unset(&val);
-
-	g_value_init(&val, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "chunks-per-buffer", &val);
-	chunks_per_buffer = g_value_get_uint(&val);
+	g_object_get(G_OBJECT(self), "bytes-per-chunk", &bytes_per_chunk, NULL);
+	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
+		     NULL);
 
 	bytes_per_buffer = bytes_per_chunk * chunks_per_buffer;
 

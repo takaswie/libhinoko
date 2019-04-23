@@ -737,12 +737,12 @@ static void finalize_src(GSource *gsrc)
 /**
  * hinoko_fw_iso_ctx_create_source:
  * @self: A #hinokoFwIsoCtx.
- * @src: (out): A #GSource.
+ * @gsrc: (out): A #GSource.
  * @exception: A #GError.
  *
  * Create Gsource for GMainContext to dispatch events for isochronous context.
  */
-void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **src,
+void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 				     GError **exception)
 {
 	static GSourceFuncs funcs = {
@@ -752,39 +752,34 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **src,
 		.finalize	= finalize_src,
 	};
 	HinokoFwIsoCtxPrivate *priv;
-	void *buf;
-	unsigned int len;
+	FwIsoCtxSource *src;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	/*
-	 * MEMO: allocate one page because we cannot assume the size of
-	 * transaction frame.
-	 */
-	len = sysconf(_SC_PAGESIZE);
-	buf = g_malloc0(len);
-	if (buf == NULL) {
+	*gsrc = g_source_new(&funcs, sizeof(FwIsoCtxSource));
+	if (*gsrc == NULL) {
 		raise(exception, ENOMEM);
 		return;
 	}
 
-	*src = g_source_new(&funcs, sizeof(FwIsoCtxSource));
-	if (*src == NULL) {
+	g_source_set_name(*gsrc, "HinokoFwIsoCtx");
+	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
+	g_source_set_can_recurse(*gsrc, TRUE);
+
+	// MEMO: allocate one page because we cannot assume the size of
+	// transaction frame.
+	src = (FwIsoCtxSource *)(*gsrc);
+	src->len = sysconf(_SC_PAGESIZE);
+	src->buf = g_malloc0(src->len);
+	if (src->buf == NULL) {
 		raise(exception, ENOMEM);
-		g_free(buf);
+		g_source_unref(*gsrc);
 		return;
 	}
 
-	g_source_set_name(*src, "HinokoFwIsoCtx");
-	g_source_set_priority(*src, G_PRIORITY_HIGH_IDLE);
-	g_source_set_can_recurse(*src, TRUE);
-
-	((FwIsoCtxSource *)*src)->len = len;
-	((FwIsoCtxSource *)*src)->buf = buf;
-	((FwIsoCtxSource *)*src)->tag =
-				g_source_add_unix_fd(*src, priv->fd, G_IO_IN);
-	((FwIsoCtxSource *)*src)->fd = priv->fd;
+	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
+	src->fd = priv->fd;
 }
 
 /**

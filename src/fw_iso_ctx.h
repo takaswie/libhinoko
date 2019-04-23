@@ -51,7 +51,7 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self,
 				       guint16 *cycle_timer, GTimeVal *tv,
 				       GError **exception);
 
-void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **src,
+void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 				     GError **exception);
 
 G_END_DECLS

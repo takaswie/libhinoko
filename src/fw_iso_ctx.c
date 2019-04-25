@@ -570,7 +570,7 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 		datum->control |= FW_CDEV_ISO_INTERRUPT;
 }
 
-static int fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self)
+static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	guint data_offset = 0;
@@ -578,7 +578,7 @@ static int fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self)
 	unsigned int bytes_per_buffer;
 	guint buf_offset;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), EINVAL);
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	bytes_per_buffer = priv->bytes_per_chunk * priv->chunks_per_buffer;
@@ -630,8 +630,10 @@ static int fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self)
 		arg.size = data_length;
 		arg.data = (__u64)(priv->addr + buf_offset);
 		arg.handle = priv->handle;
-		if (ioctl(priv->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0)
-			return errno;
+		if (ioctl(priv->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0) {
+			raise(exception, errno);
+			return;
+		}
 
 		g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d",
 			chunk_count,
@@ -654,7 +656,7 @@ static int fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self)
 	priv->data_length = 0;
 	priv->registered_chunk_count = 0;
 
-	return 0;
+	return;
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -715,20 +717,22 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		} else {
 			goto end;
 		}
-		if (exception != NULL)
-			goto end;
-
-		fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(common->closure));
+		if (exception == NULL) {
+			fw_iso_ctx_queue_chunks(
+					HINOKO_FW_ISO_CTX(common->closure),
+					&exception);
+		}
 	} else if (common->type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL &&
 		   HINOKO_IS_FW_ISO_RX_MULTIPLE(common->closure)) {
 		hinoko_fw_iso_rx_multiple_handle_event(
 				HINOKO_FW_ISO_RX_MULTIPLE(common->closure),
 				(struct fw_cdev_event_iso_interrupt_mc *)common,
 				&exception);
-		if (exception != NULL)
-			goto end;
-
-		fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(common->closure));
+		if (exception == NULL) {
+			fw_iso_ctx_queue_chunks(
+					HINOKO_FW_ISO_CTX(common->closure),
+					&exception);
+		}
 	}
 end:
 	if (exception != NULL) {
@@ -819,7 +823,6 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 	struct fw_cdev_start_iso arg = {0};
 	HinokoFwIsoCtxPrivate *priv;
 	gint cycle;
-	int err;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
@@ -874,18 +877,16 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 		raise(exception, ENODATA);
 		return;
 	}
-	err = fw_iso_ctx_queue_chunks(self);
-	if (err != 0) {
-		raise(exception, err);
+	fw_iso_ctx_queue_chunks(self, exception);
+	if (*exception != NULL)
 		return;
-	}
 
 	arg.sync = sync;
 	arg.cycle = cycle;
 	arg.tags = tags;
 	arg.handle = priv->handle;
 	if (ioctl(priv->fd, FW_CDEV_IOC_START_ISO, &arg) < 0) {
-		raise(exception, err);
+		raise(exception, errno);
 		return;
 	}
 

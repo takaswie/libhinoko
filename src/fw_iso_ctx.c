@@ -672,8 +672,11 @@ static gboolean check_src(GSource *gsrc)
 	GIOCondition condition;
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
-	if (condition & G_IO_ERR)
+	if (condition & G_IO_ERR) {
+		g_source_remove_unix_fd(gsrc, src->tag);
+		hinoko_fw_iso_ctx_stop(src->self);
 		return FALSE;
+	}
 
 	// Don't go to dispatch if nothing available.
 	return !!(condition & G_IO_IN);
@@ -686,7 +689,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	HinokoFwIsoCtxPrivate *priv =
 				hinoko_fw_iso_ctx_get_instance_private(self);
 	struct fw_cdev_event_common *common;
-	GError *exception;
+	GError *exception = NULL;
 	int len;
 
 	len = read(priv->fd, src->buf, src->len);
@@ -695,7 +698,6 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	common = (struct fw_cdev_event_common *)src->buf;
 
-	exception = NULL;
 	if (common->type == FW_CDEV_EVENT_ISO_INTERRUPT) {
 		if (HINOKO_IS_FW_ISO_RX_SINGLE(common->closure)) {
 			hinoko_fw_iso_rx_single_handle_event(
@@ -726,6 +728,12 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(common->closure));
 	}
 end:
+	if (exception != NULL) {
+		g_source_remove_unix_fd(gsrc, src->tag);
+		hinoko_fw_iso_ctx_stop(src->self);
+		return G_SOURCE_REMOVE;
+	}
+
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
 }

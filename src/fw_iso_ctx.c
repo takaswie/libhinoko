@@ -50,10 +50,10 @@ G_DEFINE_QUARK("HinokoFwIsoCtx", hinoko_fw_iso_ctx)
 
 typedef struct {
 	GSource src;
-	int fd;
 	gpointer tag;
 	unsigned int len;
 	void *buf;
+	HinokoFwIsoCtx *self;
 } FwIsoCtxSource;
 
 enum fw_iso_ctx_prop_type {
@@ -682,11 +682,14 @@ static gboolean check_src(GSource *gsrc)
 static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
+	HinokoFwIsoCtx *self = src->self;
+	HinokoFwIsoCtxPrivate *priv =
+				hinoko_fw_iso_ctx_get_instance_private(self);
 	struct fw_cdev_event_common *common;
 	GError *exception;
 	int len;
 
-	len = read(src->fd, src->buf, src->len);
+	len = read(priv->fd, src->buf, src->len);
 	if (len <= 0)
 		goto end;
 
@@ -732,6 +735,7 @@ static void finalize_src(GSource *gsrc)
 	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
 
 	g_free(src->buf);
+	g_object_unref(src->self);
 }
 
 /**
@@ -779,7 +783,7 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	}
 
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
-	src->fd = priv->fd;
+	src->self = g_object_ref(self);
 }
 
 /**

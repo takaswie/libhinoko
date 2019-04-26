@@ -694,13 +694,52 @@ static gboolean check_src(GSource *gsrc)
 	return !!(condition & G_IO_IN);
 }
 
+static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
+			     GError **exception)
+{
+	if (HINOKO_IS_FW_ISO_RX_SINGLE(ev->closure)) {
+		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE(ev->closure);
+
+		hinoko_fw_iso_rx_single_handle_event(ctx, ev, exception);
+	} else if (HINOKO_IS_FW_ISO_TX(ev->closure)) {
+		HinokoFwIsoTx *ctx = HINOKO_FW_ISO_TX(ev->closure);
+
+		hinoko_fw_iso_tx_handle_event(ctx, ev, exception);
+	} else {
+		return;
+	}
+
+	if (*exception != NULL)
+		return;
+
+	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(ev->closure), exception);
+}
+
+static void handle_irq_mc_event(struct fw_cdev_event_iso_interrupt_mc *ev,
+				GError **exception)
+{
+	if (HINOKO_IS_FW_ISO_RX_MULTIPLE(ev->closure)) {
+		HinokoFwIsoRxMultiple *ctx =
+					HINOKO_FW_ISO_RX_MULTIPLE(ev->closure);
+
+		hinoko_fw_iso_rx_multiple_handle_event(ctx, ev, exception);
+	} else {
+		return;
+	}
+
+	if (*exception != NULL)
+		return;
+
+	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(ev->closure), exception);
+}
+
 static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
 	HinokoFwIsoCtx *self = src->self;
 	HinokoFwIsoCtxPrivate *priv =
 				hinoko_fw_iso_ctx_get_instance_private(self);
-	struct fw_cdev_event_common *common;
+	union fw_cdev_event *ev;
 	GError *exception = NULL;
 	int len;
 
@@ -711,39 +750,12 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		goto end;
 	}
 
-	common = (struct fw_cdev_event_common *)src->buf;
+	ev = (union fw_cdev_event *)src->buf;
 
-	if (common->type == FW_CDEV_EVENT_ISO_INTERRUPT) {
-		if (HINOKO_IS_FW_ISO_RX_SINGLE(common->closure)) {
-			hinoko_fw_iso_rx_single_handle_event(
-				HINOKO_FW_ISO_RX_SINGLE(common->closure),
-				(struct fw_cdev_event_iso_interrupt *)common,
-				&exception);
-		} else if (HINOKO_IS_FW_ISO_TX(common->closure)) {
-			hinoko_fw_iso_tx_handle_event(
-				HINOKO_FW_ISO_TX(common->closure),
-				(struct fw_cdev_event_iso_interrupt *)common,
-				&exception);
-		} else {
-			goto end;
-		}
-		if (exception == NULL) {
-			fw_iso_ctx_queue_chunks(
-					HINOKO_FW_ISO_CTX(common->closure),
-					&exception);
-		}
-	} else if (common->type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL &&
-		   HINOKO_IS_FW_ISO_RX_MULTIPLE(common->closure)) {
-		hinoko_fw_iso_rx_multiple_handle_event(
-				HINOKO_FW_ISO_RX_MULTIPLE(common->closure),
-				(struct fw_cdev_event_iso_interrupt_mc *)common,
-				&exception);
-		if (exception == NULL) {
-			fw_iso_ctx_queue_chunks(
-					HINOKO_FW_ISO_CTX(common->closure),
-					&exception);
-		}
-	}
+	if (ev->common.type == FW_CDEV_EVENT_ISO_INTERRUPT)
+		handle_irq_event(&ev->iso_interrupt, &exception);
+	else if (ev->common.type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL)
+		handle_irq_mc_event(&ev->iso_interrupt_mc, &exception);
 end:
 	if (exception != NULL) {
 		g_source_remove_unix_fd(gsrc, src->tag);

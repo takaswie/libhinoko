@@ -658,15 +658,15 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 		data_offset += data_length;
 	}
 
-	if (chunk_count != priv->registered_chunk_count)
-		; // Something wrong...
+	if (chunk_count != priv->registered_chunk_count) {
+		raise(exception, EIO);
+		return;
+	}
 
 	priv->curr_offset = buf_offset;
 
 	priv->data_length = 0;
 	priv->registered_chunk_count = 0;
-
-	return;
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)

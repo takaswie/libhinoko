@@ -275,26 +275,20 @@ void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 	guint sec = (event->cycle & 0x0000e000) >> 13;
 	guint cycle = event->cycle & 0x00001fff;
 	unsigned int pkt_count = event->header_length / 4;
-	unsigned int chunks_per_irq;
 	guint registered_chunk_count;
+	int i;
 
 	g_signal_emit(self, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_INTERRUPTED],
 		0, sec, cycle, event->header, event->header_length, pkt_count);
 
-	g_object_get(G_OBJECT(self), "chunks_per_irq", &chunks_per_irq, NULL);
 	g_object_get(G_OBJECT(self), "registered-chunk-count",
 		     &registered_chunk_count, NULL);
 
-	if (registered_chunk_count < chunks_per_irq) {
-		unsigned int count = chunks_per_irq - registered_chunk_count;
-		int i;
-
-		for (i = 0; i < count; ++i) {
-			hinoko_fw_iso_ctx_register_chunk(
-					HINOKO_FW_ISO_CTX(self), TRUE, 0, 0,
-					NULL, 0, 0, i == count - 1, exception);
-			if (*exception != NULL)
-				return;
-		}
+	for (i = registered_chunk_count; i < pkt_count; ++i) {
+		hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), TRUE,
+						 0, 0, NULL, 0, 0,
+						 i == pkt_count - 1, exception);
+		if (*exception != NULL)
+			return;
 	}
 }

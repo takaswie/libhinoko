@@ -694,9 +694,16 @@ static gboolean check_src(GSource *gsrc)
 	return !!(condition & G_IO_IN);
 }
 
-static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
+static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev, int len,
 			     GError **exception)
 {
+	// Linux FireWire subsytem can truncate event up to the size of given
+	// buffer.
+	if (len != sizeof(*ev) + ev->header_length) {
+		raise(exception, EIO);
+		return;
+	}
+
 	if (HINOKO_IS_FW_ISO_RX_SINGLE(ev->closure)) {
 		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE(ev->closure);
 
@@ -753,7 +760,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	ev = (union fw_cdev_event *)src->buf;
 
 	if (ev->common.type == FW_CDEV_EVENT_ISO_INTERRUPT)
-		handle_irq_event(&ev->iso_interrupt, &exception);
+		handle_irq_event(&ev->iso_interrupt, len, &exception);
 	else if (ev->common.type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL)
 		handle_irq_mc_event(&ev->iso_interrupt_mc, &exception);
 end:

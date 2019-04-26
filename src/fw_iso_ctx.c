@@ -659,7 +659,7 @@ static int fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self)
 
 static gboolean prepare_src(GSource *src, gint *timeout)
 {
-	// Blocking this process to save CPU time.
+	// Although saving CPU time, use timeout.
 	*timeout = 200;
 
 	// This source is not ready, let's poll(2).

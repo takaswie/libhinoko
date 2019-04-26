@@ -693,8 +693,11 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	int len;
 
 	len = read(priv->fd, src->buf, src->len);
-	if (len <= 0)
+	if (len <= 0) {
+		if (len < 0 && errno != EAGAIN)
+			raise(&exception, errno);
 		goto end;
+	}
 
 	common = (struct fw_cdev_event_common *)src->buf;
 

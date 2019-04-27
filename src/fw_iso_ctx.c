@@ -64,6 +64,12 @@ enum fw_iso_ctx_prop_type {
 };
 static GParamSpec *fw_iso_ctx_props[FW_ISO_CTX_PROP_TYPE_COUNT] = { NULL, };
 
+enum fw_iso_ctx_sig_type {
+	FW_ISO_CTX_SIG_TYPE_STOPPED = 1,
+	FW_ISO_CTX_SIG_TYPE_COUNT,
+};
+static guint fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_COUNT] = { 0 };
+
 static void fw_iso_ctx_get_property(GObject *obj, guint id, GValue *val,
 				    GParamSpec *spec)
 {
@@ -130,6 +136,23 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 	g_object_class_install_properties(gobject_class,
 					  FW_ISO_CTX_PROP_TYPE_COUNT,
 					  fw_iso_ctx_props);
+
+	/**
+	 * HinokoFwIsoCtx::stopped:
+	 * @self: A #HinokoFwIsoCtx.
+	 * @error: (nullable): A #GError.
+	 *
+	 * When isochronous context is stopped, #HinokoFwIsoCtx::stopped is
+	 * emitted.
+	 */
+	fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED] =
+		g_signal_new("stopped",
+			G_OBJECT_CLASS_TYPE(klass),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL, NULL,
+			g_cclosure_marshal_VOID__BOXED,
+			G_TYPE_NONE, 1, G_TYPE_ERROR);
 }
 
 static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)
@@ -669,6 +692,27 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 	priv->registered_chunk_count = 0;
 }
 
+static void fw_iso_ctx_stop(HinokoFwIsoCtx *self, GError *exception)
+{
+	struct fw_cdev_stop_iso arg = {0};
+	HinokoFwIsoCtxPrivate *priv =
+				hinoko_fw_iso_ctx_get_instance_private(self);
+
+	if (!priv->running)
+		return;
+
+	arg.handle = priv->handle;
+	ioctl(priv->fd, FW_CDEV_IOC_STOP_ISO, &arg);
+
+	priv->running = FALSE;
+	priv->registered_chunk_count = 0;
+	priv->data_length = 0;
+	priv->curr_offset = 0;
+
+	g_signal_emit(self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0,
+		      exception, NULL);
+}
+
 static gboolean prepare_src(GSource *src, gint *timeout)
 {
 	// Although saving CPU time, use timeout.
@@ -682,11 +726,13 @@ static gboolean check_src(GSource *gsrc)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
 	GIOCondition condition;
+	GError *exception;
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
+		raise(&exception, EIO);
 		g_source_remove_unix_fd(gsrc, src->tag);
-		hinoko_fw_iso_ctx_stop(src->self);
+		fw_iso_ctx_stop(src->self, exception);
 		return FALSE;
 	}
 
@@ -752,9 +798,12 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	len = read(priv->fd, src->buf, src->len);
 	if (len <= 0) {
-		if (len < 0 && errno != EAGAIN)
+		if (len < 0 && errno != EAGAIN) {
 			raise(&exception, errno);
-		return G_SOURCE_REMOVE;
+			goto remove;
+		}
+
+		return G_SOURCE_CONTINUE;
 	}
 
 	ev = (union fw_cdev_event *)src->buf;
@@ -764,14 +813,15 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	else if (ev->common.type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL)
 		handle_irq_mc_event(&ev->iso_interrupt_mc, &exception);
 
-	if (exception != NULL) {
-		g_source_remove_unix_fd(gsrc, src->tag);
-		hinoko_fw_iso_ctx_stop(src->self);
-		return G_SOURCE_REMOVE;
-	}
+	if (exception != NULL)
+		goto remove;
 
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
+remove:
+	g_source_remove_unix_fd(gsrc, src->tag);
+	fw_iso_ctx_stop(src->self, exception);
+	return G_SOURCE_REMOVE;
 }
 
 static void finalize_src(GSource *gsrc)
@@ -930,22 +980,9 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
  */
 void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 {
-	struct fw_cdev_stop_iso arg = {0};
-	HinokoFwIsoCtxPrivate *priv;
-
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	if (!priv->running)
-		return;
-
-	arg.handle = priv->handle;
-	ioctl(priv->fd, FW_CDEV_IOC_STOP_ISO, &arg);
-
-	priv->running = FALSE;
-	priv->registered_chunk_count = 0;
-	priv->data_length = 0;
-	priv->curr_offset = 0;
+	fw_iso_ctx_stop(self, NULL);
 }
 
 /**

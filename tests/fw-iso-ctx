@@ -20,7 +20,9 @@ methods = (
     'create_source',
 )
 vmethods = ()
-signals = ()
+signals = (
+    'stopped',
+)
 
 if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)

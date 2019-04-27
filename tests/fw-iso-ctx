@@ -19,7 +19,9 @@ methods = (
     'get_cycle_timer',
     'create_source',
 )
-vmethods = ()
+vmethods = (
+    'do_stopped',
+)
 signals = (
     'stopped',
 )

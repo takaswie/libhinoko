@@ -149,7 +149,7 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 		g_signal_new("stopped",
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
-			0,
+			G_STRUCT_OFFSET(HinokoFwIsoCtxClass, stopped),
 			NULL, NULL,
 			g_cclosure_marshal_VOID__BOXED,
 			G_TYPE_NONE, 1, G_TYPE_ERROR);

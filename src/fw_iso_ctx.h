@@ -43,6 +43,16 @@ struct _HinokoFwIsoCtx {
 
 struct _HinokoFwIsoCtxClass {
 	GObjectClass parent_class;
+
+	/**
+	 * HinokoFwIsoCtxClass::stopped:
+	 * @self: A #HinokoFwIsoCtx.
+	 * @error: (nullable): A #GError.
+	 *
+	 * When isochronous context is stopped, #HinokoFwIsoCtxClass::stopped
+	 * handler is called. When any error occurs, it's reported.
+	 */
+	void (*stopped)(HinokoFwIsoCtx *self, GError *exception);
 };
 
 GType hinoko_fw_iso_ctx_get_type(void) G_GNUC_CONST;

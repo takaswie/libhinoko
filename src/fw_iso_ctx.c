@@ -754,7 +754,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	if (len <= 0) {
 		if (len < 0 && errno != EAGAIN)
 			raise(&exception, errno);
-		goto end;
+		return G_SOURCE_REMOVE;
 	}
 
 	ev = (union fw_cdev_event *)src->buf;
@@ -763,7 +763,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		handle_irq_event(&ev->iso_interrupt, len, &exception);
 	else if (ev->common.type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL)
 		handle_irq_mc_event(&ev->iso_interrupt_mc, &exception);
-end:
+
 	if (exception != NULL) {
 		g_source_remove_unix_fd(gsrc, src->tag);
 		hinoko_fw_iso_ctx_stop(src->self);

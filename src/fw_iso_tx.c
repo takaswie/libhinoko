@@ -210,6 +210,24 @@ void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
 	priv->offset = 0;
 }
 
+static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
+				     HinokoFwIsoCtxMatchFlag tags, guint sy,
+				     const guint8 *header, guint header_length,
+				     guint payload_length, gboolean interrupt,
+				     GError **exception)
+{
+	gboolean skip = FALSE;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+
+	if (header_length == 0 && payload_length == 0)
+		skip = TRUE;
+
+	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags,
+					 sy, header, header_length,
+					 payload_length, interrupt, exception);
+}
+
 /**
  * hinoko_fw_iso_tx_register_packet:
  * @self: A #HinokoFwIsoTx.
@@ -233,7 +251,6 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 				gboolean interrupt, GError **exception)
 {
 	HinokoFwIsoTxPrivate *priv;
-	gboolean skip = FALSE;
 	const guint8 *frames;
 	guint frame_size;
 
@@ -252,12 +269,8 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 		return;
 	}
 
-	if (header_length == 0 && payload_length == 0)
-		skip = TRUE;
-
-	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags,
-					 sy, header, header_length,
-					 payload_length, interrupt, exception);
+	fw_iso_tx_register_chunk(self, tags, sy, header, header_length,
+				 payload_length, interrupt, exception);
 	if (*exception != NULL)
 		return;
 
@@ -295,9 +308,10 @@ void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 		     &registered_chunk_count, NULL);
 
 	for (i = registered_chunk_count; i < pkt_count; ++i) {
-		hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), TRUE,
-						 0, 0, NULL, 0, 0,
-						 i == pkt_count - 1, exception);
+		fw_iso_tx_register_chunk(self,
+					 HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1, 0,
+					 NULL, 0, 0, i == pkt_count - 1,
+					 exception);
 		if (*exception != NULL)
 			return;
 	}

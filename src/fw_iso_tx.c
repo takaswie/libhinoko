@@ -143,11 +143,16 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 				 guint payloads_per_buffer,
 				 GError **exception)
 {
+	HinokoFwIsoTxPrivate *priv;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
 				     maximum_bytes_per_payload,
 				     payloads_per_buffer, exception);
+
+	priv->offset = 0;
 }
 
 /**
@@ -195,9 +200,14 @@ void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
  */
 void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
 {
+	HinokoFwIsoTxPrivate *priv;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
+
+	priv->offset = 0;
 }
 
 /**

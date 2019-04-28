@@ -21,7 +21,6 @@ struct _HinokoFwIsoRxSinglePrivate {
 	guint header_size;
 	guint chunks_per_irq;
 	guint accumulate_chunk_count;
-	guint maximum_chunk_count;
 
 	const struct fw_cdev_event_iso_interrupt *ev;
 };
@@ -188,21 +187,20 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 static void fw_iso_rx_single_register_chunk(HinokoFwIsoRxSingle *self,
 					    gboolean skip, GError **exception)
 {
-	HinokoFwIsoRxSinglePrivate *priv;
-	gboolean irq;
+	HinokoFwIsoRxSinglePrivate *priv =
+			hinoko_fw_iso_rx_single_get_instance_private(self);
+	gboolean interrupt = FALSE;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
-
-	++priv->accumulate_chunk_count;
-	priv->accumulate_chunk_count %= priv->maximum_chunk_count;
-	if (priv->accumulate_chunk_count % priv->chunks_per_irq == 0)
-		irq = TRUE;
-	else
-		irq = FALSE;
+	if (++priv->accumulate_chunk_count % priv->chunks_per_irq == 0)
+		interrupt = TRUE;
 
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, 0, 0,
-					 NULL, 0, 0, irq, exception);
+					 NULL, 0, 0, interrupt, exception);
+
+	if (priv->accumulate_chunk_count >= G_MAXINT) {
+		priv->accumulate_chunk_count =
+			priv->accumulate_chunk_count % priv->chunks_per_irq;
+	}
 }
 
 /**
@@ -245,8 +243,6 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 	}
 
 	priv->chunks_per_irq = packets_per_irq;
-	priv->maximum_chunk_count = G_MAXUINT / 2 / packets_per_irq;
-	priv->maximum_chunk_count *= packets_per_irq;
 	priv->accumulate_chunk_count = 0;
 
 	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,

@@ -184,7 +184,6 @@ static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
 	gboolean skip = FALSE;
 	gboolean interrupt = FALSE;
 
-
 	if (header_length == 0 && payload_length == 0)
 		skip = TRUE;
 

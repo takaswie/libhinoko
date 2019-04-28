@@ -242,11 +242,16 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 		return;
 	}
 
-	priv->chunks_per_irq = packets_per_irq;
-	priv->accumulate_chunk_count = 0;
-
 	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
 		     NULL);
+
+	if (packets_per_irq * 2 > chunks_per_buffer) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	priv->chunks_per_irq = packets_per_irq;
+	priv->accumulate_chunk_count = 0;
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
 		fw_iso_rx_single_register_chunk(self, exception);

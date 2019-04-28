@@ -238,7 +238,8 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 	// of interrupt flag when the same number of bytes as one page is
 	// stored in the buffer of header. To avoid unexpected wakeup, check
 	// the interval.
-	if (priv->header_size * packets_per_irq > sysconf(_SC_PAGESIZE)) {
+	if (packets_per_irq == 0 ||
+	    priv->header_size * packets_per_irq > sysconf(_SC_PAGESIZE)) {
 		raise(exception, EINVAL);
 		return;
 	}

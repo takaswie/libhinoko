@@ -52,7 +52,7 @@ struct _HinokoFwIsoCtxClass {
 	 * When isochronous context is stopped, #HinokoFwIsoCtxClass::stopped
 	 * handler is called. When any error occurs, it's reported.
 	 */
-	void (*stopped)(HinokoFwIsoCtx *self, GError *exception);
+	void (*stopped)(HinokoFwIsoCtx *self, GError *error);
 };
 
 GType hinoko_fw_iso_ctx_get_type(void) G_GNUC_CONST;

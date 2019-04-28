@@ -19,8 +19,7 @@
  */
 struct _HinokoFwIsoRxSinglePrivate {
 	guint header_size;
-	guint chunks_per_irq;
-	guint accumulate_chunk_count;
+	guint accumulated_chunk_count;
 
 	const struct fw_cdev_event_iso_interrupt *ev;
 };
@@ -187,20 +186,8 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 static void fw_iso_rx_single_register_chunk(HinokoFwIsoRxSingle *self,
 					    GError **exception)
 {
-	HinokoFwIsoRxSinglePrivate *priv =
-			hinoko_fw_iso_rx_single_get_instance_private(self);
-	gboolean interrupt = FALSE;
-
-	if (++priv->accumulate_chunk_count % priv->chunks_per_irq == 0)
-		interrupt = TRUE;
-
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0,
-					 NULL, 0, 0, interrupt, exception);
-
-	if (priv->accumulate_chunk_count >= G_MAXINT) {
-		priv->accumulate_chunk_count =
-			priv->accumulate_chunk_count % priv->chunks_per_irq;
-	}
+					 NULL, 0, 0, exception);
 }
 
 /**
@@ -245,8 +232,7 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
 		     NULL);
 
-	priv->chunks_per_irq = packets_per_irq;
-	priv->accumulate_chunk_count = 0;
+	priv->accumulated_chunk_count = 0;
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
 		fw_iso_rx_single_register_chunk(self, exception);
@@ -295,11 +281,21 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 		0, sec, cycle, event->header, event->header_length, count);
 	priv->ev = NULL;
 
-	for (i = 0; i < priv->chunks_per_irq; ++i) {
+	for (i = 0; i < count; ++i) {
 		// Register consumed chunks to reuse.
 		fw_iso_rx_single_register_chunk(self, exception);
 		if (*exception != NULL)
 			return;
+	}
+
+	priv->accumulated_chunk_count += count;
+	if (priv->accumulated_chunk_count >= G_MAXINT) {
+		guint chunks_per_buffer;
+
+		g_object_get(G_OBJECT(self),
+			     "chunks-per-buffer", &chunks_per_buffer, NULL);
+
+		priv->accumulated_chunk_count %= chunks_per_buffer;
 	}
 }
 
@@ -349,7 +345,7 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	if (*length > bytes_per_chunk)
 		*length = bytes_per_chunk;
 
-	index = (priv->accumulate_chunk_count + index) % chunks_per_buffer;
+	index = (priv->accumulated_chunk_count + index) % chunks_per_buffer;
 	offset = index * bytes_per_chunk;
 	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset, *length,
 				      payload, &frame_size);

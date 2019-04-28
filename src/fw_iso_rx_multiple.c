@@ -19,8 +19,6 @@ struct ctx_payload {
 };
 struct _HinokoFwIsoRxMultiplePrivate {
 	GByteArray *channels;
-	guint chunks_per_irq;
-	guint accumulate_chunk_count;
 
 	guint prev_offset;
 
@@ -306,20 +304,8 @@ void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self)
 static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
 					      GError **exception)
 {
-	HinokoFwIsoRxMultiplePrivate *priv =
-			hinoko_fw_iso_rx_multiple_get_instance_private(self);
-	gboolean interrupt = FALSE;
-
-	if (++priv->accumulate_chunk_count % priv->chunks_per_irq == 0)
-		interrupt = TRUE;
-
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0,
-					 NULL, 0, 0, interrupt, exception);
-
-	if (priv->accumulate_chunk_count >= G_MAXINT) {
-		priv->accumulate_chunk_count =
-			priv->accumulate_chunk_count % priv->chunks_per_irq;
-	}
+					 NULL, 0, 0, exception);
 }
 
 /**
@@ -352,9 +338,6 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 
 	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
 		     NULL);
-
-	priv->chunks_per_irq = chunks_per_irq;
-	priv->accumulate_chunk_count = 0;
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
 		fw_iso_rx_multiple_register_chunk(self, exception);

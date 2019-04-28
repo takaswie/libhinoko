@@ -17,8 +17,6 @@
  */
 struct _HinokoFwIsoTxPrivate {
 	guint offset;
-	guint chunks_per_irq;
-	guint accumulate_chunk_count;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -179,25 +177,14 @@ static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
 				     const guint8 *header, guint header_length,
 				     guint payload_length, GError **exception)
 {
-	HinokoFwIsoTxPrivate *priv =
-				hinoko_fw_iso_tx_get_instance_private(self);
 	gboolean skip = FALSE;
-	gboolean interrupt = FALSE;
 
 	if (header_length == 0 && payload_length == 0)
 		skip = TRUE;
 
-	if (++priv->accumulate_chunk_count % priv->chunks_per_irq == 0)
-		interrupt = TRUE;
-
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags,
 					 sy, header, header_length,
-					 payload_length, interrupt, exception);
-
-	if (priv->accumulate_chunk_count >= G_MAXINT) {
-		priv->accumulate_chunk_count =
-			priv->accumulate_chunk_count % priv->chunks_per_irq;
-	}
+					 payload_length, exception);
 }
 
 /**
@@ -218,12 +205,10 @@ static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 			    guint packets_per_irq, GError **exception)
 {
-	HinokoFwIsoTxPrivate *priv;
 	unsigned int chunks_per_buffer;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
 	// MEMO: Linux FireWire subsystem queues isochronous event independently
 	// of interrupt flag when the same number of bytes as one page is
@@ -236,9 +221,6 @@ void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 
 	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
 		     NULL);
-
-	priv->chunks_per_irq = packets_per_irq;
-	priv->accumulate_chunk_count = 0;
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
 		fw_iso_tx_register_chunk(self,
@@ -269,7 +251,6 @@ void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
 
 	priv->offset = 0;
-	priv->chunks_per_irq = 0;
 }
 
 /**

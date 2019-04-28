@@ -495,7 +495,6 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
  * 	    header for IT context, nothing for IR context.
  * @header_length: The number of bytes for @header.
  * @payload_length: The number of bytes for payload of isochronous context.
- * @interrupt: Whether to generate interrupt event for this chunk.
  * @exception: A #GError.
  *
  * Register data on buffer for payload of isochronous context.
@@ -503,8 +502,7 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 				      HinokoFwIsoCtxMatchFlag tags, guint sy,
 				      const guint8 *header, guint header_length,
-				      guint payload_length, gboolean interrupt,
-				      GError **exception)
+				      guint payload_length, GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	struct fw_cdev_iso_packet *datum;

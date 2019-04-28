@@ -27,11 +27,14 @@ class IsoTx(Hinoko.FwIsoTx):
         self.unmap_buffer()
         self.release()
 
-    def begin(self, dispatcher, timer):
+    def begin(self, dispatcher, duration):
         self.__src = self.create_source()
         self.__src.attach(dispatcher.get_context())
         self.__dispatcher = dispatcher
-        self.__timer = timer
+
+        # Roughly finish event loop.
+        self.__timer = Timer(duration, lambda dispatcher: dispatcher.quit(),
+                             args=(dispatcher,))
 
         self.tag = Hinoko.FwIsoCtxMatchFlag.TAG1
         self.sy = 0
@@ -42,8 +45,8 @@ class IsoTx(Hinoko.FwIsoTx):
             self.register_packet(self.tag, self.sy, self.header, self.payload,
                                  irq)
 
-        self.start(None)
         self.__timer.start()
+        self.start(None)
 
     def finish(self):
         self.__src.destroy()
@@ -81,10 +84,7 @@ ctx.new('/dev/fw0', channel, maximum_bytes_per_payload)
 
 dispatcher = GLib.MainLoop.new(None, False)
 
-# Finish event loop after 4 seconds.
-timer = Timer(4, lambda dispatcher: dispatcher.quit(), args=(dispatcher, ))
-
-ctx.begin(dispatcher, timer)
+ctx.begin(dispatcher, 4)
 dispatcher.run()
 ctx.finish()
 ctx.destroy()

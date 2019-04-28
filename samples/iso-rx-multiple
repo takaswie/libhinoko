@@ -23,20 +23,32 @@ class IsoRxMultiple(Hinoko.FwIsoRxMultiple):
         self.unmap_buffer()
         self.release()
 
-    def begin(self, dispatcher):
+    def begin(self, dispatcher, duration):
         self.__src = self.create_source()
         self.__src.attach(dispatcher.get_context())
+        self.__dispatcher = dispatcher
+
+        # Roughly finish event loop.
+        self.__timer = Timer(duration, lambda dispatcher: dispatcher.quit(),
+                             args=(dispatcher,))
 
         tags = Hinoko.FwIsoCtxMatchFlag.TAG0 | \
                Hinoko.FwIsoCtxMatchFlag.TAG1 | \
                Hinoko.FwIsoCtxMatchFlag.TAG2 | \
                Hinoko.FwIsoCtxMatchFlag.TAG3
 
+        self.__timer.start()
         self.start(None, 0, tags, 4)
 
     def finish(self):
         self.__src.destroy()
         self.stop()
+
+    def do_stopped(self, error):
+        self.__dispatcher.quit()
+        if error:
+            self.__timer.cancel()
+            print(error)
 
     def do_interrupted(self, count):
         for i in range(count):
@@ -62,10 +74,7 @@ ctx.new('/dev/fw0', bytes_per_packet, 8)
 
 dispatcher = GLib.MainLoop.new(None, False)
 
-# Finish event loop after 4 seconds.
-Timer(4, lambda dispatcher: dispatcher.quit(), args=(dispatcher, )).start()
-
-ctx.begin(dispatcher)
+ctx.begin(dispatcher, 4)
 dispatcher.run()
 ctx.finish()
 ctx.destroy()

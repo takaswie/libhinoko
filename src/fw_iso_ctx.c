@@ -865,10 +865,18 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
 	g_source_set_can_recurse(*gsrc, TRUE);
 
-	// MEMO: allocate one page because we cannot assume the size of
-	// transaction frame.
 	src = (FwIsoCtxSource *)(*gsrc);
-	src->len = sysconf(_SC_PAGESIZE);
+
+	if (priv->mode != HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
+		// MEMO: Linux FireWire subsystem queues isochronous event
+		// independently of interrupt flag when the same number of
+		// bytes as one page is stored in the buffer of header. To
+		// avoid truncated read, keep enough size.
+		src->len = sizeof(struct fw_cdev_event_iso_interrupt) +
+			   sysconf(_SC_PAGESIZE);
+	} else {
+		src->len = sizeof(struct fw_cdev_event_iso_interrupt_mc);
+	}
 	src->buf = g_malloc0(src->len);
 	if (src->buf == NULL) {
 		raise(exception, ENOMEM);

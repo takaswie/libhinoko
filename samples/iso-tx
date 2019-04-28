@@ -18,8 +18,7 @@ class IsoTx(Hinoko.FwIsoTx):
 
         self.allocate(path, Hinoko.FwScode.S400, channel, len(self.header))
 
-        self.packets_per_irq = 8
-        self.map_buffer(maximum_bytes_per_payload, self.packets_per_irq * 4)
+        self.map_buffer(maximum_bytes_per_payload, 32)
 
         self.channel = channel
 
@@ -40,13 +39,8 @@ class IsoTx(Hinoko.FwIsoTx):
         self.sy = 0
         self.count = 0
 
-        for i in range(32):
-            irq = bool((i + 1) % self.packets_per_irq == 0)
-            self.register_packet(self.tag, self.sy, self.header, self.payload,
-                                 irq)
-
         self.__timer.start()
-        self.start(None)
+        self.start(None, 4)
 
     def finish(self):
         self.__src.destroy()
@@ -61,10 +55,7 @@ class IsoTx(Hinoko.FwIsoTx):
     def do_interrupted(self, sec, cycle, header, header_length, count):
         headers = unpack('>{0}I'.format(header_length // 4), header)
         for i in range(count):
-            self.count += 1
-            irq = bool(self.count % self.packets_per_irq == 0)
-            self.register_packet(self.tag, self.sy, self.header, self.payload,
-                                 irq)
+            self.register_packet(self.tag, self.sy, self.header, self.payload)
 
             tstamp = headers[i]
             sec = (tstamp & 0x0000e000) >> 13

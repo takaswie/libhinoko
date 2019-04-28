@@ -80,14 +80,14 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self);
 
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
-			    GError **exception);
+			    guint packets_per_irq, GError **exception);
 void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self);
 
 void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 				HinokoFwIsoCtxMatchFlag tags, guint sy,
 				const guint8 *header, guint header_length,
 				const guint8 *payload, guint payload_length,
-				gboolean interrupt, GError **exception);
+				GError **exception);
 
 G_END_DECLS
 

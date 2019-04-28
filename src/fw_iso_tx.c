@@ -2,6 +2,7 @@
 #include "internal.h"
 #include "hinoko_sigs_marshal.h"
 
+#include <unistd.h>
 #include <errno.h>
 
 /**
@@ -16,6 +17,8 @@
  */
 struct _HinokoFwIsoTxPrivate {
 	guint offset;
+	guint chunks_per_irq;
+	guint accumulate_chunk_count;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -171,6 +174,33 @@ void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self)
 	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
 }
 
+static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
+				     HinokoFwIsoCtxMatchFlag tags, guint sy,
+				     const guint8 *header, guint header_length,
+				     guint payload_length, GError **exception)
+{
+	HinokoFwIsoTxPrivate *priv =
+				hinoko_fw_iso_tx_get_instance_private(self);
+	gboolean skip = FALSE;
+	gboolean interrupt = FALSE;
+
+
+	if (header_length == 0 && payload_length == 0)
+		skip = TRUE;
+
+	if (++priv->accumulate_chunk_count % priv->chunks_per_irq == 0)
+		interrupt = TRUE;
+
+	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags,
+					 sy, header, header_length,
+					 payload_length, interrupt, exception);
+
+	if (priv->accumulate_chunk_count >= G_MAXINT) {
+		priv->accumulate_chunk_count =
+			priv->accumulate_chunk_count % priv->chunks_per_irq;
+	}
+}
+
 /**
  * hinoko_fw_iso_tx_start:
  * @self: A #HinokoFwIsoTx.
@@ -179,17 +209,49 @@ void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self)
  * 		 element should be the second part of isochronous cycle, up to
  * 		 3. The second element should be the cycle part of isochronous
  * 		 cycle, up to 7999.
+ * @packets_per_irq: The number of packets as interval of event. This value
+ *		     should be up to (pagesize / 4) due to implementation of
+ *		     Linux FireWire subsystem.
  * @exception: A #GError.
  *
  * Start IT context.
  */
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
-			    GError **exception)
+			    guint packets_per_irq, GError **exception)
 {
+	HinokoFwIsoTxPrivate *priv;
+	unsigned int chunks_per_buffer;
+	int i;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	// MEMO: Linux FireWire subsystem queues isochronous event independently
+	// of interrupt flag when the same number of bytes as one page is
+	// stored in the buffer of header. To avoid unexpected wakeup, check
+	// the interval.
+	if (packets_per_irq == 0 || packets_per_irq * 4 > sysconf(_SC_PAGESIZE)) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	priv->chunks_per_irq = packets_per_irq;
+	priv->accumulate_chunk_count = 0;
+
+	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
+		     NULL);
+
+	for (i = 0; i < chunks_per_buffer; ++i) {
+		fw_iso_tx_register_chunk(self,
+					 HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0, 0,
+					 NULL, 0, 0, exception);
+		if (*exception != NULL)
+			return;
+	}
 
 	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, 0, 0,
 				exception);
+
 }
 
 /**
@@ -208,24 +270,7 @@ void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
 
 	priv->offset = 0;
-}
-
-static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
-				     HinokoFwIsoCtxMatchFlag tags, guint sy,
-				     const guint8 *header, guint header_length,
-				     guint payload_length, gboolean interrupt,
-				     GError **exception)
-{
-	gboolean skip = FALSE;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-
-	if (header_length == 0 && payload_length == 0)
-		skip = TRUE;
-
-	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags,
-					 sy, header, header_length,
-					 payload_length, interrupt, exception);
+	priv->chunks_per_irq = 0;
 }
 
 /**
@@ -239,7 +284,6 @@ static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
  * @payload: (array length=payload_length) (element-type guint8) (in) (nullable):
  * 	     The payload of IT context for isochronous packet.
  * @payload_length: The number of bytes for the @payload.
- * @interrupt: Whether to generate event notification after processing the packet.
  * @exception: A #GError.
  *
  * Register packet data in a shape of header and payload of IT context.
@@ -248,7 +292,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 				HinokoFwIsoCtxMatchFlag tags, guint sy,
 				const guint8 *header, guint header_length,
 				const guint8 *payload, guint payload_length,
-				gboolean interrupt, GError **exception)
+				GError **exception)
 {
 	HinokoFwIsoTxPrivate *priv;
 	const guint8 *frames;
@@ -270,7 +314,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 	}
 
 	fw_iso_tx_register_chunk(self, tags, sy, header, header_length,
-				 payload_length, interrupt, exception);
+				 payload_length, exception);
 	if (*exception != NULL)
 		return;
 
@@ -310,8 +354,7 @@ void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 	for (i = registered_chunk_count; i < pkt_count; ++i) {
 		fw_iso_tx_register_chunk(self,
 					 HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1, 0,
-					 NULL, 0, 0, i == pkt_count - 1,
-					 exception);
+					 NULL, 0, 0, exception);
 		if (*exception != NULL)
 			return;
 	}

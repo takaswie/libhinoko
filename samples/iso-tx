@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from threading import Timer
-from struct import unpack
+from struct import unpack,pack
 
 import gi
 gi.require_version('GLib', '2.0')
@@ -12,13 +12,13 @@ from gi.repository import Hinoko
 class IsoTx(Hinoko.FwIsoTx):
     def new(self, path, channel, maximum_bytes_per_payload):
         # Use 8 byte header.
-        self.header = [i for i in range(8)]
-        self.payload = \
-                [i for i in range(maximum_bytes_per_payload - len(self.header))]
+        header_size = 8
+        self.payload = [i for i in range(maximum_bytes_per_payload)]
 
-        self.allocate(path, Hinoko.FwScode.S400, channel, len(self.header))
+        self.allocate(path, Hinoko.FwScode.S400, channel, header_size)
 
-        self.map_buffer(maximum_bytes_per_payload, 32)
+        self.__payloads_per_buffer = 32
+        self.map_buffer(maximum_bytes_per_payload, self.__payloads_per_buffer)
 
         self.channel = channel
 
@@ -37,10 +37,39 @@ class IsoTx(Hinoko.FwIsoTx):
 
         self.tag = Hinoko.FwIsoCtxMatchFlag.TAG1
         self.sy = 0
-        self.count = 0
+
+        cycle_timer = self.get_cycle_timer()
+        sec = cycle_timer[0]
+        cycle = cycle_timer[1]
+
+        # Start 100 msec later.
+        cycle += 800
+        if cycle >= 8000:
+            cycle %= 8000
+            sec += 1
+            if sec >= 128:
+                sec %= 128
+
+        # Scheduling is available with lower 2 bits of second field.
+        cycle_match = (sec & 0x3, cycle)
+
+        # The packets for buffer are queued with skip flag.
+        self.__cycles = [sec, cycle]
+        self.__increment_cycle(self.__payloads_per_buffer)
 
         self.__timer.start()
-        self.start(None, 4)
+        self.start(cycle_match, 4)
+
+    def __increment_cycle(self, addend):
+        sec, cycle = self.__cycles
+        cycle += addend
+        if cycle >= 8000:
+            cycle %= 8000
+            sec += 1
+            if sec >= 128:
+                sec %= 128
+        self.__cycles[0] = sec
+        self.__cycles[1] = cycle
 
     def finish(self):
         self.__src.destroy()
@@ -55,7 +84,10 @@ class IsoTx(Hinoko.FwIsoTx):
     def do_interrupted(self, sec, cycle, header, header_length, count):
         headers = unpack('>{0}I'.format(header_length // 4), header)
         for i in range(count):
-            self.register_packet(self.tag, self.sy, self.header, self.payload)
+            sec, cycle = self.__cycles
+            header = pack('>2I', sec, cycle)
+            self.register_packet(self.tag, self.sy, header, self.payload)
+            self.__increment_cycle(1)
 
             tstamp = headers[i]
             sec = (tstamp & 0x0000e000) >> 13

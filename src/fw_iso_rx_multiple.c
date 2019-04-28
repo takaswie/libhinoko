@@ -437,6 +437,10 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 		if (avail < length)
 			break;
 
+		g_debug("%3d: %6d %4d %6d",
+			priv->ctx_payload_count, offset, length,
+			event->completed);
+
 		ctx_payload->offset = offset;
 		ctx_payload->length = length;
 		++ctx_payload;

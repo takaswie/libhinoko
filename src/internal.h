@@ -28,7 +28,7 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 				       GError **exception);
 void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 			     guint32 sync, HinokoFwIsoCtxMatchFlag tags,
-			     GError **exception);
+			     guint chunks_per_irq, GError **exception);
 void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self);
 void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 				   guint length, const guint8 **frames,

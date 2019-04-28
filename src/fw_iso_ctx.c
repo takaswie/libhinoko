@@ -903,13 +903,14 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
  * @sync: The value of sync field in isochronous header for packet processing,
  * 	  up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
+ * @chunks_per_irq: The number of chunks per interval of interrupt.
  * @exception: A #GError.
  *
  * Start isochronous context.
  */
 void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 			     guint32 sync, HinokoFwIsoCtxMatchFlag tags,
-			     GError **exception)
+			     guint chunks_per_irq, GError **exception)
 {
 	struct fw_cdev_start_iso arg = {0};
 	HinokoFwIsoCtxPrivate *priv;
@@ -969,7 +970,12 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 		return;
 	}
 
+	if (chunks_per_irq * 2 > priv->chunks_per_buffer) {
+		raise(exception, EINVAL);
+		return;
+	}
 	priv->accumulated_chunk_count = 0;
+
 	fw_iso_ctx_queue_chunks(self, exception);
 	if (*exception != NULL)
 		return;

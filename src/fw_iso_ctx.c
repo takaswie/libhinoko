@@ -35,6 +35,7 @@ struct _HinokoFwIsoCtxPrivate {
 	guint data_length;
 	guint alloc_data_length;
 	guint registered_chunk_count;
+	guint accumulated_chunk_count;
 
 	guint curr_offset;
 	gboolean running;
@@ -644,6 +645,9 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 			if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
 				datum_length += header_length;
 
+			if (++priv->accumulated_chunk_count >= G_MAXINT)
+				priv->accumulated_chunk_count -= G_MAXUINT;
+
 			g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d: %d",
 				chunk_count,
 				data_offset + data_length,
@@ -964,6 +968,8 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 		raise(exception, ENODATA);
 		return;
 	}
+
+	priv->accumulated_chunk_count = 0;
 	fw_iso_ctx_queue_chunks(self, exception);
 	if (*exception != NULL)
 		return;

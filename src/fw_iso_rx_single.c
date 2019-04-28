@@ -2,6 +2,7 @@
 #include "internal.h"
 #include "hinoko_sigs_marshal.h"
 
+#include <unistd.h>
 #include <errno.h>
 
 /**
@@ -232,6 +233,15 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	// MEMO: Linux FireWire subsystem queues isochronous event independently
+	// of interrupt flag when the same number of bytes as one page is
+	// stored in the buffer of header. To avoid unexpected wakeup, check
+	// the interval.
+	if (priv->header_size * packets_per_irq > sysconf(_SC_PAGESIZE)) {
+		raise(exception, EINVAL);
+		return;
+	}
 
 	priv->chunks_per_irq = packets_per_irq;
 	priv->maximum_chunk_count = G_MAXUINT / 2 / packets_per_irq;

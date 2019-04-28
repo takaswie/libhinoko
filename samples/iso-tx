@@ -65,7 +65,7 @@ class IsoTx(Hinoko.FwIsoTx):
                          (self.channel << 8) | \
                          (0xa << 4) | \
                          self.sy
-            print('{0:2d} {1:4d} {2:08x}'.format(sec, cycle, iso_header))
+            print('{0:2d},{1:4d},{2:08x},{3}'.format(sec, cycle, iso_header, i))
 
 channel = 30
 maximum_bytes_per_payload = 32

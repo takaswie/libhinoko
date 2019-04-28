@@ -73,7 +73,7 @@ class IsoRxSingle(Hinoko.FwIsoRxSingle):
             data = self.get_payload(i)
             frames = unpack('>{0}I'.format(len(data) // 4), data)
 
-            print('{0:d},{1:d},{2:08x}'.format(sec, cycle, iso_header))
+            print('{0:d},{1:d},{2:08x},{3}'.format(sec, cycle, iso_header, i))
             for i, frame in enumerate(frames):
                 print('    {0:2d}: {1:08x}'.format(i, frame))
 

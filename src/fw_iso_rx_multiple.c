@@ -268,9 +268,9 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
 				     chunks_per_buffer, exception);
 
-	g_object_get(G_OBJECT(self), "bytes-per-chunk", &bytes_per_chunk, NULL);
-	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
-		     NULL);
+	g_object_get(G_OBJECT(self),
+		     "bytes-per-chunk", &bytes_per_chunk,
+		     "chunks-per-buffer", &chunks_per_buffer, NULL);
 
 	priv->ctx_payloads = calloc(bytes_per_chunk * chunks_per_buffer / 8 / 2,
 				    sizeof(*priv->ctx_payloads));
@@ -401,9 +401,9 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
-	g_object_get(G_OBJECT(self), "bytes-per-chunk", &bytes_per_chunk, NULL);
-	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
-		     NULL);
+	g_object_get(G_OBJECT(self),
+		     "bytes-per-chunk", &bytes_per_chunk,
+		     "chunks-per-buffer", &chunks_per_buffer, NULL);
 
 	bytes_per_buffer = bytes_per_chunk * chunks_per_buffer;
 

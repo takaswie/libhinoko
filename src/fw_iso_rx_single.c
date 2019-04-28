@@ -343,9 +343,9 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 		return;
 	}
 
-	g_object_get(G_OBJECT(self), "bytes-per-chunk", &bytes_per_chunk, NULL);
-	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
-		     NULL);
+	g_object_get(G_OBJECT(self),
+		     "bytes-per-chunk", &bytes_per_chunk,
+		     "chunks-per-buffer", &chunks_per_buffer, NULL);
 
 	pos = index * priv->header_size / 4;
 	iso_header = GUINT32_FROM_BE(priv->ev->header[pos]);

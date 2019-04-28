@@ -185,7 +185,7 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 }
 
 static void fw_iso_rx_single_register_chunk(HinokoFwIsoRxSingle *self,
-					    gboolean skip, GError **exception)
+					    GError **exception)
 {
 	HinokoFwIsoRxSinglePrivate *priv =
 			hinoko_fw_iso_rx_single_get_instance_private(self);
@@ -194,7 +194,7 @@ static void fw_iso_rx_single_register_chunk(HinokoFwIsoRxSingle *self,
 	if (++priv->accumulate_chunk_count % priv->chunks_per_irq == 0)
 		interrupt = TRUE;
 
-	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, 0, 0,
+	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0,
 					 NULL, 0, 0, interrupt, exception);
 
 	if (priv->accumulate_chunk_count >= G_MAXINT) {
@@ -249,7 +249,7 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 		     NULL);
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
-		fw_iso_rx_single_register_chunk(self, FALSE, exception);
+		fw_iso_rx_single_register_chunk(self, exception);
 		if (*exception != NULL)
 			return;
 	}
@@ -297,7 +297,7 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 
 	for (i = 0; i < priv->chunks_per_irq; ++i) {
 		// Register consumed chunks to reuse.
-		fw_iso_rx_single_register_chunk(self, FALSE, exception);
+		fw_iso_rx_single_register_chunk(self, exception);
 		if (*exception != NULL)
 			return;
 	}

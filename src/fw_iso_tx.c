@@ -36,7 +36,7 @@ static void fw_iso_tx_finalize(GObject *obj)
 }
 
 enum fw_iso_tx_sig_type {
-	FW_ISO_TX_SIG_TYPE_INTERRUPTED = 1,
+	FW_ISO_TX_SIG_TYPE_IRQ = 1,
 	FW_ISO_TX_SIG_TYPE_COUNT,
 };
 static guint fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_COUNT] = { 0 };
@@ -60,7 +60,7 @@ static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 	 * When registered packets are handled, #HinokoFwIsoTx::interrupted
 	 * signal is emitted with timestamps of the packet.
 	 */
-	fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_INTERRUPTED] =
+	fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ] =
 		g_signal_new("interrupted",
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
@@ -301,7 +301,7 @@ void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 	guint registered_chunk_count;
 	int i;
 
-	g_signal_emit(self, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_INTERRUPTED],
+	g_signal_emit(self, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ],
 		0, sec, cycle, event->header, event->header_length, pkt_count);
 
 	g_object_get(G_OBJECT(self), "registered-chunk-count",

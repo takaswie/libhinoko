@@ -44,7 +44,7 @@ static void fw_iso_rx_single_finalize(GObject *obj)
 }
 
 enum fw_iso_rx_single_sig_type {
-	FW_ISO_RX_SINGLE_SIG_TYPE_INTERRUPTED = 1,
+	FW_ISO_RX_SINGLE_SIG_TYPE_IRQ = 1,
 	FW_ISO_RX_SINGLE_SIG_TYPE_COUNT,
 };
 static guint fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_COUNT] = { 0 };
@@ -70,7 +70,7 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 	 * signal, payload of received packet is available by a call of
 	 * #hinoko_fw_iso_rx_single_get_payload().
 	 */
-	fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_INTERRUPTED] =
+	fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_IRQ] =
 		g_signal_new("interrupted",
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
@@ -294,7 +294,7 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 	// TODO; handling error?
 	priv->ev = event;
 	g_signal_emit(self,
-		fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_INTERRUPTED],
+		fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_IRQ],
 		0, sec, cycle, event->header, event->header_length, count);
 	priv->ev = NULL;
 

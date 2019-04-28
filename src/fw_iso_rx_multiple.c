@@ -45,7 +45,7 @@ enum fw_iso_rx_multiple_prop_type {
 static GParamSpec *fw_iso_rx_multiple_props[FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT] = { NULL, };
 
 enum fw_iso_rx_multiple_sig_type {
-	FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED = 1,
+	FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ = 1,
 	FW_ISO_RX_MULTIPLE_SIG_TYPE_COUNT,
 };
 static guint fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_COUNT] = { 0 };
@@ -111,7 +111,7 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 	 * handler, payload of received packet is available by a call of
 	 * #hinoko_fw_iso_rx_multiple_get_payload().
 	 */
-	fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED] =
+	fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ] =
 		g_signal_new("interrupted",
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
@@ -451,7 +451,7 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 	}
 
 	g_signal_emit(self,
-		fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_INTERRUPTED],
+		fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ],
 		0, priv->ctx_payload_count);
 
 	chunk_pos = priv->prev_offset / bytes_per_chunk;

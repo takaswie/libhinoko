@@ -29,7 +29,6 @@ typedef enum {
  * @HINOKO_FW_SCODE_S800:	800 bps.
  * @HINOKO_FW_SCODE_S1600:	1600 bps.
  * @HINOKO_FW_SCODE_S3200:	3200 bps.
- * @HINOKO_FW_SCODE_BETA:	The speed defined in beta specification.
  *
  * A representation of speed for isochronous context on IEEE 1394 bus.
  */
@@ -40,7 +39,6 @@ typedef enum {
 	HINOKO_FW_SCODE_S800	= SCODE_800,
 	HINOKO_FW_SCODE_S1600	= SCODE_1600,
 	HINOKO_FW_SCODE_S3200	= SCODE_3200,
-	HINOKO_FW_SCODE_BETA	= SCODE_BETA,
 } HinokoFwScode;
 
 /**

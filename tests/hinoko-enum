@@ -22,7 +22,6 @@ fw_scode_enumerators = (
     'S800',
     'S1600',
     'S3200',
-    'BETA',
 )
 
 fw_iso_ctx_match_flags = (

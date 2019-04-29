@@ -210,8 +210,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	    scode != HINOKO_FW_SCODE_S400 &&
 	    scode != HINOKO_FW_SCODE_S800 &&
 	    scode != HINOKO_FW_SCODE_S1600 &&
-	    scode != HINOKO_FW_SCODE_S3200 &&
-	    scode != HINOKO_FW_SCODE_BETA) {
+	    scode != HINOKO_FW_SCODE_S3200) {
 		raise(exception, EINVAL);
 		return;
 	}

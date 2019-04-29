@@ -205,7 +205,6 @@ static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 			    guint packets_per_irq, GError **exception)
 {
-	unsigned int chunks_per_buffer;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
@@ -219,10 +218,7 @@ void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 		return;
 	}
 
-	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
-		     NULL);
-
-	for (i = 0; i < chunks_per_buffer; ++i) {
+	for (i = 0; i < packets_per_irq * 2; ++i) {
 		fw_iso_tx_register_chunk(self,
 					 HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0, 0,
 					 NULL, 0, 0, exception);

@@ -330,16 +330,12 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 				     guint chunks_per_irq, GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
-	unsigned int chunks_per_buffer;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
-	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
-		     NULL);
-
-	for (i = 0; i < chunks_per_buffer; ++i) {
+	for (i = 0; i < chunks_per_irq * 2; ++i) {
 		fw_iso_rx_multiple_register_chunk(self, exception);
 		if (*exception != NULL)
 			return;

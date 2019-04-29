@@ -213,7 +213,6 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 				   guint packets_per_irq, GError **exception)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
-	unsigned int chunks_per_buffer;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
@@ -229,12 +228,9 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 		return;
 	}
 
-	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer,
-		     NULL);
-
 	priv->accumulated_chunk_count = 0;
 
-	for (i = 0; i < chunks_per_buffer; ++i) {
+	for (i = 0; i < packets_per_irq * 2; ++i) {
 		fw_iso_rx_single_register_chunk(self, exception);
 		if (*exception != NULL)
 			return;

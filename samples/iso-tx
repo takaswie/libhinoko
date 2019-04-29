@@ -17,8 +17,8 @@ class IsoTx(Hinoko.FwIsoTx):
 
         self.allocate(path, Hinoko.FwScode.S400, channel, header_size)
 
-        self.__payloads_per_buffer = 32
-        self.map_buffer(maximum_bytes_per_payload, self.__payloads_per_buffer)
+        payloads_per_buffer = 32
+        self.map_buffer(maximum_bytes_per_payload, payloads_per_buffer)
 
         self.channel = channel
 
@@ -54,11 +54,12 @@ class IsoTx(Hinoko.FwIsoTx):
         cycle_match = (sec & 0x3, cycle)
 
         # The packets for buffer are queued with skip flag.
+        packets_per_irq = 4
         self.__cycles = [sec, cycle]
-        self.__increment_cycle(self.__payloads_per_buffer)
+        self.__increment_cycle(packets_per_irq * 2)
 
         self.__timer.start()
-        self.start(cycle_match, 4)
+        self.start(cycle_match, packets_per_irq)
 
     def __increment_cycle(self, addend):
         sec, cycle = self.__cycles

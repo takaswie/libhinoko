@@ -931,7 +931,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 			raise(exception, EINVAL);
 			return;
 		}
-		if (cycle_match[1] > 7900) {
+		if (cycle_match[1] > 7999) {
 			raise(exception, EINVAL);
 			return;
 		}

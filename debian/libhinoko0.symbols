@@ -1,5 +1,6 @@
 libhinoko.so.0 libhinoko0 #MINVER#
  HINOKO_0_1_0@HINOKO_0_1_0 0.1.0
+ HINOKO_0_3_0@HINOKO_0_3_0 0.3.0
  hinoko_fw_iso_tx_new@HINOKO_0_1_0 0.1.0
  hinoko_fw_iso_ctx_create_source@HINOKO_0_1_0 0.1.0
  hinoko_fw_iso_ctx_get_cycle_timer@HINOKO_0_1_0 0.1.0
@@ -37,3 +38,9 @@ libhinoko.so.0 libhinoko0 #MINVER#
  hinoko_fw_iso_tx_unmap_buffer@HINOKO_0_1_0 0.1.0
  hinoko_fw_scode_get_type@HINOKO_0_1_0 0.1.0
  hinoko_sigs_marshal_VOID__UINT_UINT_POINTER_UINT_UINT@HINOKO_0_1_0 0.1.0
+ hinoko_system_clock_id_get_type@HINOKO_0_3_0 0.3.0
+ hinoko_cycle_timer_get_clock_id@HINOKO_0_3_0 0.3.0
+ hinoko_cycle_timer_get_cycle_timer@HINOKO_0_3_0 0.3.0
+ hinoko_cycle_timer_get_timestamp@HINOKO_0_3_0 0.3.0
+ hinoko_cycle_timer_get_type@HINOKO_0_3_0 0.3.0
+ hinoko_cycle_timer_new@HINOKO_0_3_0 0.3.0

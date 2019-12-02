@@ -1,6 +1,6 @@
 # libhinoko
 
-2019/4/15
+2019/12/02
 Takashi Sakamoto
 
 ## Instruction
@@ -28,7 +28,7 @@ an application of Linux FireWire subsystem and GLib/GObject.
 - Linux kernel 3.4 or later
 
 ## Requirements to build
-- Meson 0.32.0 or later
+- Meson 0.42.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
 - GTK-Doc 1.18-2 (optional to generate API documentation)

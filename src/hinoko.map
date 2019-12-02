@@ -49,4 +49,7 @@ HINOKO_0_1_0 {
 HINOKO_0_3_0 {
   global:
     "hinoko_system_clock_id_get_type";
+
+    "hinoko_cycle_timer_get_type";
+    "hinoko_cycle_timer_new";
 } HINOKO_0_1_0;

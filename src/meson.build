@@ -30,14 +30,13 @@ marshallers = gnome.genmarshal('hinoko_sigs_marshal',
 )
 sources += marshallers
 
-enums = gnome.mkenums('hinoko_enums',
+enums = gnome.mkenums_simple('hinoko_enums',
   sources: ['hinoko_enum_types.h'],
   identifier_prefix: 'Hinoko',
   symbol_prefix: 'hinoko',
-  c_template: 'hinoko_enums.c.template',
-  h_template: 'hinoko_enums.h.template',
   install_header: true,
   install_dir: join_paths(get_option('includedir'), inc_dir),
+  header_prefix: '#include <hinoko_enum_types.h>',
 )
 headers += 'hinoko_enum_types.h'
 sources += enums

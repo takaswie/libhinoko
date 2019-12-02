@@ -6,7 +6,7 @@
 #include <glib-object.h>
 
 #include <fw_iso_ctx.h>
-#include <hinoko_enum_types.h>
+#include <hinoko_enums.h>
 
 G_BEGIN_DECLS
 

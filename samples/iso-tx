@@ -38,9 +38,10 @@ class IsoTx(Hinoko.FwIsoTx):
         self.tag = Hinoko.FwIsoCtxMatchFlag.TAG1
         self.sy = 0
 
-        cycle_timer = self.get_cycle_timer()
-        sec = cycle_timer[0]
-        cycle = cycle_timer[1]
+        cycle_timer = Hinoko.CycleTimer.new()
+        clock_id = Hinoko.SystemClockId.LINUX_MONOTONIC_RAW
+        cycle_timer = self.get_cycle_timer(clock_id, cycle_timer)
+        (sec, cycle, tick) = cycle_timer.get_cycle_timer()
 
         # Start 100 msec later.
         cycle += 800

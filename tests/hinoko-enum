@@ -31,10 +31,17 @@ fw_iso_ctx_match_flags = (
     'TAG3',
 )
 
+system_clock_id_types = (
+    'POSIX_REALTIME',
+    'POSIX_MONOTONIC',
+    'LINUX_MONOTONIC_RAW',
+)
+
 types = {
     Hinoko.FwIsoCtxMode: fw_iso_ctx_mode_enumerators,
     Hinoko.FwScode: fw_scode_enumerators,
     Hinoko.FwIsoCtxMatchFlag: fw_iso_ctx_match_flags,
+    Hinoko.SystemClockId: system_clock_id_types,
 }
 
 for obj, types in types.items():

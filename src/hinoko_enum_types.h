@@ -58,4 +58,19 @@ typedef enum /*< flags >*/
 	HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3 = FW_CDEV_ISO_CONTEXT_MATCH_TAG3,
 } HinokoFwIsoCtxMatchFlag;
 
+/**
+ * HinokoSystemClockId:
+ * @HINOKO_SYSTEM_CLOCK_ID_POSIX_REALTIME:	For CLOCK_REALTIME.
+ * @HINOKO_SYSTEM_CLOCK_ID_POSIX_MONOTONIC:	For CLOCK_MONOTONIC.
+ * @HINOKO_SYSTEM_CLOCK_ID_LINUX_MONOTONIC_RAW:	For CLOCK_MONOTONIC_RAW.
+ *
+ * A set of enumerations for ID of system reference clock. In detail, please
+ * refer to manual of clock_gettime(2).
+ */
+typedef enum {
+	HINOKO_SYSTEM_CLOCK_ID_POSIX_REALTIME		= CLOCK_REALTIME,
+	HINOKO_SYSTEM_CLOCK_ID_POSIX_MONOTONIC		= CLOCK_MONOTONIC,
+	HINOKO_SYSTEM_CLOCK_ID_LINUX_MONOTONIC_RAW	= CLOCK_MONOTONIC_RAW,
+} HinokoSystemClockId;
+
 #endif

@@ -45,3 +45,8 @@ HINOKO_0_1_0 {
   local:
     *;
 };
+
+HINOKO_0_3_0 {
+  global:
+    "hinoko_system_clock_id_get_type";
+} HINOKO_0_1_0;

@@ -299,9 +299,9 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
  * hinoko_fw_iso_rx_single_get_payload:
  * @self: A #HinokoFwIsoRxSingle.
  * @index: the index inner available packets.
- * @payload: (element-type guint8) (array length=length) (out callee-allocates):
- *	     An array with bytes for payload of IR context.
- * @length: (out): The number of bytes in the above @payload.
+ * @payload: (element-type guint8)(array length=length)(transfer none): The
+ *	     array with data frame for payload of IR context.
+ * @length: The number of bytes in the above @payload.
  * @exception: A #GError.
  *
  * Retrieve payload of IR context for a handled packet corresponding to index.

@@ -449,9 +449,9 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
  * hinoko_fw_iso_rx_multiple_get_payload:
  * @self: A #HinokoFwIsoRxMultiple.
  * @index: the index of packet available in this interrupt.
- * @payload: (element-type guint8) (array length=length) (out callee-allocates):
- *	     An array with bytes for payload.
- * @length: (out): The number of bytes in the above @payload.
+ * @payload: (array length=length)(out)(transfer none): The array with data
+ * 	     frame for payload of IR context.
+ * @length: The number of bytes in the above @payload.
  * @exception: A #GError.
  */
 void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,

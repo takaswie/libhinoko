@@ -254,11 +254,11 @@ void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
  * @self: A #HinokoFwIsoTx.
  * @tags: The value of tag field for isochronous packet to register.
  * @sy: The value of sy field for isochronous packet to register.
- * @header: (array length=header_length) (element-type guint8) (in) (nullable):
- * 	    The header of IT context for isochronous packet.
+ * @header: (array length=header_length)(nullable): The header of IT context
+ * 	    for isochronous packet.
  * @header_length: The number of bytes for the @header.
- * @payload: (array length=payload_length) (element-type guint8) (in) (nullable):
- * 	     The payload of IT context for isochronous packet.
+ * @payload: (array length=payload_length)(nullable): The payload of IT context
+ * 	     for isochronous packet.
  * @payload_length: The number of bytes for the @payload.
  * @exception: A #GError.
  *

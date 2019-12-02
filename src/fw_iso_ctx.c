@@ -1011,8 +1011,8 @@ void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
  * @self: A #HinokoFwIsoCtx.
  * @offset: offset from head of buffer.
  * @length: the number of bytes to read.
- * @frames: (array length=frame_size) (element-type guint8) (out) (nullable):
- * 	    A #GByteArray, filled with the same number of bytes as @frame_size.
+ * @frames: (array length=frame_size)(out)(transfer none)(nullable): The array
+ * 	    to fill the same data frame as @frame_size.
  * @frame_size: this value is for a case to truncate due to the end of buffer.
  *
  * Read frames to given buffer.

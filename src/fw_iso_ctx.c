@@ -405,24 +405,22 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 /**
  * hinoko_fw_iso_ctx_get_cycle_timer:
  * @self: A #HinokoFwIsoCtx.
- * @cycle_timer: (array fixed-size=3) (element-type guint16) (out caller-allocates):
- *		 The value of cycle timer register of
- *		 1394 OHCI, including three elements; second, cycle and offset.
- * @tv: (nullable): Fill with the nearest system time with CLOCK_MONOTONIC_RAW.
+ * @clock_id: A #HinokoSystemClockId to get reference timestamp.
+ * @cycle_timer: (inout): A #HinokoCycleTimer to store data of cycle timer.
  * @exception: A #GError.
  *
- * Retrieve the value of cycle timer register. When @tv argument is given,
- * it's filled for the nearest system time with CLOCK_MONOTONIC_RAW flag. This
- * method call is available once any isochronous context is created.
+ * Retrieve the value of cycle timer register. This method call is available
+ * once any isochronous context is created.
  */
 void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self,
-				       guint16 *cycle_timer, GTimeVal *tv,
+				       HinokoSystemClockId clock_id,
+				       HinokoCycleTimer *const *cycle_timer,
 				       GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
-	struct fw_cdev_get_cycle_timer2 time;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(cycle_timer != NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
@@ -430,20 +428,9 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self,
 		return;
 	}
 
-	time.clk_id = CLOCK_MONOTONIC_RAW;
-	if (ioctl(priv->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, (void *)&time) < 0) {
+	(*cycle_timer)->clk_id = clock_id;
+	if (ioctl(priv->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_timer) < 0)
 		raise(exception, errno);
-		return;
-	}
-
-	cycle_timer[0] = (time.cycle_timer & 0xfe000000) >> 25;
-	cycle_timer[1] = (time.cycle_timer & 0x01fff000) >> 12;
-	cycle_timer[2] = time.cycle_timer & 0x00000fff;
-
-	if (tv) {
-		tv->tv_sec = time.tv_sec;
-		tv->tv_usec = time.tv_nsec;
-	}
 }
 
 /**

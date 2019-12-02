@@ -5,6 +5,7 @@
 #include <glib.h>
 #include <glib-object.h>
 
+#include <cycle_timer.h>
 #include <hinoko_enums.h>
 
 G_BEGIN_DECLS
@@ -58,7 +59,8 @@ struct _HinokoFwIsoCtxClass {
 GType hinoko_fw_iso_ctx_get_type(void) G_GNUC_CONST;
 
 void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self,
-				       guint16 *cycle_timer, GTimeVal *tv,
+				       HinokoSystemClockId clock_id,
+				       HinokoCycleTimer *const *cycle_timer,
 				       GError **exception);
 
 void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,

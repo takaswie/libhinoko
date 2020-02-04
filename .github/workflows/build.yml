@@ -1,0 +1,72 @@
+name: Build test
+
+on: [push, pull_request]
+
+jobs:
+  build_in_fedora_on_docker:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:32
+    steps:
+    - name: Checkout repository.
+      uses: actions/checkout@v2
+    - name: Prepare build environment.
+      run: |
+        dnf -y upgrade
+        dnf -y install @development-tools
+        dnf -y install meson gobject-introspection-devel systemd-devel
+        dnf -y install gtk-doc python3-gobject
+    - name: Initialization for build.
+      run: |
+        meson --prefix=/tmp. -Dgtk_doc=true -Dwarning_level=3 . build
+    - name: Display configuration.
+      run: |
+        cd build
+        meson configure
+    - name: Build library.
+      run: |
+        cd build
+        ninja
+    - name: Test interfaces exposed by g-i.
+      run: |
+        cd build
+        meson test
+    - name: Test install.
+      run: |
+        cd build
+        meson install
+
+  build_in_ubuntu_on_docker:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:19.10
+    steps:
+     - name: Checkout repository.
+       uses: actions/checkout@v2
+     - name: Prepare build environment.
+       run: |
+         apt-get update
+         apt-get -y install apt-utils
+         apt-get -y full-upgrade
+         apt-get install -y git build-essential
+         apt-get install -y meson ninja-build libglib2.0-dev libudev-dev gobject-introspection libgirepository1.0-dev
+         apt-get install -y gtk-doc-tools python3-gi
+     - name: Initialization for build.
+       run: |
+         meson --prefix=/tmp. -Dgtk_doc=true -Dwarning_level=3 . build
+     - name: Display configuration.
+       run: |
+         cd build
+         meson configure
+     - name: Build library.
+       run: |
+         cd build
+         ninja
+     - name: Test interfaces exposed by g-i.
+       run: |
+         cd build
+         meson test
+     - name: Test install.
+       run: |
+         cd build
+         meson install

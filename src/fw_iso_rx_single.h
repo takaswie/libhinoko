@@ -70,7 +70,7 @@ GType hinoko_fw_iso_rx_single_get_type(void) G_GNUC_CONST;
 HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void);
 
 void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
-				      const char *path, HinokoFwScode scode,
+				      const char *path,
 				      guint channel, guint header_size,
 				      GError **exception);
 void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self);

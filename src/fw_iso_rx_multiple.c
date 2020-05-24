@@ -140,7 +140,6 @@ HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
  * hinoko_fw_iso_rx_multiple_allocate:
  * @self: A #HinokoFwIsoRxMultiple.
  * @path: A path to any Linux FireWire character device.
- * @scode: A #HinokoFwScode to indicate speed of isochronous communication.
  * @channels: (array length=channels_length) (element-type guint8): an array
  *	      for channels to listen to.
  * @channels_length: The length of @channels.
@@ -152,7 +151,7 @@ HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
  * permission for the path.
  */
 void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
-					const char *path, HinokoFwScode scode,
+					const char *path,
 					const guint8 *channels,
 					guint channels_length,
 					GError **exception)
@@ -171,7 +170,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	}
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
-				   HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, scode, 0,
+				   HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, 0, 0,
 				   0, exception);
 	if (*exception != NULL)
 		return;

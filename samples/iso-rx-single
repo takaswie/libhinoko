@@ -11,7 +11,7 @@ from gi.repository import Hinoko
 
 class IsoRxSingle(Hinoko.FwIsoRxSingle):
     def new(self, path, channel, maximum_bytes_per_payload):
-        self.allocate(path, Hinoko.FwScode.S400, channel, 8)
+        self.allocate(path, channel, 8)
 
         # Use 10msec interval for I/O operation.
         self.map_buffer(maximum_bytes_per_payload, 240)

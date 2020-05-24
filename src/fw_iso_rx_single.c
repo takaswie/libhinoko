@@ -101,7 +101,6 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * hinoko_fw_iso_rx_single_allocate:
  * @self: A #HinokoFwIsoRxSingle.
  * @path: A path to any Linux FireWire character device.
- * @scode: A #HinokoFwScode to indicate speed of isochronous communication.
  * @channel: An isochronous channel to listen.
  * @header_size: The number of bytes for header of IR context.
  * @exception: A #GError.
@@ -112,7 +111,7 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * permission for the path.
  */
 void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
-				      const char *path, HinokoFwScode scode,
+				      const char *path,
 				      guint channel, guint header_size,
 				      GError **exception)
 {
@@ -122,7 +121,7 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
-				 HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, scode,
+				 HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0,
 				 channel, header_size, exception);
 	if (*exception != NULL)
 		return;

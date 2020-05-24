@@ -12,7 +12,7 @@ from gi.repository import Hinoko
 class IsoRxMultiple(Hinoko.FwIsoRxMultiple):
     def new(self, path, bytes_per_packet, syt_interval):
         channels = [i for i in range(4)]
-        self.allocate(path, Hinoko.FwScode.S400, channels)
+        self.allocate(path, channels)
 
         channels = self.get_property('channels')
         bytes_per_chunk = len(channels) * bytes_per_packet * syt_interval

@@ -704,15 +704,6 @@ static void fw_iso_ctx_stop(HinokoFwIsoCtx *self, GError *exception)
 		      exception, NULL);
 }
 
-static gboolean prepare_src(GSource *src, gint *timeout)
-{
-	// Although saving CPU time, use timeout.
-	*timeout = 200;
-
-	// This source is not ready, let's poll(2).
-	return FALSE;
-}
-
 static gboolean check_src(GSource *gsrc)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
@@ -835,7 +826,6 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 				     GError **exception)
 {
 	static GSourceFuncs funcs = {
-		.prepare	= prepare_src,
 		.check		= check_src,
 		.dispatch	= dispatch_src,
 		.finalize	= finalize_src,

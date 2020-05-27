@@ -47,4 +47,7 @@ GType hinoko_fw_iso_resource_get_type(void) G_GNUC_CONST;
 
 HinokoFwIsoResource *hinoko_fw_iso_resource_new();
 
+void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
+				 gint open_flag, GError **exception);
+
 #endif

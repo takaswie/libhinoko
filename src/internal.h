@@ -10,6 +10,8 @@
 #include "fw_iso_rx_multiple.h"
 #include "fw_iso_tx.h"
 
+#include "fw_iso_resource.h"
+
 GQuark hinoko_error_quark(void);
 
 #define generate_error(exception, errno)				\

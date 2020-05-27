@@ -13,6 +13,7 @@ target = Hinoko.FwIsoResource()
 props = ()
 methods = (
     'new',
+    'open',
 )
 vmethods = ()
 signals = ()

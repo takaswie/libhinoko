@@ -31,9 +31,12 @@ G_BEGIN_DECLS
 
 typedef struct _HinokoFwIsoResource		HinokoFwIsoResource;
 typedef struct _HinokoFwIsoResourceClass	HinokoFwIsoResourceClass;
+typedef struct _HinokoFwIsoResourcePrivate	HinokoFwIsoResourcePrivate;
 
 struct _HinokoFwIsoResource {
 	GObject parent_instance;
+
+	HinokoFwIsoResourcePrivate *priv;
 };
 
 struct _HinokoFwIsoResourceClass {

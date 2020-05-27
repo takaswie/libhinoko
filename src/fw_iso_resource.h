@@ -50,4 +50,7 @@ HinokoFwIsoResource *hinoko_fw_iso_resource_new();
 void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 				 gint open_flag, GError **exception);
 
+void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
+					  GSource **gsrc, GError **exception);
+
 #endif

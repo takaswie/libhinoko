@@ -715,16 +715,9 @@ static gboolean check_src(GSource *gsrc)
 	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
-static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev, int len,
+static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
 			     GError **exception)
 {
-	// Linux FireWire subsytem can truncate event up to the size of given
-	// buffer.
-	if (len != sizeof(*ev) + ev->header_length) {
-		raise(exception, EIO);
-		return;
-	}
-
 	if (HINOKO_IS_FW_ISO_RX_SINGLE(ev->closure)) {
 		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE(ev->closure);
 
@@ -768,9 +761,9 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	HinokoFwIsoCtxPrivate *priv =
 				hinoko_fw_iso_ctx_get_instance_private(self);
 	GIOCondition condition;
-	union fw_cdev_event *ev;
 	GError *exception;
 	int len;
+	guint8 *buf;
 
 	if (priv->fd < 0)
 		return G_SOURCE_REMOVE;
@@ -783,28 +776,46 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	if (len < 0) {
 		if (errno != EAGAIN) {
 			raise(&exception, errno);
-			fw_iso_ctx_stop(self, exception);
-			return G_SOURCE_REMOVE;
+			goto error;
 		}
 
 		return G_SOURCE_CONTINUE;
 	}
 
-	ev = (union fw_cdev_event *)src->buf;
-	exception = NULL;
-	if (ev->common.type == FW_CDEV_EVENT_ISO_INTERRUPT)
-		handle_irq_event(&ev->iso_interrupt, len, &exception);
-	else if (ev->common.type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL)
-		handle_irq_mc_event(&ev->iso_interrupt_mc, &exception);
-	else
-		return G_SOURCE_CONTINUE;
-	if (exception != NULL) {
-		fw_iso_ctx_stop(self, exception);
-		return G_SOURCE_REMOVE;
+	buf = src->buf;
+	while (len > 0) {
+		union fw_cdev_event *ev = (union fw_cdev_event *)buf;
+		size_t size = 0;
+
+		switch (ev->common.type) {
+		case FW_CDEV_EVENT_ISO_INTERRUPT:
+			exception = NULL;
+			handle_irq_event(&ev->iso_interrupt, &exception);
+			if (exception != NULL)
+				goto error;
+			size = sizeof(ev->iso_interrupt) +
+			       ev->iso_interrupt.header_length;
+			break;
+		case FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL:
+			exception = NULL;
+			handle_irq_mc_event(&ev->iso_interrupt_mc, &exception);
+			if (exception != NULL)
+				goto error;
+			size = sizeof(ev->iso_interrupt_mc);
+			break;
+		default:
+			break;
+		}
+
+		len -= size;
+		buf += size;
 	}
 
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
+error:
+	fw_iso_ctx_stop(self, exception);
+	return G_SOURCE_REMOVE;
 }
 
 static void finalize_src(GSource *gsrc)

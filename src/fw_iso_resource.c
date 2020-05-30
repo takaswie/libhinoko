@@ -357,6 +357,7 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 
 	switch (request) {
 	case FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE:
+	case FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE:
 		break;
 	default:
 		generate_error(exception, EINVAL);

@@ -18,6 +18,7 @@ props = (
 methods = (
     'new',
     'allocate_async',
+    'deallocate_async',
 )
 vmethods = ()
 signals = ()

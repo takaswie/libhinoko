@@ -150,6 +150,39 @@ end:
 	g_mutex_unlock(&priv->mutex);
 }
 
+/**
+ * hinoko_fw_iso_resource_auto_deallocate_async:
+ * @self: A #HinokoFwIsoResourceAuto.
+ * @exception: A #GError.
+ *
+ * Initiate deallocation of isochronous resource. When the deallocation is done,
+ * ::deallocated signal is emit to notify the result, channel, and bandwidth.
+ */
+void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
+						  GError **exception)
+{
+	HinokoFwIsoResourceAutoPrivate *priv;
+	struct fw_cdev_deallocate dealloc = {0};
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
+	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
+
+	g_mutex_lock(&priv->mutex);
+
+	if (!priv->allocated) {
+		generate_error(exception, ENODATA);
+		goto end;
+	}
+
+	dealloc.handle = priv->handle;
+
+	hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
+				     FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE,
+				     &dealloc, exception);
+end:
+	g_mutex_unlock(&priv->mutex);
+}
+
 void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,
 					struct fw_cdev_event_iso_resource *ev)
 {
@@ -164,5 +197,14 @@ void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,
 			priv->allocated = TRUE;
 			g_mutex_unlock(&priv->mutex);
 		}
+	} else {
+		if (ev->channel >= 0) {
+			g_mutex_lock(&priv->mutex);
+			priv->channel = 0;
+			priv->bandwidth -= ev->bandwidth;
+			priv->allocated = FALSE;
+			g_mutex_unlock(&priv->mutex);
+		}
 	}
 }
+

@@ -5,7 +5,6 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_ctx_match_flag_get_type";
 
     "hinoko_fw_iso_ctx_get_type";
-    "hinoko_fw_iso_ctx_get_quark";
     "hinoko_fw_iso_ctx_get_cycle_timer";
     "hinoko_fw_iso_ctx_create_source";
 

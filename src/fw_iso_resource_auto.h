@@ -33,9 +33,12 @@ G_BEGIN_DECLS
 
 typedef struct _HinokoFwIsoResourceAuto		HinokoFwIsoResourceAuto;
 typedef struct _HinokoFwIsoResourceAutoClass	HinokoFwIsoResourceAutoClass;
+typedef struct _HinokoFwIsoResourceAutoPrivate	HinokoFwIsoResourceAutoPrivate;
 
 struct _HinokoFwIsoResourceAuto {
 	HinokoFwIsoResource parent_instance;
+
+	HinokoFwIsoResourceAutoPrivate *priv;
 };
 
 struct _HinokoFwIsoResourceAutoClass {

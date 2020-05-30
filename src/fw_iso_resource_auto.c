@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 #include "fw_iso_resource_auto.h"
 
-G_DEFINE_TYPE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, HINOKO_TYPE_FW_ISO_RESOURCE)
+struct _HinokoFwIsoResourceAutoPrivate {
+};
+G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, HINOKO_TYPE_FW_ISO_RESOURCE)
 
 static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass *klass)
 {

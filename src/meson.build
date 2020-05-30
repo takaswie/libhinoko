@@ -15,6 +15,7 @@ sources = [
   'fw_iso_tx.c',
   'cycle_timer.c',
   'fw_iso_resource.c',
+  'fw_iso_resource_auto.c',
 ]
 
 headers = [
@@ -24,6 +25,7 @@ headers = [
   'fw_iso_tx.h',
   'cycle_timer.h',
   'fw_iso_resource.h',
+  'fw_iso_resource_auto.h',
 ]
 
 # Generate marshallers for GObject signals.

@@ -64,4 +64,7 @@ HINOKO_0_4_0 {
     "hinoko_fw_iso_resource_deallocate_once_async";
     "hinoko_fw_iso_resource_allocate_once_sync";
     "hinoko_fw_iso_resource_deallocate_once_sync";
+
+    "hinoko_fw_iso_resource_auto_get_type";
+    "hinoko_fw_iso_resource_auto_new";
 } HINOKO_0_3_0;

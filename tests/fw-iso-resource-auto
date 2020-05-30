@@ -10,7 +10,11 @@ gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
 target = Hinoko.FwIsoResourceAuto()
-props = ()
+props = (
+    'allocated',
+    'channel',
+    'bandwidth',
+)
 methods = (
     'new',
 )

@@ -45,6 +45,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx,
 				    G_TYPE_OBJECT)
 
 // For error handling.
+G_DEFINE_QUARK("hinoko-error", hinoko_error)
 G_DEFINE_QUARK("HinokoFwIsoCtx", hinoko_fw_iso_ctx)
 #define raise(exception, errno)						\
 	g_set_error(exception, hinoko_fw_iso_ctx_quark(), errno,	\

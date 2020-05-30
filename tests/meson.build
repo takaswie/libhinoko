@@ -5,6 +5,7 @@ tests = [
   'fw-iso-rx-multiple',
   'fw-iso-tx',
   'fw-iso-resource',
+  'fw-iso-resource-auto',
 ]
 
 objdir = join_paths(meson.build_root(), 'src')

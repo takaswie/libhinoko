@@ -49,4 +49,10 @@ GType hinoko_fw_iso_resource_auto_get_type(void) G_GNUC_CONST;
 
 HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new();
 
+void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
+						guint8 *channel_candidates,
+						gsize channel_candidates_count,
+						guint bandwidth,
+						GError **exception);
+
 #endif

@@ -345,6 +345,28 @@ void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 		generate_error(exception, w.err_code);
 }
 
+// For internal use.
+void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
+				  unsigned long request, void *argp,
+				  GError **exception)
+{
+	HinokoFwIsoResourcePrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	priv = hinoko_fw_iso_resource_get_instance_private(self);
+
+	switch (request) {
+	case FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE:
+		break;
+	default:
+		generate_error(exception, EINVAL);
+		return;
+	}
+
+	if (ioctl(priv->fd, request, argp) < 0)
+		generate_error(exception, errno);
+}
+
 static void handle_iso_resource_event(HinokoFwIsoResource *self,
 				      struct fw_cdev_event_iso_resource *ev)
 {
@@ -352,6 +374,12 @@ static void handle_iso_resource_event(HinokoFwIsoResource *self,
 	guint bandwidth;
 	guint err_code;
 	int sig_type;
+
+	// To change state machine for auto mode.
+	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self)) {
+		hinoko_fw_iso_resource_auto_handle_event(
+					HINOKO_FW_ISO_RESOURCE_AUTO(self), ev);
+	}
 
 	if (ev->channel >= 0) {
 		channel = ev->channel;

@@ -11,6 +11,7 @@
 #include "fw_iso_tx.h"
 
 #include "fw_iso_resource.h"
+#include "fw_iso_resource_auto.h"
 
 GQuark hinoko_error_quark(void);
 
@@ -52,5 +53,12 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 				   struct fw_cdev_event_iso_interrupt *event,
 				   GError **exception);
+
+void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
+				  unsigned long request, void *argp,
+				  GError **exception);
+
+void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,
+					struct fw_cdev_event_iso_resource *ev);
 
 #endif

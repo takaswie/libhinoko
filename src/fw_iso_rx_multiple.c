@@ -29,12 +29,6 @@ struct _HinokoFwIsoRxMultiplePrivate {
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple,
 			   HINOKO_TYPE_FW_ISO_CTX)
 
-// For error handling.
-G_DEFINE_QUARK("HinokoFwIsoRxMultiple", hinoko_fw_iso_rx_multiple)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinoko_fw_iso_rx_multiple_quark(), errno, \
-		    "%d: %s", __LINE__, strerror(errno))
-
 enum fw_iso_rx_multiple_prop_type {
 	FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS = 1,
 	FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT,
@@ -165,7 +159,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (channels_length == 0) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -178,7 +172,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	channel_flags = 0;
 	for (i = 0; i < channels_length; ++i) {
 		if (channels[i] > 64) {
-			raise(exception, EINVAL);
+			generate_error(exception, EINVAL);
 			return;
 		}
 
@@ -190,7 +184,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	if (*exception != NULL)
 		return;
 	if (channel_flags == 0) {
-		raise(exception, ENODATA);
+		generate_error(exception, ENODATA);
 		return;
 	}
 
@@ -247,7 +241,7 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (priv->channels == NULL) {
-		raise(exception, ENODATA);
+		generate_error(exception, ENODATA);
 		return;
 	}
 
@@ -257,7 +251,7 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 
 	priv->concat_frames = calloc(4, bytes_per_chunk);
 	if (priv->concat_frames == NULL) {
-		raise(exception, ENOMEM);
+		generate_error(exception, ENOMEM);
 		return;
 	}
 
@@ -272,7 +266,7 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 				    sizeof(*priv->ctx_payloads));
 	if (priv->ctx_payloads == NULL) {
 		hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
-		raise(exception, ENOMEM);
+		generate_error(exception, ENOMEM);
 	}
 }
 
@@ -465,7 +459,7 @@ void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (index >= priv->ctx_payload_count) {
-		raise(exception, ENODATA);
+		generate_error(exception, ENODATA);
 		return;
 	}
 	ctx_payload = &priv->ctx_payloads[index];
@@ -482,7 +476,7 @@ void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
 		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), 0, rest,
 					      payload, &frame_size);
 		if (frame_size != rest) {
-			raise(exception, EIO);
+			generate_error(exception, EIO);
 			return;
 		}
 		memcpy(priv->concat_frames + done, *payload, rest);

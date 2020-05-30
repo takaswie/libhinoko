@@ -43,6 +43,32 @@ struct _HinokoFwIsoResource {
 
 struct _HinokoFwIsoResourceClass {
 	GObjectClass parent_class;
+
+	/**
+	 * HinokoFwIsoResourceClass::allocated:
+	 * @self: A #HinokoFwIsoResource.
+	 * @channel: The deallocated channel number.
+	 * @bandwidth: The deallocated amount of bandwidth.
+	 * @err_code: 0 if successful, else any error code.
+	 *
+	 * When allocation of isochronous resource finishes, the ::allocated
+	 * handler is called to notify the result, channel, and bandwidth.
+	 */
+	void (*allocated)(HinokoFwIsoResource *self, guint channel,
+			  guint bandwidth, guint err_code);
+
+	/**
+	 * HinokoFwIsoResourceClass::deallocated:
+	 * @self: A #HinokoFwIsoResource.
+	 * @channel: The deallocated channel number.
+	 * @bandwidth: The deallocated amount of bandwidth.
+	 * @err_code: 0 if successful, else any error code.
+	 *
+	 * When deallocation of isochronous resource finishes, the ::deallocated
+	 * handler is called to notify the result, channel, and bandwidth.
+	 */
+	void (*deallocated)(HinokoFwIsoResource *self, guint channel,
+			    guint bandwidth, guint err_code);
 };
 
 GType hinoko_fw_iso_resource_get_type(void) G_GNUC_CONST;

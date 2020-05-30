@@ -16,7 +16,10 @@ methods = (
     'open',
     'create_source',
 )
-vmethods = ()
+vmethods = (
+    'do_allocated',
+    'do_deallocated',
+)
 signals = (
     'allocated',
     'deallocated',

@@ -62,5 +62,7 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 
 void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 						  GError **exception);
+void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
+						 GError **exception);
 
 #endif

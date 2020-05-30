@@ -263,6 +263,54 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 		generate_error(exception, w.err_code);
 }
 
+/**
+ * hinoko_fw_iso_resource_auto_deallocate_sync:
+ * @self: A #HinokoFwIsoResourceAuto.
+ * @exception: A #GError.
+ *
+ * Initiate deallocation of isochronous resource. When the deallocation is done,
+ * ::deallocated signal is emit to notify the result, channel, and bandwidth.
+ */
+void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
+						 GError **exception)
+{
+	struct waiter w;
+	guint64 expiration;
+	gulong handler_id;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
+
+	g_mutex_init(&w.mutex);
+	g_cond_init(&w.cond);
+	w.err_code = 0;
+	w.handled = FALSE;
+
+	// For safe, use 100 msec for timeout.
+	expiration = g_get_monotonic_time() + 100 * G_TIME_SPAN_MILLISECOND;
+
+	handler_id = g_signal_connect(self, "deallocated",
+				      (GCallback)handle_event_signal, &w);
+
+	hinoko_fw_iso_resource_auto_deallocate_async(self, exception);
+	if (*exception != NULL) {
+		g_signal_handler_disconnect(self, handler_id);
+		return;
+	}
+
+	g_mutex_lock(&w.mutex);
+	while (w.handled == FALSE) {
+		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
+			break;
+	}
+	g_signal_handler_disconnect(self, handler_id);
+	g_mutex_unlock(&w.mutex);
+
+	if (w.handled == FALSE)
+		generate_error(exception, ETIMEDOUT);
+	else if (w.err_code > 0)
+		generate_error(exception, w.err_code);
+}
+
 void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,
 					struct fw_cdev_event_iso_resource *ev)
 {

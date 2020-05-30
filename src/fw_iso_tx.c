@@ -21,12 +21,6 @@ struct _HinokoFwIsoTxPrivate {
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx,
 			   HINOKO_TYPE_FW_ISO_CTX)
 
-// For error handling.
-G_DEFINE_QUARK("HinokoFwIsoTx", hinoko_fw_iso_tx)
-#define raise(exception, errno)					\
-	g_set_error(exception, hinoko_fw_iso_tx_quark(), errno,	\
-		    "%d: %s", __LINE__, strerror(errno))
-
 static void fw_iso_tx_finalize(GObject *obj)
 {
 	HinokoFwIsoTx *self = HINOKO_FW_ISO_TX(obj);
@@ -214,7 +208,7 @@ void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 	// stored in the buffer of header. To avoid unexpected wakeup, check
 	// the interval.
 	if (packets_per_irq == 0 || packets_per_irq * 4 > sysconf(_SC_PAGESIZE)) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -279,13 +273,13 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 
 	if ((header == NULL && header_length > 0) ||
 	    (header != NULL && header_length == 0)) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
 	if ((payload == NULL && payload_length > 0) ||
 	    (payload != NULL && payload_length == 0)) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 

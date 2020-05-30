@@ -26,12 +26,6 @@ struct _HinokoFwIsoRxSinglePrivate {
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single,
 			   HINOKO_TYPE_FW_ISO_CTX)
 
-// For error handling.
-G_DEFINE_QUARK("HinokoFwIsoRxSingle", hinoko_fw_iso_rx_single)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinoko_fw_iso_rx_single_quark(), errno,	\
-		    "%d: %s", __LINE__, strerror(errno))
-
 static void fw_iso_rx_single_finalize(GObject *obj)
 {
 	HinokoFwIsoRxSingle *self = HINOKO_FW_ISO_RX_SINGLE(obj);
@@ -223,7 +217,7 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 	// the interval.
 	if (packets_per_irq == 0 ||
 	    priv->header_size * packets_per_irq > sysconf(_SC_PAGESIZE)) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -321,12 +315,12 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	if (priv->ev == NULL) {
-		raise(exception, ENODATA);
+		generate_error(exception, ENODATA);
 		return;
 	}
 
 	if (index * priv->header_size >= priv->ev->header_length) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -345,7 +339,7 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset, *length,
 				      payload, &frame_size);
 	if (frame_size != *length) {
-		raise(exception, EIO);
+		generate_error(exception, EIO);
 		return;
 	}
 }

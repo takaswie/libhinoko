@@ -19,6 +19,7 @@ methods = (
     'new',
     'allocate_async',
     'deallocate_async',
+    'allocate_sync',
 )
 vmethods = ()
 signals = ()

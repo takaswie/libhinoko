@@ -54,6 +54,11 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 						gsize channel_candidates_count,
 						guint bandwidth,
 						GError **exception);
+void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
+					       guint8 *channel_candidates,
+					       gsize channel_candidates_count,
+					       guint bandwidth,
+					       GError **exception);
 
 void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 						  GError **exception);

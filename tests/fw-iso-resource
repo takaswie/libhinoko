@@ -17,7 +17,10 @@ methods = (
     'create_source',
 )
 vmethods = ()
-signals = ()
+signals = (
+    'allocated',
+    'deallocated',
+)
 
 if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)

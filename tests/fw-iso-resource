@@ -15,6 +15,7 @@ methods = (
     'new',
     'open',
     'create_source',
+    'calculate_bandwidth',
 )
 vmethods = (
     'do_allocated',

@@ -6,6 +6,7 @@
 #include <glib-object.h>
 
 #include <hinoko_sigs_marshal.h>
+#include <hinoko_enums.h>
 
 G_BEGIN_DECLS
 
@@ -80,5 +81,8 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 
 void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 					  GSource **gsrc, GError **exception);
+
+guint hinoko_fw_iso_resource_calculate_bandwidth(guint bytes_per_payload,
+						 HinokoFwScode scode);
 
 #endif

@@ -270,3 +270,34 @@ void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
 	src->self = g_object_ref(self);
 }
+
+/**
+ * hinoko_fw_iso_resource_calculate_bandwidth:
+ * @bytes_per_payload: The number of bytes in payload of isochronous packet.
+ * @scode: The speed of transmission.
+ *
+ * Calculate the amount of bandwidth expected to be consumed in allocation unit
+ * by given parameters.
+ *
+ * Returns: The amount of bandwidth expected to be consumed.
+ */
+guint hinoko_fw_iso_resource_calculate_bandwidth(guint bytes_per_payload,
+						 HinokoFwScode scode)
+{
+	guint bytes_per_packet;
+	guint s400_bytes;
+
+	// iso packets have three header quadlets and quadlet-aligned payload.
+	bytes_per_packet = 3 * 4 + ((bytes_per_payload + 3) / 4) * 4;
+
+	// convert to bandwidth units (quadlets at S1600 = bytes at S400).
+	if (scode <= HINOKO_FW_SCODE_S400) {
+		s400_bytes = bytes_per_packet *
+			     (1 << (HINOKO_FW_SCODE_S400 - scode));
+	} else {
+		s400_bytes = bytes_per_packet /
+			     (1 << (scode - HINOKO_FW_SCODE_S400));
+	}
+
+	return s400_bytes;
+}

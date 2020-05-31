@@ -5,6 +5,16 @@
 
 #include <linux/firewire-cdev.h>
 
+/**
+ * SECTION:fw_iso_resource_auto
+ * @Title: HinokoFwIsoResourceAuto
+ * @Short_description: An object to maintain allocated isochronous resource.
+ *
+ * A #HinokoFwIsoResourceAuto is an object to maintain isochronous resource
+ * during the lifetime of the object. The allocated isochronous resource is
+ * kept even if the generation of the bus updates. The maintenance of allocated
+ * isochronous resource is done by Linux FireWire subsystem.
+ */
 struct _HinokoFwIsoResourceAutoPrivate {
 	gboolean allocated;
 	guint channel;

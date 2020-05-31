@@ -282,6 +282,59 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 		generate_error(exception, w.err_code);
 }
 
+/**
+ * hinoko_fw_iso_resource_deallocate_once_sync:
+ * @self: A #HinokoFwIsoResource.
+ * @channel: The channel number to be deallocated.
+ * @bandwidth: The amount of bandwidth to be deallocated.
+ * @exception: A #GError.
+ *
+ * Initiate deallocation of isochronous resource. When the deallocation is done,
+ * ::deallocated signal is emit to notify the result, channel, and bandwidth.
+ */
+void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
+						 guint channel,
+						 guint bandwidth,
+						 GError **exception)
+{
+	struct waiter w;
+	guint64 expiration;
+	gulong handler_id;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+
+	g_mutex_init(&w.mutex);
+	g_cond_init(&w.cond);
+	w.err_code = 0;
+	w.handled = FALSE;
+
+	// For safe, use 100 msec for timeout.
+	expiration = g_get_monotonic_time() + 100 * G_TIME_SPAN_MILLISECOND;
+
+	handler_id = g_signal_connect(self, "deallocated",
+				      (GCallback)handle_event_signal, &w);
+
+	hinoko_fw_iso_resource_deallocate_once_async(self, channel, bandwidth,
+						     exception);
+	if (*exception != NULL) {
+		g_signal_handler_disconnect(self, handler_id);
+		return;
+	}
+
+	g_mutex_lock(&w.mutex);
+	while (w.handled == FALSE) {
+		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
+			break;
+	}
+	g_signal_handler_disconnect(self, handler_id);
+	g_mutex_unlock(&w.mutex);
+
+	if (w.handled == FALSE)
+		generate_error(exception, ETIMEDOUT);
+	else if (w.err_code > 0)
+		generate_error(exception, w.err_code);
+}
+
 static void handle_iso_resource_event(HinokoFwIsoResource *self,
 				      struct fw_cdev_event_iso_resource *ev)
 {

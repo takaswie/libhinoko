@@ -102,4 +102,9 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 					       guint bandwidth,
 					       GError **exception);
 
+void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
+						 guint channel,
+						 guint bandwidth,
+						 GError **exception);
+
 #endif

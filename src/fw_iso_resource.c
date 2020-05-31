@@ -8,6 +8,16 @@
 
 #include "internal.h"
 
+/**
+ * SECTION:fw_iso_resource
+ * @Title: HinokoFwIsoResource
+ * @Short_description: An object to initiate requests and listen events of
+ *		       isochronous resource allocation/deallocation.
+ *
+ * A #HinokoFwIsoResource is an object to initiate requests and listen events
+ * of isochronous resource allocation/deallocation by file descriptor owned
+ * internally. This object is designed to be used for any derived object.
+ */
 struct _HinokoFwIsoResourcePrivate {
 	int fd;
 };

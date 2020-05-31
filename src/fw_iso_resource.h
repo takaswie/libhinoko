@@ -96,4 +96,10 @@ void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
 						  guint bandwidth,
 						  GError **exception);
 
+void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
+					       guint8 *channel_candidates,
+					       gsize channel_candidates_count,
+					       guint bandwidth,
+					       GError **exception);
+
 #endif

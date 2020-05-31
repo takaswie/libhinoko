@@ -204,6 +204,84 @@ void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
 		generate_error(exception, errno);
 }
 
+struct waiter {
+	GMutex mutex;
+	GCond cond;
+	guint err_code;
+	gboolean handled;
+};
+
+static void handle_event_signal(HinokoFwIsoResource *self, guint channel,
+				guint bandwidth, guint err_code,
+				gpointer user_data)
+{
+	struct waiter *w = (struct waiter *)user_data;
+
+	g_mutex_lock(&w->mutex);
+	if (err_code > 0)
+		w->err_code = err_code;
+	w->handled = TRUE;
+	g_cond_signal(&w->cond);
+	g_mutex_unlock(&w->mutex);
+}
+
+/**
+ * hinoko_fw_iso_resource_allocate_once_sync:
+ * @self: A #HinokoFwIsoResource.
+ * @channel_candidates: (array length=channel_candidates_count): The array with
+ *			elements for numerical number for isochronous channel
+ *			to be allocated.
+ * @channel_candidates_count: The number of channel candidates.
+ * @bandwidth: The amount of bandwidth to be allocated.
+ * @exception: A #GError.
+ *
+ * Initiate allocation of isochronous resource and wait for ::allocated signal.
+ */
+void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
+					       guint8 *channel_candidates,
+					       gsize channel_candidates_count,
+					       guint bandwidth,
+					       GError **exception)
+{
+	struct waiter w;
+	guint64 expiration;
+	gulong handler_id;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+
+	g_mutex_init(&w.mutex);
+	g_cond_init(&w.cond);
+	w.err_code = 0;
+	w.handled = FALSE;
+
+	// For safe, use 100 msec for timeout.
+	expiration = g_get_monotonic_time() + 100 * G_TIME_SPAN_MILLISECOND;
+
+	handler_id = g_signal_connect(self, "allocated",
+				      (GCallback)handle_event_signal, &w);
+
+	hinoko_fw_iso_resource_allocate_once_async(self, channel_candidates,
+						   channel_candidates_count,
+						   bandwidth, exception);
+	if (*exception != NULL) {
+		g_signal_handler_disconnect(self, handler_id);
+		return;
+	}
+
+	g_mutex_lock(&w.mutex);
+	while (w.handled == FALSE) {
+		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
+			break;
+	}
+	g_signal_handler_disconnect(self, handler_id);
+	g_mutex_unlock(&w.mutex);
+
+	if (w.handled == FALSE)
+		generate_error(exception, ETIMEDOUT);
+	else if (w.err_code > 0)
+		generate_error(exception, w.err_code);
+}
+
 static void handle_iso_resource_event(HinokoFwIsoResource *self,
 				      struct fw_cdev_event_iso_resource *ev)
 {

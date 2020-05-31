@@ -172,6 +172,38 @@ void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
 		generate_error(exception, errno);
 }
 
+/**
+ * hinoko_fw_iso_resource_deallocate_once_async:
+ * @self: A #HinokoFwIsoResource.
+ * @channel: The channel number to be deallocated.
+ * @bandwidth: The amount of bandwidth to be deallocated.
+ * @exception: A #GError.
+ *
+ * Initiate deallocation of isochronous resource without any wait. When the
+ * deallocation finishes, ::deallocated signal is emit to notify the result,
+ * channel, and bandwidth.
+ */
+void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
+						  guint channel,
+						  guint bandwidth,
+						  GError **exception)
+{
+	HinokoFwIsoResourcePrivate *priv;
+	struct fw_cdev_allocate_iso_resource res = {0};
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	priv = hinoko_fw_iso_resource_get_instance_private(self);
+
+	g_return_if_fail(channel < 64);
+	g_return_if_fail(bandwidth > 0);
+
+	res.channels = 1ull << channel;
+	res.bandwidth = bandwidth;
+
+	if (ioctl(priv->fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0)
+		generate_error(exception, errno);
+}
+
 static void handle_iso_resource_event(HinokoFwIsoResource *self,
 				      struct fw_cdev_event_iso_resource *ev)
 {

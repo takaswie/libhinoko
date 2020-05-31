@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 
 #include "internal.h"
 
@@ -127,6 +128,47 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 	open_flag |= O_RDONLY;
 	priv->fd = open(path, open_flag);
 	if (priv->fd < 0)
+		generate_error(exception, errno);
+}
+
+/**
+ * hinoko_fw_iso_resource_allocate_once_async:
+ * @self: A #HinokoFwIsoResource.
+ * @channel_candidates: (array length=channel_candidates_count): The array with
+ *			elements for numerical number for isochronous channel
+ *			to be allocated.
+ * @channel_candidates_count: The number of channel candidates.
+ * @bandwidth: The amount of bandwidth to be allocated.
+ * @exception: A #GError.
+ *
+ * Initiate allocation of isochronous resource without any wait. When the
+ * allocation finishes, ::allocated signal is emit to notify the result,
+ * channel, and bandwidth.
+ */
+void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
+						guint8 *channel_candidates,
+						gsize channel_candidates_count,
+						guint bandwidth,
+						GError **exception)
+{
+	HinokoFwIsoResourcePrivate *priv;
+	struct fw_cdev_allocate_iso_resource res = {0};
+	int i;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	priv = hinoko_fw_iso_resource_get_instance_private(self);
+
+	g_return_if_fail(channel_candidates != NULL);
+	g_return_if_fail(channel_candidates_count > 0);
+	g_return_if_fail(bandwidth > 0);
+
+	for (i = 0; i < channel_candidates_count; ++i) {
+		if (channel_candidates[i] < 64)
+			res.channels |= 1ull << channel_candidates[i];
+	}
+	res.bandwidth = bandwidth;
+
+	if (ioctl(priv->fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0)
 		generate_error(exception, errno);
 }
 

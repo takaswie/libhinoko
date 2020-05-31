@@ -42,6 +42,8 @@
         <xi:include href="xml/fw_iso_rx_multiple.xml"/>
         <xi:include href="xml/fw_iso_tx.xml"/>
         <xi:include href="xml/cycle_timer.xml"/>
+        <xi:include href="xml/fw_iso_resource.xml"/>
+        <xi:include href="xml/fw_iso_resource_auto.xml"/>
     </chapter>
 
     <index id="index-all">

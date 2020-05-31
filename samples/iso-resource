@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+
+import gi
+gi.require_version('GLib', '2.0')
+gi.require_version('Hinoko', '0.0')
+from gi.repository import GLib, Hinoko
+
+from threading import Thread
+from time import sleep
+
+bytes_per_payload = (2 + 8 * 3) * 4
+use_channel = 10
+use_bandwidth = Hinoko.FwIsoResource.calculate_bandwidth(bytes_per_payload,
+                                                         Hinoko.FwScode.S400)
+
+ctx = GLib.MainContext.new()
+dispatcher = GLib.MainLoop.new(ctx, False)
+th = Thread(target=lambda d: d.run(), args=(dispatcher,))
+th.start()
+
+def handle_event(res, channel, bandwidth, err_code, ev_name):
+    print(ev_name, res, channel, bandwidth, err_code)
+
+# For Once mode. The allocation is bound to current generation of the bus and
+# lost automatically by bus reset without notification.
+res = Hinoko.FwIsoResource.new()
+res.open('/dev/fw1', 0)
+res.connect('allocated', handle_event, 'allocated')
+res.connect('deallocated', handle_event, 'deallocated')
+
+src = res.create_source()
+src.attach(ctx)
+
+for i in range(2):
+    res.allocate_once_sync([use_channel], use_bandwidth)
+    sleep(2)
+    res.deallocate_once_sync(use_channel, use_bandwidth)
+    sleep(2)
+
+src.destroy()
+del res
+
+# For Auto mode. The allocation is kept by Linux FireWire subsystem as long as
+# the lifetime of file descriptor. The instance of object represents state
+# machine.
+res = Hinoko.FwIsoResourceAuto.new()
+res.open('/dev/fw1', 0)
+res.connect('allocated', handle_event, 'allocated')
+res.connect('deallocated', handle_event, 'deallocated')
+
+src = res.create_source()
+src.attach(ctx)
+
+def print_props(res):
+    for prop in ('allocated', 'channel', 'bandwidth'):
+        print('  {}: {}'.format(prop, res.get_property(prop)))
+
+for i in range(2):
+    print_props(res)
+
+    res.allocate_sync([use_channel], use_bandwidth)
+    sleep(1)
+
+    print_props(res)
+
+    res.deallocate_sync()
+    sleep(1)
+
+print_props(res)
+
+dispatcher.quit()
+th.join()

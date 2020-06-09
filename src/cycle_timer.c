@@ -47,12 +47,13 @@ void hinoko_cycle_timer_get_timestamp(HinokoCycleTimer *self, gint64 *tv_sec,
 /**
  * hinoko_cycle_timer_get_clock_id:
  * @self: A #HinokoCycleTimer.
- * @clock_id: (out): The ID of clock for timestamp, one of HinokoSystemClockId.
+ * @clock_id: (out): The numerical ID of clock source for the reference
+ *            timestamp. One CLOCK_REALTIME(0), CLOCK_MONOTONIC(1), and
+ *            CLOCK_MONOTONIC_RAW(4) is available in UAPI of Linux kernel.
  *
  * Get the ID of clock for timestamp.
  */
-void hinoko_cycle_timer_get_clock_id(HinokoCycleTimer *self,
-				     HinokoSystemClockId *clock_id)
+void hinoko_cycle_timer_get_clock_id(HinokoCycleTimer *self, gint *clock_id)
 {
 	*clock_id = self->clk_id;
 }

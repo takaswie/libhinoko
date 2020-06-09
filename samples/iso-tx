@@ -39,7 +39,7 @@ class IsoTx(Hinoko.FwIsoTx):
         self.sy = 0
 
         cycle_timer = Hinoko.CycleTimer.new()
-        clock_id = Hinoko.SystemClockId.LINUX_MONOTONIC_RAW
+        clock_id = 4    # CLOCK_MONOTONIC_RAW
         cycle_timer = self.get_cycle_timer(clock_id, cycle_timer)
         (sec, cycle, tick) = cycle_timer.get_cycle_timer()
 

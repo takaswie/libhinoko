@@ -402,15 +402,16 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 /**
  * hinoko_fw_iso_ctx_get_cycle_timer:
  * @self: A #HinokoFwIsoCtx.
- * @clock_id: A #HinokoSystemClockId to get reference timestamp.
+ * @clock_id: The numerical ID of clock source for the reference timestamp. One
+ *            CLOCK_REALTIME(0), CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(2)
+ *            is available in UAPI of Linux kernel.
  * @cycle_timer: (inout): A #HinokoCycleTimer to store data of cycle timer.
  * @exception: A #GError.
  *
  * Retrieve the value of cycle timer register. This method call is available
  * once any isochronous context is created.
  */
-void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self,
-				       HinokoSystemClockId clock_id,
+void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 				       HinokoCycleTimer *const *cycle_timer,
 				       GError **exception)
 {

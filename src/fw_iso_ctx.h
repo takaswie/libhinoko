@@ -58,8 +58,7 @@ struct _HinokoFwIsoCtxClass {
 
 GType hinoko_fw_iso_ctx_get_type(void) G_GNUC_CONST;
 
-void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self,
-				       HinokoSystemClockId clock_id,
+void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 				       HinokoCycleTimer *const *cycle_timer,
 				       GError **exception);
 

@@ -32,6 +32,10 @@ G_BEGIN_DECLS
 				   HINOKO_TYPE_FW_ISO_CTX,	\
 				   HinokoFwIsoCtxClass))
 
+#define HINOKO_FW_ISO_CTX_ERROR		hinoko_fw_iso_ctx_error_quark()
+
+GQuark hinoko_fw_iso_ctx_error_quark();
+
 typedef struct _HinokoFwIsoCtx		HinokoFwIsoCtx;
 typedef struct _HinokoFwIsoCtxClass	HinokoFwIsoCtxClass;
 typedef struct _HinokoFwIsoCtxPrivate	HinokoFwIsoCtxPrivate;

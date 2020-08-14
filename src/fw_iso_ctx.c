@@ -44,8 +44,14 @@ struct _HinokoFwIsoCtxPrivate {
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx,
 				    G_TYPE_OBJECT)
 
-// For error handling.
-G_DEFINE_QUARK("hinoko-error", hinoko_error)
+/**
+ * hinoko_fw_iso_ctx_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinokoFwIsoCtxError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinoko-fw-iso-ctx-error-quark, hinoko_fw_iso_ctx_error)
 
 typedef struct {
 	GSource src;

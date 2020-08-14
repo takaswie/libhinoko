@@ -348,11 +348,8 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
 		datum_size += priv->header_size;
 
-	priv->data = calloc(chunks_per_buffer, datum_size);
-	if (priv->data == NULL) {
-		generate_error(exception, ENOMEM);
-		return;
-	}
+	priv->data = g_malloc_n(chunks_per_buffer, datum_size);
+
 	priv->alloc_data_length = chunks_per_buffer * datum_size;
 
 	prot = PROT_READ;
@@ -847,10 +844,6 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	*gsrc = g_source_new(&funcs, sizeof(FwIsoCtxSource));
-	if (*gsrc == NULL) {
-		generate_error(exception, ENOMEM);
-		return;
-	}
 
 	g_source_set_name(*gsrc, "HinokoFwIsoCtx");
 	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
@@ -869,11 +862,6 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 		src->len = sizeof(struct fw_cdev_event_iso_interrupt_mc);
 	}
 	src->buf = g_malloc0(src->len);
-	if (src->buf == NULL) {
-		generate_error(exception, ENOMEM);
-		g_source_unref(*gsrc);
-		return;
-	}
 
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
 	src->self = g_object_ref(self);

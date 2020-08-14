@@ -50,6 +50,8 @@ fw_iso_ctx_error_enumerations = (
     'FAILED',
     'ALLOCATED',
     'NOT_ALLOCATED',
+    'MAPPED',
+    'NOT_MAPPED',
 )
 
 types = {

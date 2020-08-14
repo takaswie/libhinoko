@@ -78,4 +78,14 @@ typedef enum {
 	HINOKO_FW_ISO_RESOURCE_ERROR_EVENT,
 } HinokoFwIsoResourceError;
 
+/**
+ * HinokoFwIsoResourceAutoError:
+ * @HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED:		The system call fails.
+ *
+ * A set of error code for GError with domain which equals to #hinoko_fw_iso_resource_error_quark();
+ */
+typedef enum {
+	HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED,
+} HinokoFwIsoResourceAutoError;
+
 #endif

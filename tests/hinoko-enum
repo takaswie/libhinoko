@@ -41,6 +41,8 @@ fw_iso_resource_error_enumerations = (
 
 fw_iso_resource_auto_error_enumerations = (
     'FAILED',
+    'ALLOCATED',
+    'NOT_ALLOCATED',
 )
 
 types = {

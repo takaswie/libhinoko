@@ -102,6 +102,7 @@ void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
 			       guint header_size, GError **exception)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
 				   HINOKO_FW_ISO_CTX_MODE_TX, scode, channel,
@@ -141,6 +142,7 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 	HinokoFwIsoTxPrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
@@ -202,6 +204,7 @@ void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	// MEMO: Linux FireWire subsystem queues isochronous event independently
 	// of interrupt flag when the same number of bytes as one page is
@@ -269,6 +272,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 	guint frame_size;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
 	if ((header == NULL && header_length > 0) ||

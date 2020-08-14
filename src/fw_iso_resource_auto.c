@@ -34,6 +34,16 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto,
  */
 G_DEFINE_QUARK(hinoko-fw-iso-resource-auto-error-quark, hinoko_fw_iso_resource_auto_error)
 
+static const char *const err_msgs[] = {
+	[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED] =
+		"The instance is already associated to allocated isochronous resources",
+	[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED] =
+		"The instance is not associated to allocated isochronous resources",
+};
+
+#define generate_local_error(exception, code) \
+	g_set_error_literal(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR, code, err_msgs[code])
+
 enum fw_iso_resource_auto_prop_type {
 	FW_ISO_RESOURCE_AUTO_PROP_ALLOCATED = 1,
 	FW_ISO_RESOURCE_AUTO_PROP_CHANNEL,
@@ -125,7 +135,8 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
  *			to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate allocation of isochronous resource. When the allocation is done,
  * ::allocated signal is emit to notify the result, channel, and bandwidth.
@@ -152,7 +163,7 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	g_mutex_lock(&priv->mutex);
 
 	if (priv->allocated) {
-		generate_error(exception, EBUSY);
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED);
 		goto end;
 	}
 
@@ -174,7 +185,8 @@ end:
 /**
  * hinoko_fw_iso_resource_auto_deallocate_async:
  * @self: A #HinokoFwIsoResourceAuto.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * ::deallocated signal is emit to notify the result, channel, and bandwidth.
@@ -193,7 +205,7 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 	g_mutex_lock(&priv->mutex);
 
 	if (!priv->allocated) {
-		generate_error(exception, ENODATA);
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED);
 		goto end;
 	}
 
@@ -235,7 +247,8 @@ static void handle_event_signal(HinokoFwIsoResourceAuto *self, guint channel,
  *			to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate allocation of isochronous resource and wait for ::allocated signal.
  * When the call is successful, ::channel and ::bandwidth property are
@@ -290,7 +303,8 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 /**
  * hinoko_fw_iso_resource_auto_deallocate_sync:
  * @self: A #HinokoFwIsoResourceAuto.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * ::deallocated signal is emit to notify the result, channel, and bandwidth.

@@ -81,11 +81,17 @@ typedef enum {
 /**
  * HinokoFwIsoResourceAutoError:
  * @HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED:		The system call fails.
+ * @HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED:	The instance is already associated to
+ *							allocated isochronous resources.
+ * @HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED:	The instance is not associated to allocated
+ *							isochronous resources.
  *
  * A set of error code for GError with domain which equals to #hinoko_fw_iso_resource_error_quark();
  */
 typedef enum {
 	HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED,
+	HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED,
+	HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED,
 } HinokoFwIsoResourceAutoError;
 
 #endif

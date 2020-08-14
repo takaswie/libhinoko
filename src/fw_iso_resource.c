@@ -23,6 +23,15 @@ struct _HinokoFwIsoResourcePrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_OBJECT)
 
+/**
+ * hinoko_fw_iso_resource_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinokoFwIsoResourceError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinoko-fw-iso-resource-error-quark, hinoko_fw_iso_resource_error)
+
 typedef struct {
 	GSource src;
 	HinokoFwIsoResource *self;

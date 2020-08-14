@@ -65,6 +65,7 @@ typedef enum /*< flags >*/
  *						character device.
  * @HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED:	The instance is not associated to any firewire
  *						character device.
+ * @HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT:	No event to the request arrives within timeout.
  *
  * A set of error code for GError with domain which equals to #hinoko_fw_iso_resource_error_quark();
  */
@@ -72,6 +73,7 @@ typedef enum {
 	HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,
 	HINOKO_FW_ISO_RESOURCE_ERROR_OPENED,
 	HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED,
+	HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT,
 } HinokoFwIsoResourceError;
 
 #endif

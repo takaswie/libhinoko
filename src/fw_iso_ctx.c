@@ -68,6 +68,11 @@ static const char *const err_msgs[] = {
 #define generate_local_error(exception, code) \
 	g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR, code, err_msgs[code])
 
+#define generate_syscall_error(exception, errno, format, arg)		\
+	g_set_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR,		\
+		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
+		    format " %d(%s)", arg, errno, strerror(errno))
+
 typedef struct {
 	GSource src;
 	gpointer tag;
@@ -255,7 +260,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	// Support FW_CDEV_VERSION_AUTO_FLUSH_ISO_OVERFLOW.
 	info.version = 5;
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		generate_error(exception, errno);
+		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
 		close(priv->fd);
 		priv->fd = -1;
 		return;
@@ -268,7 +273,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	create.header_size = header_size;
 
 	if (ioctl(priv->fd, FW_CDEV_IOC_CREATE_ISO_CONTEXT, &create) < 0) {
-		generate_error(exception, errno);
+		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_CREATE_ISO_CONTEXT");
 		close(priv->fd);
 		priv->fd = -1;
 		return;
@@ -350,7 +355,8 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	priv->addr = mmap(NULL, bytes_per_chunk * chunks_per_buffer, prot,
 			  MAP_SHARED, priv->fd, 0);
 	if (priv->addr == MAP_FAILED) {
-		generate_error(exception, errno);
+		generate_syscall_error(exception, errno,
+				       "mmap(%d)", bytes_per_chunk * chunks_per_buffer);
 		return;
 	}
 
@@ -416,7 +422,7 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 
 	(*cycle_timer)->clk_id = clock_id;
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_timer) < 0)
-		generate_error(exception, errno);
+		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_CYCLE_TIMER2");
 }
 
 /**
@@ -448,7 +454,7 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 	set.channels = *channel_flags;
 	set.handle = priv->handle;
 	if (ioctl(priv->fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
-		generate_error(exception, errno);
+		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_SET_ISO_CHANNELS");
 		return;
 	}
 
@@ -613,7 +619,8 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 		arg.data = (__u64)(priv->addr + buf_offset);
 		arg.handle = priv->handle;
 		if (ioctl(priv->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0) {
-			generate_error(exception, errno);
+			generate_syscall_error(exception, errno,
+					       "ioctl(%s)", "FW_CDEV_IOC_QUEUE_ISO");
 			return;
 		}
 
@@ -915,7 +922,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 	arg.tags = tags;
 	arg.handle = priv->handle;
 	if (ioctl(priv->fd, FW_CDEV_IOC_START_ISO, &arg) < 0) {
-		generate_error(exception, errno);
+		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_START_ISO");
 		return;
 	}
 

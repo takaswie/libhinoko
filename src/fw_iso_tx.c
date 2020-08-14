@@ -210,10 +210,8 @@ void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 	// of interrupt flag when the same number of bytes as one page is
 	// stored in the buffer of header. To avoid unexpected wakeup, check
 	// the interval.
-	if (packets_per_irq == 0 || packets_per_irq * 4 > sysconf(_SC_PAGESIZE)) {
-		generate_error(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(packets_per_irq > 0);
+	g_return_if_fail(packets_per_irq * 4 <= sysconf(_SC_PAGESIZE));
 
 	for (i = 0; i < packets_per_irq * 2; ++i) {
 		fw_iso_tx_register_chunk(self,
@@ -272,20 +270,13 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 	guint frame_size;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	g_return_if_fail((header != NULL && header_length > 0) ||
+			 (header == NULL && header_length == 0));
+	g_return_if_fail((payload != NULL && payload_length > 0) ||
+			 (payload == NULL && payload_length == 0));
 	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
-
-	if ((header == NULL && header_length > 0) ||
-	    (header != NULL && header_length == 0)) {
-		generate_error(exception, EINVAL);
-		return;
-	}
-
-	if ((payload == NULL && payload_length > 0) ||
-	    (payload != NULL && payload_length == 0)) {
-		generate_error(exception, EINVAL);
-		return;
-	}
 
 	fw_iso_tx_register_chunk(self, tags, sy, header, header_length,
 				 payload_length, exception);

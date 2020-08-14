@@ -1,3 +1,9 @@
+libhinoko (0.5.0) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Fri, 14 Aug 2020 17:49:02 +0900
+
 libhinoko (0.4.0) unstable; urgency=medium
 
   * New upstream release.

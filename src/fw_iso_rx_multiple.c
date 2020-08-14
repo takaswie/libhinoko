@@ -180,7 +180,9 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	if (*exception != NULL)
 		return;
 	if (channel_flags == 0) {
-		generate_error(exception, ENODATA);
+		g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR,
+				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
+				    "No isochronous channel is available");
 		return;
 	}
 
@@ -239,7 +241,9 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (priv->channels == NULL) {
-		generate_error(exception, ENODATA);
+		g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR,
+				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
+				    "No isochronous channel is available");
 		return;
 	}
 

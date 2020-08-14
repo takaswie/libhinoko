@@ -73,6 +73,9 @@ static const char *const err_msgs[] = {
 		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
+#define generate_file_error(exception, code, format, arg) \
+	g_set_error(exception, G_FILE_ERROR, code, format, arg)
+
 typedef struct {
 	GSource src;
 	gpointer tag;
@@ -253,7 +256,11 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 
 	priv->fd = open(path, O_RDWR);
 	if  (priv->fd < 0) {
-		generate_error(exception, errno);
+		GFileError code = g_file_error_from_errno(errno);
+		if (code != G_FILE_ERROR_FAILED)
+			generate_file_error(exception, code, "open(%s)", path);
+		else
+			generate_syscall_error(exception, errno, "open(%s)", path);
 		return;
 	}
 
@@ -740,7 +747,8 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	len = read(priv->fd, src->buf, src->len);
 	if (len < 0) {
 		if (errno != EAGAIN) {
-			generate_error(&exception, errno);
+			generate_file_error(&exception, g_file_error_from_errno(errno),
+					    "read %s", strerror(errno));
 			goto error;
 		}
 

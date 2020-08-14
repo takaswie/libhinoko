@@ -186,68 +186,39 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	struct fw_cdev_create_iso_context create = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(path != NULL && strlen(path) > 0);
 	g_return_if_fail(exception != NULL && *exception == NULL);
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	if (path == NULL || strlen(path) == 0) {
-		generate_error(exception, EINVAL);
-		return;
-	}
 
 	// Linux firewire stack supports three types of isochronous context
 	// described in 1394 OHCI specification.
-	if (mode != HINOKO_FW_ISO_CTX_MODE_TX &&
-	    mode != HINOKO_FW_ISO_CTX_MODE_RX_SINGLE &&
-	    mode != HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
-		generate_error(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(mode == HINOKO_FW_ISO_CTX_MODE_TX ||
+			 mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
+			 mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
 
-	if (scode != HINOKO_FW_SCODE_S100 &&
-	    scode != HINOKO_FW_SCODE_S200 &&
-	    scode != HINOKO_FW_SCODE_S400 &&
-	    scode != HINOKO_FW_SCODE_S800 &&
-	    scode != HINOKO_FW_SCODE_S1600 &&
-	    scode != HINOKO_FW_SCODE_S3200) {
-		generate_error(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(scode == HINOKO_FW_SCODE_S100 ||
+			 scode == HINOKO_FW_SCODE_S200 ||
+			 scode == HINOKO_FW_SCODE_S400 ||
+			 scode == HINOKO_FW_SCODE_S800 ||
+			 scode == HINOKO_FW_SCODE_S1600 ||
+			 scode == HINOKO_FW_SCODE_S3200);
 
 	// IEEE 1394 specification supports isochronous channel up to 64.
-	if (channel > 64) {
-		generate_error(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(channel < 64);
 
 	// Headers should be aligned to quadlet.
-	if (header_size % 4 > 0) {
-		generate_error(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(header_size % 4 == 0);
 
 	if (mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE) {
 		// At least, 1 quadlet is required for iso_header.
-		if (header_size < 4) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-		if (channel > 64) {
-			generate_error(exception, EINVAL);
-			return;
-		}
+		g_return_if_fail(header_size >= 4);
+		g_return_if_fail(channel < 64);
 	} else if (mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
 		// Needless.
-		if (header_size > 0) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-
-		// Needless.
-		if (channel > 0) {
-			generate_error(exception, EINVAL);
-			return;
-		}
+		g_return_if_fail(header_size == 0);
+		g_return_if_fail(channel == 0);
 	}
+
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd >= 0) {
 		generate_error(exception, EBUSY);
@@ -327,6 +298,8 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	int prot;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(bytes_per_chunk > 0);
+	g_return_if_fail(chunks_per_buffer > 0);
 	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
@@ -337,12 +310,6 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 
 	if (priv->addr != NULL) {
 		generate_error(exception, EBUSY);
-		return;
-	}
-
-	if (bytes_per_chunk == 0 ||
-	    chunks_per_buffer == 0) {
-		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -448,15 +415,12 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+	g_return_if_fail(priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
 
 	if (priv->fd < 0) {
 		generate_error(exception, ENXIO);
-		return;
-	}
-
-	if (priv->mode != HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
-		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -493,74 +457,37 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 	struct fw_cdev_iso_packet *datum;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(skip == TRUE || skip == FALSE);
 	g_return_if_fail(exception != NULL && *exception == NULL);
+
+	g_return_if_fail(tags == 0 ||
+			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 ||
+			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 ||
+			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 ||
+			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3);
+
+	g_return_if_fail(sy < 16);
+
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	if (skip != TRUE && skip != FALSE) {
-		generate_error(exception, EINVAL);
-		return;
-	}
-
-	if (tags > 0 &&
-	    tags != HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 &&
-	    tags != HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 &&
-	    tags != HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 &&
-	    tags != HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3) {
-		generate_error(exception, EINVAL);
-		return;
-	}
-
-	if (sy > 15) {
-		generate_error(exception, EINVAL);
-		return;
-	}
-
 	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
 		if (!skip) {
-			if (header_length != priv->header_size) {
-				generate_error(exception, EINVAL);
-				return;
-			}
-
-			if (payload_length > priv->bytes_per_chunk) {
-				generate_error(exception, EINVAL);
-				return;
-			}
+			g_return_if_fail(header_length == priv->header_size);
+			g_return_if_fail(payload_length <= priv->bytes_per_chunk);
 		} else {
-			if (payload_length > 0 || header_length > 0 ||
-			    header != NULL) {
-				generate_error(exception, EINVAL);
-				return;
-			}
+			g_return_if_fail(payload_length == 0);
+			g_return_if_fail(header_length == 0);
+			g_return_if_fail(header == NULL);
 		}
 	} else if (priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
 		   priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
-		if (tags > 0) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-
-		if (sy > 0) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-
-		if (header != NULL || header_length > 0) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-
-		if (payload_length > 0) {
-			generate_error(exception, EINVAL);
-			return;
-		}
+		g_return_if_fail(tags == 0);
+		g_return_if_fail(sy == 0);
+		g_return_if_fail(header == NULL);
+		g_return_if_fail(header_length == 0);
+		g_return_if_fail(payload_length == 0);
 	}
 
-	if (priv->data_length + sizeof(*datum) + header_length >
-						priv->alloc_data_length) {
-		generate_error(exception, ENOSPC);
-		return;
-	}
+	g_return_if_fail(priv->data_length + sizeof(*datum) + header_length <= priv->alloc_data_length);
 
 	datum = (struct fw_cdev_iso_packet *)(priv->data + priv->data_length);
 	priv->data_length += sizeof(*datum) + header_length;
@@ -846,6 +773,7 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	FwIsoCtxSource *src;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(gsrc != NULL);
 	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
@@ -909,41 +837,21 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 	if (cycle_match == NULL) {
 		cycle = -1;
 	} else {
-		if (cycle_match[0] > 3) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-		if (cycle_match[1] > 7999) {
-			generate_error(exception, EINVAL);
-			return;
-		}
+		g_return_if_fail(cycle_match[0] < 4);
+		g_return_if_fail(cycle_match[1] < 8000);
 
 		cycle = (cycle_match[0] << 13) | cycle_match[1];
 	}
 
 	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
-		if (sync > 0) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-
-		if (tags > 0) {
-			generate_error(exception, EINVAL);
-			return;
-		}
+		g_return_if_fail(sync == 0);
+		g_return_if_fail(tags == 0);
 	} else {
-		if (sync > 15) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-
-		if (tags > (HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 |
-			    HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 |
-			    HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 |
-			    HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3)) {
-			generate_error(exception, EINVAL);
-			return;
-		}
+		g_return_if_fail(sync < 16);
+		g_return_if_fail(tags <= (HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 |
+					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 |
+					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 |
+					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3));
 	}
 
 	// Not prepared.
@@ -952,10 +860,8 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 		return;
 	}
 
-	if (chunks_per_irq * 2 > priv->chunks_per_buffer) {
-		generate_error(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(chunks_per_irq * 2 <= priv->chunks_per_buffer);
+
 	priv->chunks_per_irq = chunks_per_irq;
 	priv->accumulated_chunk_count = 0;
 

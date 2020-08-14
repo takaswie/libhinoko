@@ -112,6 +112,8 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 	HinokoFwIsoRxSinglePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
@@ -155,6 +157,7 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					GError **exception)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
 				     maximum_bytes_per_payload,
@@ -209,6 +212,8 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	// MEMO: Linux FireWire subsystem queues isochronous event independently
@@ -312,6 +317,8 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	guint frame_size;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	if (priv->ev == NULL) {

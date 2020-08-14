@@ -100,11 +100,17 @@ typedef enum {
 /**
  * HinokoFwIsoCtxError:
  * @HINOKO_FW_ISO_CTX_ERROR_FAILED:		The system call fails.
+ * @HINOKO_FW_ISO_CTX_ERROR_ALLOCATED:		The instance is already associated to any firewire
+ *		        			character device.
+ * @HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED:	The instance is not associated to any firewire
+ *						character device.
  *
  * A set of error code for GError with domain which equals to #hinoko_fw_iso_ctx_error_quark();
  */
 typedef enum {
 	HINOKO_FW_ISO_CTX_ERROR_FAILED,
+	HINOKO_FW_ISO_CTX_ERROR_ALLOCATED,
+	HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED,
 } HinokoFwIsoCtxError;
 
 #endif

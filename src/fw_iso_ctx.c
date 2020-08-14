@@ -186,6 +186,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	struct fw_cdev_create_iso_context create = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (path == NULL || strlen(path) == 0) {
@@ -326,6 +327,7 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	int prot;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
@@ -416,6 +418,7 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(cycle_timer != NULL);
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
@@ -444,6 +447,7 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 	struct fw_cdev_set_iso_channels set = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
@@ -489,6 +493,7 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 	struct fw_cdev_iso_packet *datum;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (skip != TRUE && skip != FALSE) {
@@ -841,6 +846,7 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	FwIsoCtxSource *src;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	*gsrc = g_source_new(&funcs, sizeof(FwIsoCtxSource));
@@ -892,6 +898,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 	gint cycle;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0 || priv->addr == NULL) {

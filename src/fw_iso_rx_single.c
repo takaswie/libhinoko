@@ -220,11 +220,8 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 	// of interrupt flag when the same number of bytes as one page is
 	// stored in the buffer of header. To avoid unexpected wakeup, check
 	// the interval.
-	if (packets_per_irq == 0 ||
-	    priv->header_size * packets_per_irq > sysconf(_SC_PAGESIZE)) {
-		generate_error(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(packets_per_irq > 0);
+	g_return_if_fail(priv->header_size * packets_per_irq <= sysconf(_SC_PAGESIZE));
 
 	priv->accumulated_chunk_count = 0;
 
@@ -321,15 +318,8 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
-	if (priv->ev == NULL) {
-		generate_error(exception, ENODATA);
-		return;
-	}
-
-	if (index * priv->header_size >= priv->ev->header_length) {
-		generate_error(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(priv->ev != NULL);
+	g_return_if_fail(index * priv->header_size <= priv->ev->header_length);
 
 	g_object_get(G_OBJECT(self),
 		     "bytes-per-chunk", &bytes_per_chunk,
@@ -345,8 +335,5 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	offset = index * bytes_per_chunk;
 	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset, *length,
 				      payload, &frame_size);
-	if (frame_size != *length) {
-		generate_error(exception, EIO);
-		return;
-	}
+	g_return_if_fail(frame_size == *length);
 }

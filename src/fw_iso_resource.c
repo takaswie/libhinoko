@@ -133,6 +133,8 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 	HinokoFwIsoResourcePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
 	open_flag |= O_RDONLY;
@@ -166,6 +168,8 @@ void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
 	g_return_if_fail(channel_candidates != NULL);
@@ -202,6 +206,8 @@ void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
 	struct fw_cdev_allocate_iso_resource res = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
 	g_return_if_fail(channel < 64);
@@ -258,6 +264,7 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 	gulong handler_id;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	g_mutex_init(&w.mutex);
 	g_cond_init(&w.cond);
@@ -312,6 +319,7 @@ void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 	gulong handler_id;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	g_mutex_init(&w.mutex);
 	g_cond_init(&w.cond);
@@ -490,6 +498,8 @@ void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 	FwIsoResourceSource *src;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
 	*gsrc = g_source_new(&funcs, sizeof(FwIsoResourceSource));

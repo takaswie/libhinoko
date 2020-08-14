@@ -39,6 +39,8 @@ static const char *const err_msgs[] = {
 		"The instance is already associated to allocated isochronous resources",
 	[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED] =
 		"The instance is not associated to allocated isochronous resources",
+	[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT] =
+		"No event to the request arrives within timeout.",
 };
 
 #define generate_local_error(exception, code) \
@@ -295,7 +297,7 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 	g_mutex_unlock(&w.mutex);
 
 	if (w.handled == FALSE)
-		generate_error(exception, ETIMEDOUT);
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT);
 	else if (w.err_code > 0)
 		generate_error(exception, w.err_code);
 }
@@ -345,7 +347,7 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 	g_mutex_unlock(&w.mutex);
 
 	if (w.handled == FALSE)
-		generate_error(exception, ETIMEDOUT);
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT);
 	else if (w.err_code > 0)
 		generate_error(exception, w.err_code);
 }

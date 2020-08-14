@@ -32,6 +32,16 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_O
  */
 G_DEFINE_QUARK(hinoko-fw-iso-resource-error-quark, hinoko_fw_iso_resource_error)
 
+static const char *const err_msgs[] = {
+	[HINOKO_FW_ISO_RESOURCE_ERROR_OPENED] =
+		"The instance is already associated to any firewire character device",
+	[HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED] =
+		"The instance is not associated to any firewire character device",
+};
+
+#define generate_local_error(exception, code) \
+	g_set_error_literal(exception, HINOKO_FW_ISO_RESOURCE_ERROR, code, err_msgs[code])
+
 typedef struct {
 	GSource src;
 	HinokoFwIsoResource *self;
@@ -131,7 +141,8 @@ HinokoFwIsoResource *hinoko_fw_iso_resource_new()
  * @path: A path of any Linux FireWire character device.
  * @open_flag: The flag of open(2) system call. O_RDONLY is forced to fulfil
  *	       internally.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark().
  *
  * Open Linux FireWire character device to delegate any request for isochronous
  * resource management to Linux FireWire subsystem.
@@ -145,6 +156,11 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
+
+	if (priv->fd >= 0) {
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_OPENED);
+		return;
+	}
 
 	open_flag |= O_RDONLY;
 	priv->fd = open(path, open_flag);
@@ -160,7 +176,8 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
  *			to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark().
  *
  * Initiate allocation of isochronous resource without any wait. When the
  * allocation finishes, ::allocated signal is emit to notify the result,
@@ -180,6 +197,10 @@ void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
 	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
+	if (priv->fd < 0) {
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return;
+	}
 
 	g_return_if_fail(channel_candidates != NULL);
 	g_return_if_fail(channel_candidates_count > 0);
@@ -200,7 +221,8 @@ void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
  * @self: A #HinokoFwIsoResource.
  * @channel: The channel number to be deallocated.
  * @bandwidth: The amount of bandwidth to be deallocated.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark().
  *
  * Initiate deallocation of isochronous resource without any wait. When the
  * deallocation finishes, ::deallocated signal is emit to notify the result,
@@ -218,6 +240,10 @@ void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
 	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
+	if (priv->fd < 0) {
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return;
+	}
 
 	g_return_if_fail(channel < 64);
 	g_return_if_fail(bandwidth > 0);
@@ -258,7 +284,8 @@ static void handle_event_signal(HinokoFwIsoResource *self, guint channel,
  *			to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark().
  *
  * Initiate allocation of isochronous resource and wait for ::allocated signal.
  */
@@ -313,7 +340,8 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
  * @self: A #HinokoFwIsoResource.
  * @channel: The channel number to be deallocated.
  * @bandwidth: The amount of bandwidth to be deallocated.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of
+ *	       #hinoko_fw_iso_resource_error_quark().
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * ::deallocated signal is emit to notify the result, channel, and bandwidth.
@@ -374,6 +402,10 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 			 request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
+	if (priv->fd < 0) {
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return;
+	}
 
 	if (ioctl(priv->fd, request, argp) < 0)
 		generate_error(exception, errno);

@@ -52,6 +52,7 @@ fw_iso_ctx_error_enumerations = (
     'NOT_ALLOCATED',
     'MAPPED',
     'NOT_MAPPED',
+    'CHUNK_UNREGISTERED',
 )
 
 types = {

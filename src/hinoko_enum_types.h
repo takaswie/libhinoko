@@ -108,6 +108,7 @@ typedef enum {
  *						process.
  * @HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED:		The intermediate buffer is not mapped to the
  *						process.
+ * @HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED:	No chunk registered before starting.
  *
  * A set of error code for GError with domain which equals to #hinoko_fw_iso_ctx_error_quark();
  */
@@ -117,6 +118,7 @@ typedef enum {
 	HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED,
 	HINOKO_FW_ISO_CTX_ERROR_MAPPED,
 	HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED,
+	HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED,
 } HinokoFwIsoCtxError;
 
 #endif

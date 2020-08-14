@@ -62,6 +62,7 @@ static const char *const err_msgs[] = {
 		"The intermediate buffer is already mapped to the process",
 	[HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED] =
 		"The intermediate buffer is not mapped to the process",
+	[HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED] = "No chunk registered before starting",
 };
 
 #define generate_local_error(exception, code) \
@@ -896,7 +897,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 
 	// Not prepared.
 	if (priv->data_length == 0) {
-		generate_error(exception, ENODATA);
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED);
 		return;
 	}
 

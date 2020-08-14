@@ -156,6 +156,8 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (channels_length == 0) {
@@ -238,6 +240,8 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	HinokoFwIsoRxMultiplePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (priv->channels == NULL) {
@@ -318,6 +322,8 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	for (i = 0; i < chunks_per_irq * 2; ++i) {
@@ -448,6 +454,8 @@ void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
 	guint frame_size;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (index >= priv->ctx_payload_count) {

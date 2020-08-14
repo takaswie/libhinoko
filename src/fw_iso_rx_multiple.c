@@ -158,28 +158,22 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 	g_return_if_fail(exception != NULL && *exception == NULL);
 
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	g_return_if_fail(channels_length > 0);
 
-	if (channels_length == 0) {
-		generate_error(exception, EINVAL);
-		return;
+	channel_flags = 0;
+	for (i = 0; i < channels_length; ++i) {
+		g_return_if_fail(channels[i] < 64);
+
+		channel_flags |= G_GUINT64_CONSTANT(1) << channels[i];
 	}
+
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
 				   HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, 0, 0,
 				   0, exception);
 	if (*exception != NULL)
 		return;
-
-	channel_flags = 0;
-	for (i = 0; i < channels_length; ++i) {
-		if (channels[i] > 64) {
-			generate_error(exception, EINVAL);
-			return;
-		}
-
-		channel_flags |= G_GUINT64_CONSTANT(1) << channels[i];
-	}
 
 	hinoko_fw_iso_ctx_set_rx_channels(HINOKO_FW_ISO_CTX(self),
 					  &channel_flags, exception);
@@ -458,10 +452,7 @@ void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
-	if (index >= priv->ctx_payload_count) {
-		generate_error(exception, ENODATA);
-		return;
-	}
+	g_return_if_fail(index < priv->ctx_payload_count);
 	ctx_payload = &priv->ctx_payloads[index];
 
 	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self),
@@ -475,10 +466,7 @@ void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
 		memcpy(priv->concat_frames, *payload, done);
 		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), 0, rest,
 					      payload, &frame_size);
-		if (frame_size != rest) {
-			generate_error(exception, EIO);
-			return;
-		}
+		g_return_if_fail(frame_size == rest);
 		memcpy(priv->concat_frames + done, *payload, rest);
 
 		*payload = priv->concat_frames;

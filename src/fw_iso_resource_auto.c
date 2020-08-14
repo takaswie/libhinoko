@@ -132,6 +132,8 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
 	g_return_if_fail(channel_candidates != NULL);
@@ -175,6 +177,8 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 	struct fw_cdev_deallocate dealloc = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
 	g_mutex_lock(&priv->mutex);
@@ -239,6 +243,7 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 	gulong handler_id;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	g_mutex_init(&w.mutex);
 	g_cond_init(&w.cond);
@@ -289,6 +294,7 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 	gulong handler_id;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	g_mutex_init(&w.mutex);
 	g_cond_init(&w.cond);

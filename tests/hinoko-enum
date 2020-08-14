@@ -33,6 +33,8 @@ fw_iso_ctx_match_flags = (
 
 fw_iso_resource_error_enumerations = (
     'FAILED',
+    'OPENED',
+    'NOT_OPENED',
 )
 
 types = {

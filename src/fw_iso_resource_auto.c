@@ -25,6 +25,15 @@ struct _HinokoFwIsoResourceAutoPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, HINOKO_TYPE_FW_ISO_RESOURCE)
 
+/**
+ * hinoko_fw_iso_resource_auto_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinokoFwIsoResourceAutoError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinoko-fw-iso-resource-auto-error-quark, hinoko_fw_iso_resource_auto_error)
+
 enum fw_iso_resource_auto_prop_type {
 	FW_ISO_RESOURCE_AUTO_PROP_ALLOCATED = 1,
 	FW_ISO_RESOURCE_AUTO_PROP_CHANNEL,

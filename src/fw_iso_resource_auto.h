@@ -31,6 +31,10 @@ G_BEGIN_DECLS
 				   HINOKO_TYPE_FW_ISO_RESOURCE_AUTO,	\
 				   HinokoFwIsoResourceAutoClass))
 
+#define HINOKO_FW_ISO_RESOURCE_AUTO_ERROR	hinoko_fw_iso_resource_auto_error_quark()
+
+GQuark hinoko_fw_iso_resource_auto_error_quark();
+
 typedef struct _HinokoFwIsoResourceAuto		HinokoFwIsoResourceAuto;
 typedef struct _HinokoFwIsoResourceAutoClass	HinokoFwIsoResourceAutoClass;
 typedef struct _HinokoFwIsoResourceAutoPrivate	HinokoFwIsoResourceAutoPrivate;

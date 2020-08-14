@@ -25,7 +25,7 @@ G_DEFINE_BOXED_TYPE(HinokoCycleTimer, hinoko_cycle_timer, hinoko_cycle_timer_cop
  */
 HinokoCycleTimer *hinoko_cycle_timer_new()
 {
-	return g_try_malloc0(sizeof(HinokoCycleTimer));
+	return g_malloc0(sizeof(HinokoCycleTimer));
 }
 
 /**

@@ -13,10 +13,8 @@
 #include "fw_iso_resource.h"
 #include "fw_iso_resource_auto.h"
 
-GQuark hinoko_error_quark(void);
-
 #define generate_error(exception, errno)				\
-	g_set_error(exception, hinoko_error_quark(), errno,		\
+	g_set_error(exception, hinoko_fw_iso_ctx_error_quark(), errno,	\
 		    __FILE__ ":%d: %s", __LINE__, strerror(errno))
 
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,

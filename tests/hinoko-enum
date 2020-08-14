@@ -46,12 +46,17 @@ fw_iso_resource_auto_error_enumerations = (
     'TIMEOUT',
 )
 
+fw_iso_ctx_error_enumerations = (
+    'FAILED',
+)
+
 types = {
     Hinoko.FwIsoCtxMode: fw_iso_ctx_mode_enumerators,
     Hinoko.FwScode: fw_scode_enumerators,
     Hinoko.FwIsoCtxMatchFlag: fw_iso_ctx_match_flags,
     Hinoko.FwIsoResourceError: fw_iso_resource_error_enumerations,
     Hinoko.FwIsoResourceAutoError: fw_iso_resource_auto_error_enumerations,
+    Hinoko.FwIsoCtxError: fw_iso_ctx_error_enumerations,
 }
 
 for obj, types in types.items():

@@ -97,4 +97,14 @@ typedef enum {
 	HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT,
 } HinokoFwIsoResourceAutoError;
 
+/**
+ * HinokoFwIsoCtxError:
+ * @HINOKO_FW_ISO_CTX_ERROR_FAILED:		The system call fails.
+ *
+ * A set of error code for GError with domain which equals to #hinoko_fw_iso_ctx_error_quark();
+ */
+typedef enum {
+	HINOKO_FW_ISO_CTX_ERROR_FAILED,
+} HinokoFwIsoCtxError;
+
 #endif

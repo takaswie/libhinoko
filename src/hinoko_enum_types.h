@@ -58,4 +58,14 @@ typedef enum /*< flags >*/
 	HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3 = FW_CDEV_ISO_CONTEXT_MATCH_TAG3,
 } HinokoFwIsoCtxMatchFlag;
 
+/**
+ * HinokoFwIsoResourceError:
+ * @HINOKO_FW_ISO_RESOURCE_ERROR_FAILED:	The system call fails.
+ *
+ * A set of error code for GError with domain which equals to #hinoko_fw_iso_resource_error_quark();
+ */
+typedef enum {
+	HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,
+} HinokoFwIsoResourceError;
+
 #endif

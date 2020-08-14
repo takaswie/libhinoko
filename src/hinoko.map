@@ -70,3 +70,7 @@ HINOKO_0_4_0 {
     "hinoko_fw_iso_resource_auto_allocate_sync";
     "hinoko_fw_iso_resource_auto_deallocate_sync";
 } HINOKO_0_3_0;
+
+HINOKO_0_5_0 {
+    "hinoko_fw_iso_resource_error_get_type";
+} HINOKO_0_4_0;

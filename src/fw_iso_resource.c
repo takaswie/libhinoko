@@ -42,6 +42,11 @@ static const char *const err_msgs[] = {
 #define generate_local_error(exception, code) \
 	g_set_error_literal(exception, HINOKO_FW_ISO_RESOURCE_ERROR, code, err_msgs[code])
 
+#define generate_syscall_error(exception, errno, format, arg)		\
+	g_set_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR,		\
+		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
+		    format " %d(%s)", arg, errno, strerror(errno))
+
 typedef struct {
 	GSource src;
 	HinokoFwIsoResource *self;
@@ -213,7 +218,7 @@ void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
 	res.bandwidth = bandwidth;
 
 	if (ioctl(priv->fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0)
-		generate_error(exception, errno);
+		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE");
 }
 
 /**
@@ -252,7 +257,7 @@ void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
 	res.bandwidth = bandwidth;
 
 	if (ioctl(priv->fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0)
-		generate_error(exception, errno);
+		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE");
 }
 
 struct waiter {
@@ -407,8 +412,22 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 		return;
 	}
 
-	if (ioctl(priv->fd, request, argp) < 0)
-		generate_error(exception, errno);
+	if (ioctl(priv->fd, request, argp) < 0) {
+		const char *arg;
+
+		switch (request) {
+		case FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE:
+			arg = "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE";
+			break;
+		case FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE:
+			arg = "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE";
+			break;
+		default:
+			arg = "Unknown";
+			break;
+		}
+		generate_syscall_error(exception, errno, "ioctl(%s)", arg);
+	}
 }
 
 static void handle_iso_resource_event(HinokoFwIsoResource *self,

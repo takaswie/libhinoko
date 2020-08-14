@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 
 #include "internal.h"
+#include "hinoko_sigs_marshal.h"
 
 /**
  * SECTION:fw_iso_resource

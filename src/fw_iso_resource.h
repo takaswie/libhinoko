@@ -5,7 +5,6 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include <hinoko_sigs_marshal.h>
 #include <hinoko_enums.h>
 
 G_BEGIN_DECLS

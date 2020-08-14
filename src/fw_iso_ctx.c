@@ -53,6 +53,16 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx,
  */
 G_DEFINE_QUARK(hinoko-fw-iso-ctx-error-quark, hinoko_fw_iso_ctx_error)
 
+static const char *const err_msgs[] = {
+	[HINOKO_FW_ISO_CTX_ERROR_ALLOCATED] =
+		"The instance is already associated to any firewire character device",
+	[HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED] =
+		"The instance is not associated to any firewire character device",
+};
+
+#define generate_local_error(exception, code) \
+	g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR, code, err_msgs[code])
+
 typedef struct {
 	GSource src;
 	gpointer tag;
@@ -227,7 +237,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd >= 0) {
-		generate_error(exception, EBUSY);
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_ALLOCATED);
 		return;
 	}
 
@@ -310,7 +320,7 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
-		generate_error(exception, ENXIO);
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
@@ -395,7 +405,7 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
-		generate_error(exception, ENODATA);
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
@@ -426,7 +436,7 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 	g_return_if_fail(priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
 
 	if (priv->fd < 0) {
-		generate_error(exception, ENXIO);
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
@@ -494,6 +504,11 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 	}
 
 	g_return_if_fail(priv->data_length + sizeof(*datum) + header_length <= priv->alloc_data_length);
+
+	if (priv->fd < 0) {
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return;
+	}
 
 	datum = (struct fw_cdev_iso_packet *)(priv->data + priv->data_length);
 	priv->data_length += sizeof(*datum) + header_length;
@@ -781,7 +796,12 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(gsrc != NULL);
 	g_return_if_fail(exception != NULL && *exception == NULL);
+
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+	if (priv->fd < 0) {
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return;
+	}
 
 	*gsrc = g_source_new(&funcs, sizeof(FwIsoCtxSource));
 
@@ -835,7 +855,12 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	if (priv->fd < 0 || priv->addr == NULL) {
+	if (priv->fd < 0) {
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return;
+	}
+
+	if (priv->addr == NULL) {
 		generate_error(exception, ENXIO);
 		return;
 	}

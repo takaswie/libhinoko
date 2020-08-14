@@ -37,6 +37,8 @@ static const char *const err_msgs[] = {
 		"The instance is already associated to any firewire character device",
 	[HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED] =
 		"The instance is not associated to any firewire character device",
+	[HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT] =
+		"No event to the request arrives within timeout.",
 };
 
 #define generate_local_error(exception, code) \
@@ -343,7 +345,7 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 	g_mutex_unlock(&w.mutex);
 
 	if (w.handled == FALSE)
-		generate_error(exception, ETIMEDOUT);
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
 	else if (w.err_code > 0)
 		generate_error(exception, w.err_code);
 }
@@ -398,7 +400,7 @@ void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 	g_mutex_unlock(&w.mutex);
 
 	if (w.handled == FALSE)
-		generate_error(exception, ETIMEDOUT);
+		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
 	else if (w.err_code > 0)
 		generate_error(exception, w.err_code);
 }

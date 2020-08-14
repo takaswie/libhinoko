@@ -35,6 +35,7 @@ fw_iso_resource_error_enumerations = (
     'FAILED',
     'OPENED',
     'NOT_OPENED',
+    'TIMEOUT',
 )
 
 types = {

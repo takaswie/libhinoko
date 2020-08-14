@@ -249,11 +249,7 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	bytes_per_chunk = (bytes_per_chunk + 3) / 4;
 	bytes_per_chunk *= 4;
 
-	priv->concat_frames = calloc(4, bytes_per_chunk);
-	if (priv->concat_frames == NULL) {
-		generate_error(exception, ENOMEM);
-		return;
-	}
+	priv->concat_frames = g_malloc_n(4, bytes_per_chunk);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
 				     chunks_per_buffer, exception);
@@ -262,12 +258,8 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 		     "bytes-per-chunk", &bytes_per_chunk,
 		     "chunks-per-buffer", &chunks_per_buffer, NULL);
 
-	priv->ctx_payloads = calloc(bytes_per_chunk * chunks_per_buffer / 8 / 2,
-				    sizeof(*priv->ctx_payloads));
-	if (priv->ctx_payloads == NULL) {
-		hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
-		generate_error(exception, ENOMEM);
-	}
+	priv->ctx_payloads = g_malloc_n(bytes_per_chunk * chunks_per_buffer / 8 / 2,
+					sizeof(*priv->ctx_payloads));
 }
 
 /**

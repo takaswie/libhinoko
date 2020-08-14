@@ -493,10 +493,6 @@ void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
 	*gsrc = g_source_new(&funcs, sizeof(FwIsoResourceSource));
-	if (*gsrc == NULL) {
-		generate_error(exception, ENOMEM);
-		return;
-	}
 
 	g_source_set_name(*gsrc, "HinokoFwIsoResource");
 	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
@@ -505,11 +501,7 @@ void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 	src = (FwIsoResourceSource *)(*gsrc);
 
 	src->buf = g_malloc0(page_size);
-	if (src->buf == NULL) {
-		generate_error(exception, ENOMEM);
-		g_source_unref(*gsrc);
-		return;
-	}
+
 	src->len = (gsize)page_size;
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
 	src->self = g_object_ref(self);

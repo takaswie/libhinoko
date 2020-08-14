@@ -46,6 +46,11 @@ static const char *const err_msgs[] = {
 #define generate_local_error(exception, code) \
 	g_set_error_literal(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR, code, err_msgs[code])
 
+#define generate_event_error(exception, errno, ev_type)			\
+	g_set_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR,		\
+		    HINOKO_FW_ISO_RESOURCE_ERROR_EVENT,			\
+		    "%s %d %s", ev_type, errno, strerror(errno))
+
 enum fw_iso_resource_auto_prop_type {
 	FW_ISO_RESOURCE_AUTO_PROP_ALLOCATED = 1,
 	FW_ISO_RESOURCE_AUTO_PROP_CHANNEL,
@@ -299,7 +304,7 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 	if (w.handled == FALSE)
 		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT);
 	else if (w.err_code > 0)
-		generate_error(exception, w.err_code);
+		generate_event_error(exception, w.err_code, "FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED");
 }
 
 /**
@@ -349,7 +354,7 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 	if (w.handled == FALSE)
 		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT);
 	else if (w.err_code > 0)
-		generate_error(exception, w.err_code);
+		generate_event_error(exception, w.err_code, "FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED");
 }
 
 void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,

@@ -361,16 +361,10 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 	HinokoFwIsoResourcePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	priv = hinoko_fw_iso_resource_get_instance_private(self);
+	g_return_if_fail(request == FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE ||
+			 request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE);
 
-	switch (request) {
-	case FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE:
-	case FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE:
-		break;
-	default:
-		generate_error(exception, EINVAL);
-		return;
-	}
+	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
 	if (ioctl(priv->fd, request, argp) < 0)
 		generate_error(exception, errno);

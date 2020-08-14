@@ -644,10 +644,7 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 		data_offset += data_length;
 	}
 
-	if (chunk_count != priv->registered_chunk_count) {
-		generate_error(exception, EIO);
-		return;
-	}
+	g_warn_if_fail(chunk_count == priv->registered_chunk_count);
 
 	priv->curr_offset = buf_offset;
 

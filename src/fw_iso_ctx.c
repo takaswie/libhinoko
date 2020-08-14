@@ -58,6 +58,10 @@ static const char *const err_msgs[] = {
 		"The instance is already associated to any firewire character device",
 	[HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED] =
 		"The instance is not associated to any firewire character device",
+	[HINOKO_FW_ISO_CTX_ERROR_MAPPED] =
+		"The intermediate buffer is already mapped to the process",
+	[HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED] =
+		"The intermediate buffer is not mapped to the process",
 };
 
 #define generate_local_error(exception, code) \
@@ -325,7 +329,7 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	}
 
 	if (priv->addr != NULL) {
-		generate_error(exception, EBUSY);
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_MAPPED);
 		return;
 	}
 
@@ -507,6 +511,11 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 
 	if (priv->fd < 0) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return;
+	}
+
+	if (priv->addr == NULL) {
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
 		return;
 	}
 
@@ -861,7 +870,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 	}
 
 	if (priv->addr == NULL) {
-		generate_error(exception, ENXIO);
+		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
 		return;
 	}
 

@@ -47,6 +47,9 @@ static const char *const err_msgs[] = {
 		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
+#define generate_file_error(exception, code, format, arg) \
+	g_set_error(exception, G_FILE_ERROR, code, format, arg)
+
 typedef struct {
 	GSource src;
 	HinokoFwIsoResource *self;
@@ -146,8 +149,8 @@ HinokoFwIsoResource *hinoko_fw_iso_resource_new()
  * @path: A path of any Linux FireWire character device.
  * @open_flag: The flag of open(2) system call. O_RDONLY is forced to fulfil
  *	       internally.
- * @exception: A #GError. Error can be generated with domain of
- *	       #hinoko_fw_iso_resource_error_quark().
+ * @exception: A #GError. Error can be generated with two domains; g_file_error_quark(),
+ *	       and #hinoko_fw_iso_resource_error_quark().
  *
  * Open Linux FireWire character device to delegate any request for isochronous
  * resource management to Linux FireWire subsystem.
@@ -169,8 +172,13 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 
 	open_flag |= O_RDONLY;
 	priv->fd = open(path, open_flag);
-	if (priv->fd < 0)
-		generate_error(exception, errno);
+	if (priv->fd < 0) {
+		GFileError code = g_file_error_from_errno(errno);
+		if (code != G_FILE_ERROR_FAILED)
+			generate_file_error(exception, code, "open(%s)", path);
+		else
+			generate_syscall_error(exception, errno, "open(%s)", path);
+	}
 }
 
 /**

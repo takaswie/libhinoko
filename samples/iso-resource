@@ -18,8 +18,12 @@ dispatcher = GLib.MainLoop.new(ctx, False)
 th = Thread(target=lambda d: d.run(), args=(dispatcher,))
 th.start()
 
-def handle_event(res, channel, bandwidth, err_code, ev_name):
-    print(ev_name, res, channel, bandwidth, err_code)
+def handle_event(res, channel, bandwidth, exception, ev_name):
+    print('event:', ev_name)
+    if exception is None:
+        print('  ', channel, bandwidth)
+    elif exception.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
+        print('  ', exception)
 
 # For Once mode. The allocation is bound to current generation of the bus and
 # lost automatically by bus reset without notification.
@@ -32,9 +36,26 @@ src = res.create_source()
 src.attach(ctx)
 
 for i in range(2):
-    res.allocate_once_sync([use_channel], use_bandwidth)
+    try:
+        res.allocate_once_sync((use_channel, ), use_bandwidth)
+    except GLib.Error as e:
+        if e.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
+            print(e)
+    else:
+        print('result: allocate')
+        print('  ', use_channel, use_bandwidth)
+
     sleep(2)
-    res.deallocate_once_sync(use_channel, use_bandwidth)
+
+    try:
+        res.deallocate_once_sync(use_channel, use_bandwidth)
+    except GLib.Error as e:
+        if e.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
+            print(e)
+    else:
+        print('result: deallocate')
+        print('  ', use_channel, use_bandwidth)
+
     sleep(2)
 
 src.destroy()
@@ -58,15 +79,27 @@ def print_props(res):
 for i in range(2):
     print_props(res)
 
-    res.allocate_sync([use_channel], use_bandwidth)
+    try:
+        res.allocate_sync([use_channel], use_bandwidth)
+    except GLib.Error as e:
+        if e.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
+            print(e)
+    else:
+        print('result: allocate')
+        print_props(res)
+
     sleep(1)
 
-    print_props(res)
+    try:
+        res.deallocate_sync()
+    except GLib.Error as e:
+        if e.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
+            print(e)
+    else:
+        print('result: deallocate')
+        print_props(res)
 
-    res.deallocate_sync()
     sleep(1)
-
-print_props(res)
 
 dispatcher.quit()
 th.join()

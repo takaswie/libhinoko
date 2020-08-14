@@ -44,10 +44,10 @@ static const char *const err_msgs[] = {
 #define generate_local_error(exception, code) \
 	g_set_error_literal(exception, HINOKO_FW_ISO_RESOURCE_ERROR, code, err_msgs[code])
 
-#define generate_event_error(exception, errno, ev_type)			\
+#define generate_event_error(exception, errno)				\
 	g_set_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR,		\
 		    HINOKO_FW_ISO_RESOURCE_ERROR_EVENT,			\
-		    "%s %d %s", ev_type, errno, strerror(errno))
+		    "%d %s", errno, strerror(errno))
 
 #define generate_syscall_error(exception, errno, format, arg)		\
 	g_set_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR,		\
@@ -95,7 +95,9 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 * @self: A #HinokoFwIsoResource.
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @err_code: 0 if successful, else any error code.
+	 * @error: A #GError. Error can be generated with domain of
+	 *	   #hinoko_fw_iso_resource_error_quark() and code of
+	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
 	 *
 	 * When allocation of isochronous resource finishes, the ::allocated
 	 * handler is called to notify the result, channel, and bandwidth.
@@ -106,16 +108,18 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, allocated),
 			     NULL, NULL,
-			     hinoko_sigs_marshal_VOID__UINT_UINT_UINT,
+			     hinoko_sigs_marshal_VOID__UINT_UINT_OBJECT,
 			     G_TYPE_NONE,
-			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
+			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
 
 	/**
 	 * HinokoFwIsoResource::deallocated:
 	 * @self: A #HinokoFwIsoResource.
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @err_code: 0 if successful, else any error code.
+	 * @error: A #GError. Error can be generated with domain of
+	 *	   #hinoko_fw_iso_resource_error_quark() and code of
+	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
 	 *
 	 * When deallocation of isochronous resource finishes, the ::deallocated
 	 * handler is called to notify the result, channel, and bandwidth.
@@ -126,9 +130,9 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, deallocated),
 			     NULL, NULL,
-			     hinoko_sigs_marshal_VOID__UINT_UINT_UINT,
+			     hinoko_sigs_marshal_VOID__UINT_UINT_OBJECT,
 			     G_TYPE_NONE,
-			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
+			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
 }
 
 static void hinoko_fw_iso_resource_init(HinokoFwIsoResource *self)
@@ -278,19 +282,19 @@ void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
 struct waiter {
 	GMutex mutex;
 	GCond cond;
-	guint err_code;
+	GError *error;
 	gboolean handled;
 };
 
 static void handle_event_signal(HinokoFwIsoResource *self, guint channel,
-				guint bandwidth, guint err_code,
+				guint bandwidth, const GError *error,
 				gpointer user_data)
 {
 	struct waiter *w = (struct waiter *)user_data;
 
 	g_mutex_lock(&w->mutex);
-	if (err_code > 0)
-		w->err_code = err_code;
+	if (error != NULL)
+		w->error = g_error_copy(error);
 	w->handled = TRUE;
 	g_cond_signal(&w->cond);
 	g_mutex_unlock(&w->mutex);
@@ -324,7 +328,7 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 
 	g_mutex_init(&w.mutex);
 	g_cond_init(&w.cond);
-	w.err_code = 0;
+	w.error = NULL;
 	w.handled = FALSE;
 
 	// For safe, use 100 msec for timeout.
@@ -351,8 +355,8 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 
 	if (w.handled == FALSE)
 		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
-	else if (w.err_code > 0)
-		generate_event_error(exception, w.err_code, "FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED");
+	else if (w.error != NULL)
+		*exception = w.error;	// Delegate ownership.
 }
 
 /**
@@ -380,7 +384,7 @@ void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 
 	g_mutex_init(&w.mutex);
 	g_cond_init(&w.cond);
-	w.err_code = 0;
+	w.error = NULL;
 	w.handled = FALSE;
 
 	// For safe, use 100 msec for timeout.
@@ -406,8 +410,8 @@ void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 
 	if (w.handled == FALSE)
 		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
-	else if (w.err_code > 0)
-		generate_event_error(exception, w.err_code, "FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED");
+	else if (w.error != NULL)
+		*exception = w.error;	// Delegate ownership.
 }
 
 // For internal use.
@@ -450,8 +454,8 @@ static void handle_iso_resource_event(HinokoFwIsoResource *self,
 {
 	guint channel;
 	guint bandwidth;
-	guint err_code;
 	int sig_type;
+	GError *error;
 
 	// To change state machine for auto mode.
 	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self)) {
@@ -462,11 +466,11 @@ static void handle_iso_resource_event(HinokoFwIsoResource *self,
 	if (ev->channel >= 0) {
 		channel = ev->channel;
 		bandwidth = ev->bandwidth;
-		err_code = 0;
+		error = NULL;
 	} else {
 		channel = 0;
 		bandwidth = 0;
-		err_code = -ev->channel;
+		generate_event_error(&error, -ev->channel);
 	}
 
 	if (ev->type == FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED)
@@ -475,7 +479,10 @@ static void handle_iso_resource_event(HinokoFwIsoResource *self,
 		sig_type = FW_ISO_RESOURCE_SIG_DEALLOCATED;
 
 	g_signal_emit(self, fw_iso_resource_sigs[sig_type],
-		      0, channel, bandwidth, err_code);
+		      0, channel, bandwidth, error);
+
+	if (error != NULL)
+		g_clear_error(&error);
 }
 
 static gboolean check_src(GSource *gsrc)

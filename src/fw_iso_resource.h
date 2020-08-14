@@ -54,26 +54,30 @@ struct _HinokoFwIsoResourceClass {
 	 * @self: A #HinokoFwIsoResource.
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @err_code: 0 if successful, else any error code.
+	 * @error: A #GError. Error can be generated with domain of
+	 *	   #hinoko_fw_iso_resource_error_quark() and code of
+	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
 	 *
 	 * When allocation of isochronous resource finishes, the ::allocated
 	 * handler is called to notify the result, channel, and bandwidth.
 	 */
 	void (*allocated)(HinokoFwIsoResource *self, guint channel,
-			  guint bandwidth, guint err_code);
+			  guint bandwidth, const GError *error);
 
 	/**
 	 * HinokoFwIsoResourceClass::deallocated:
 	 * @self: A #HinokoFwIsoResource.
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @err_code: 0 if successful, else any error code.
+	 * @error: A #GError. Error can be generated with domain of
+	 *	   #hinoko_fw_iso_resource_error_quark() and code of
+	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
 	 *
 	 * When deallocation of isochronous resource finishes, the ::deallocated
 	 * handler is called to notify the result, channel, and bandwidth.
 	 */
 	void (*deallocated)(HinokoFwIsoResource *self, guint channel,
-			    guint bandwidth, guint err_code);
+			    guint bandwidth, GError *error);
 };
 
 GType hinoko_fw_iso_resource_get_type(void) G_GNUC_CONST;

@@ -9,6 +9,7 @@
  * @Title: HinokoFwIsoRxMultiple
  * @Short_description: An object to receive isochronous packet for several
  *		       channels.
+ * @include: fw_iso_rx_multiple.h
  *
  * A #HinokoFwIsoRxMultiple receives isochronous packets for several channels by
  * IR context for buffer-fill mode in 1394 OHCI.

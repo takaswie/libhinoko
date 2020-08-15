@@ -14,6 +14,7 @@
  * SECTION:fw_iso_ctx
  * @Title: HinokoFwIsoCtx
  * @Short_description: An abstract object to maintain isochronous context.
+ * @include: fw_iso_ctx.h
  *
  * A #HinokoFwIsoCtx is an abstract object to maintain isochronous context by
  * UAPI of Linux FireWire subsystem. All of operations utilize ioctl(2) with

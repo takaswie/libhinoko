@@ -14,6 +14,7 @@
  * @Title: HinokoFwIsoResource
  * @Short_description: An object to initiate requests and listen events of
  *		       isochronous resource allocation/deallocation.
+ * @include: fw_iso_resource.h
  *
  * A #HinokoFwIsoResource is an object to initiate requests and listen events
  * of isochronous resource allocation/deallocation by file descriptor owned

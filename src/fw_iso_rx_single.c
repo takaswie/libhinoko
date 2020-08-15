@@ -10,6 +10,7 @@
  * @Title: HinokoFwIsoRxSingle
  * @Short_description: An object to receive isochronous packet for single
  *		       channel.
+ * @include: fw_iso_rx_single.h
  *
  * A #HinokoFwIsoRxSingle receives isochronous packets for single channel by IR
  * context for packet-per-buffer mode in 1394 OHCI. The content of packet is

@@ -5,6 +5,7 @@
  * SECTION:cycle_timer
  * @Title: HinokoCycleTimer
  * @Short_description: A boxed object to represent data for cycle timer.
+ * @include: cycle_timer.h
  *
  * A #HinokoCycleTimer is an boxed object to represent the value of cycle
  * timer and timestamp referring to clock_id.

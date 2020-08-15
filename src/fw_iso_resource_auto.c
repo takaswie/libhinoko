@@ -9,6 +9,7 @@
  * SECTION:fw_iso_resource_auto
  * @Title: HinokoFwIsoResourceAuto
  * @Short_description: An object to maintain allocated isochronous resource.
+ * @include: fw_iso_resource_auto.h
  *
  * A #HinokoFwIsoResourceAuto is an object to maintain isochronous resource
  * during the lifetime of the object. The allocated isochronous resource is

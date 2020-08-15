@@ -10,6 +10,7 @@
  * @Title: HinokoFwIsoTx
  * @Short_description: An object to transmit isochronous packet for single
  *		       channel.
+ * @include: fw_iso_tx.h
  *
  * A #HinokoFwIsoTx transmits isochronous packets for single channel by IT
  * context in 1394 OHCI. The content of packet is split to two parts; context

@@ -72,6 +72,7 @@ HINOKO_0_4_0 {
 } HINOKO_0_3_0;
 
 HINOKO_0_5_0 {
+  global:
     "hinoko_fw_iso_resource_error_get_type";
     "hinoko_fw_iso_resource_error_quark";
 

@@ -142,7 +142,7 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
  *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate allocation of isochronous resource. When the allocation is done,
- * ::allocated signal is emit to notify the result, channel, and bandwidth.
+ * #HinokoFwIsoResource::allocated signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 						guint8 *channel_candidates,
@@ -192,7 +192,7 @@ end:
  *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
- * ::deallocated signal is emit to notify the result, channel, and bandwidth.
+ * #HinokoFwIsoResource::deallocated signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 						  GError **exception)
@@ -253,9 +253,9 @@ static void handle_event_signal(HinokoFwIsoResourceAuto *self, guint channel,
  * @exception: A #GError. Error can be generated with domain of
  *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
- * Initiate allocation of isochronous resource and wait for ::allocated signal.
- * When the call is successful, ::channel and ::bandwidth property are
- * available.
+ * Initiate allocation of isochronous resource and wait for #HinokoFwIsoResource::allocated signal.
+ * When the call is successful, #HinokoFwIsoResourceAuto:channel and #HinokoFwIsoResourceAuto:bandwidth
+ * properties are available.
  */
 void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 					       guint8 *channel_candidates,
@@ -310,7 +310,7 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
  *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
- * ::deallocated signal is emit to notify the result, channel, and bandwidth.
+ * #HinokoFwIsoResource::deallocated signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 						 GError **exception)

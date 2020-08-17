@@ -57,7 +57,7 @@ struct _HinokoFwIsoResourceClass {
 	 *	   #hinoko_fw_iso_resource_error_quark() and code of
 	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
 	 *
-	 * When allocation of isochronous resource finishes, the ::allocated
+	 * When allocation of isochronous resource finishes, the #HinokoFwIsoResourceClass::allocated
 	 * handler is called to notify the result, channel, and bandwidth.
 	 */
 	void (*allocated)(HinokoFwIsoResource *self, guint channel,
@@ -72,7 +72,7 @@ struct _HinokoFwIsoResourceClass {
 	 *	   #hinoko_fw_iso_resource_error_quark() and code of
 	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
 	 *
-	 * When deallocation of isochronous resource finishes, the ::deallocated
+	 * When deallocation of isochronous resource finishes, the #HinokoFwIsoResourceClass::deallocated
 	 * handler is called to notify the result, channel, and bandwidth.
 	 */
 	void (*deallocated)(HinokoFwIsoResource *self, guint channel,

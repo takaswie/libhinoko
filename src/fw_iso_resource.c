@@ -101,7 +101,7 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 *	   #hinoko_fw_iso_resource_error_quark() and code of
 	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
 	 *
-	 * When allocation of isochronous resource finishes, the ::allocated
+	 * When allocation of isochronous resource finishes, the #HinokoFwIsoResource::allocated
 	 * handler is called to notify the result, channel, and bandwidth.
 	 */
 	fw_iso_resource_sigs[FW_ISO_RESOURCE_SIG_ALLOCATED] =
@@ -123,7 +123,7 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 *	   #hinoko_fw_iso_resource_error_quark() and code of
 	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
 	 *
-	 * When deallocation of isochronous resource finishes, the ::deallocated
+	 * When deallocation of isochronous resource finishes, the #HinokoFwIsoResource::deallocated
 	 * handler is called to notify the result, channel, and bandwidth.
 	 */
 	fw_iso_resource_sigs[FW_ISO_RESOURCE_SIG_DEALLOCATED] =
@@ -206,7 +206,7 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
  *	       #hinoko_fw_iso_resource_error_quark().
  *
  * Initiate allocation of isochronous resource without any wait. When the
- * allocation finishes, ::allocated signal is emit to notify the result,
+ * allocation finishes, #HinokoFwIsoResource::allocated signal is emit to notify the result,
  * channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
@@ -251,7 +251,7 @@ void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
  *	       #hinoko_fw_iso_resource_error_quark().
  *
  * Initiate deallocation of isochronous resource without any wait. When the
- * deallocation finishes, ::deallocated signal is emit to notify the result,
+ * deallocation finishes, #HinokoFwIsoResource::deallocated signal is emit to notify the result,
  * channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
@@ -313,7 +313,7 @@ static void handle_event_signal(HinokoFwIsoResource *self, guint channel,
  * @exception: A #GError. Error can be generated with domain of
  *	       #hinoko_fw_iso_resource_error_quark().
  *
- * Initiate allocation of isochronous resource and wait for ::allocated signal.
+ * Initiate allocation of isochronous resource and wait for #HinokoFwIsoResource::allocated signal.
  */
 void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 					       guint8 *channel_candidates,
@@ -370,7 +370,7 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
  *	       #hinoko_fw_iso_resource_error_quark().
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
- * ::deallocated signal is emit to notify the result, channel, and bandwidth.
+ * #HinokoFwIsoResource::deallocated signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 						 guint channel,

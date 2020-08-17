@@ -1,12 +1,12 @@
 # libhinoko
 
-2020/05/31
+2020/08/17
 Takashi Sakamoto
 
 ## Instruction
 
 This is a sister project of libhinawa.
-https://github.com/takaswie/libhinawa
+https://github.com/alsa-project/libhinawa
 
 I design this library for userspace applications to transfer/receive
 isochronous packets on IEEE 1394 bus by any language binding of GObject
@@ -18,6 +18,10 @@ GLib/GObject.
 ## Example of Python3 with PyGobject
 
  * See scripts under `samples` directory
+
+## Documentation
+
+Reference document is available at https://takaswie.github.io/libhinoko-docs/ .
 
 ## License
 

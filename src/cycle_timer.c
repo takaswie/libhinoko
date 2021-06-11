@@ -12,7 +12,7 @@
  */
 HinokoCycleTimer *hinoko_cycle_timer_copy(const HinokoCycleTimer *self)
 {
-	return g_memdup(self, sizeof(*self));
+	return g_memdup2(self, sizeof(*self));
 }
 
 G_DEFINE_BOXED_TYPE(HinokoCycleTimer, hinoko_cycle_timer, hinoko_cycle_timer_copy, g_free)

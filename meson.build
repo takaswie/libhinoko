@@ -11,9 +11,6 @@ micro_version = version[2].to_int()
 
 gnome = import('gnome')
 
-conf = configuration_data()
-conf.set('VERSION', meson.project_version())
-
 inc = include_directories('src')
 
 subdir('src')

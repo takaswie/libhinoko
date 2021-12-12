@@ -70,8 +70,8 @@ static const char *const err_msgs[] = {
 	g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR, code, err_msgs[code])
 
 #define generate_syscall_error(exception, errno, format, arg)		\
-	g_set_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR,		\
-		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
+	g_set_error(exception, HINOKO_FW_ISO_CTX_ERROR,			\
+		    HINOKO_FW_ISO_CTX_ERROR_FAILED,			\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
 #define generate_file_error(exception, code, format, arg) \

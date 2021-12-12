@@ -1,6 +1,6 @@
 # libhinoko
 
-2020/08/17
+2020/12/12
 Takashi Sakamoto
 
 ## Instruction
@@ -15,7 +15,7 @@ for any isochronous context and isochronous resources. According to this
 design, this library is an application of Linux FireWire subsystem and
 GLib/GObject.
 
-## Example of Python3 with PyGobject
+## Example of Python 3 with PyGobject
 
  * See scripts under `samples` directory
 

@@ -12,7 +12,15 @@
  */
 HinokoCycleTimer *hinoko_cycle_timer_copy(const HinokoCycleTimer *self)
 {
-	return g_memdup(self, sizeof(*self));
+#ifdef g_memdup2
+	return g_memdup2(self, sizeof(*self));
+#else
+	// GLib v2.68 deprecated g_memdup() with concern about overflow by narrow conversion from
+	// size_t to unsigned int in ABI for LP64 data model.
+	gpointer ptr = g_malloc(sizeof(*self));
+	memcpy(ptr, self, sizeof(*self));
+	return ptr;
+#endif
 }
 
 G_DEFINE_BOXED_TYPE(HinokoCycleTimer, hinoko_cycle_timer, hinoko_cycle_timer_copy, g_free)

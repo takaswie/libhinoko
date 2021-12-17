@@ -18,6 +18,8 @@
  */
 struct _HinokoFwIsoTxPrivate {
 	guint offset;
+	guint packets_per_irq;
+	guint accumulated_packet_count;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx,
 			   HINOKO_TYPE_FW_ISO_CTX)
@@ -174,14 +176,21 @@ static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
 				     const guint8 *header, guint header_length,
 				     guint payload_length, GError **exception)
 {
+	HinokoFwIsoTxPrivate *priv = hinoko_fw_iso_tx_get_instance_private(self);
 	gboolean skip = FALSE;
+	gboolean schedule_irq = FALSE;
 
 	if (header_length == 0 && payload_length == 0)
 		skip = TRUE;
 
+	if (++priv->accumulated_packet_count % priv->packets_per_irq == 0)
+		schedule_irq = TRUE;
+	if (priv->accumulated_packet_count >= G_MAXINT)
+		priv->accumulated_packet_count %= priv->packets_per_irq;
+
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags,
 					 sy, header, header_length,
-					 payload_length, FALSE, exception);
+					 payload_length, schedule_irq, exception);
 }
 
 /**
@@ -202,9 +211,12 @@ static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 			    guint packets_per_irq, GError **exception)
 {
+	HinokoFwIsoTxPrivate *priv;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
+
 	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	// MEMO: Linux FireWire subsystem queues isochronous event independently
@@ -213,6 +225,9 @@ void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 	// the interval.
 	g_return_if_fail(packets_per_irq > 0);
 	g_return_if_fail(packets_per_irq * 4 <= sysconf(_SC_PAGESIZE));
+
+	priv->packets_per_irq = packets_per_irq;
+	priv->accumulated_packet_count = 0;
 
 	for (i = 0; i < packets_per_irq * 2; ++i) {
 		fw_iso_tx_register_chunk(self,

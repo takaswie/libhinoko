@@ -17,8 +17,8 @@ class IsoTx(Hinoko.FwIsoTx):
 
         self.allocate(path, Hinoko.FwScode.S400, channel, cip_header_size)
 
-        payloads_per_buffer = 32
-        self.map_buffer(maximum_bytes_per_payload, payloads_per_buffer)
+        self.packets_per_buffer = 32
+        self.map_buffer(maximum_bytes_per_payload, self.packets_per_buffer)
 
         self.channel = channel
 
@@ -38,40 +38,29 @@ class IsoTx(Hinoko.FwIsoTx):
         self.tag = Hinoko.FwIsoCtxMatchFlag.TAG1
         self.sy = 0
 
+        # Start 100 msec later. Scheduling is available with lower 2 bits of second field.
         cycle_timer = Hinoko.CycleTimer.new()
         clock_id = 4    # CLOCK_MONOTONIC_RAW
         cycle_timer = self.get_cycle_timer(clock_id, cycle_timer)
         (sec, cycle, tick) = cycle_timer.get_cycle_timer()
-
-        # Start 100 msec later.
-        cycle += 800
-        if cycle >= 8000:
-            cycle %= 8000
-            sec += 1
-            if sec >= 128:
-                sec %= 128
-
-        # Scheduling is available with lower 2 bits of second field.
+        sec, cycle = self.__increment_cycle(sec, cycle, 800)
         cycle_match = (sec & 0x3, cycle)
 
         # The packets for buffer are queued with skip flag.
         packets_per_irq = 4
-        self.__cycles = [sec, cycle]
-        self.__increment_cycle(packets_per_irq * 2)
 
         self.__timer.start()
         self.start(cycle_match, packets_per_irq)
 
-    def __increment_cycle(self, addend):
-        sec, cycle = self.__cycles
+    @staticmethod
+    def __increment_cycle(sec, cycle, addend):
         cycle += addend
         if cycle >= 8000:
             cycle %= 8000
             sec += 1
             if sec >= 128:
                 sec %= 128
-        self.__cycles[0] = sec
-        self.__cycles[1] = cycle
+        return (sec, cycle)
 
     def finish(self):
         self.__src.destroy()
@@ -92,15 +81,15 @@ class IsoTx(Hinoko.FwIsoTx):
     def do_interrupted(self, sec, cycle, header, header_length, count):
         tstamps = unpack('>{0}I'.format(header_length // 4), header)
         for i in range(count):
+            sec, cycle = self.__ohci1394_tstamp_to_isoc_cycle(tstamps[i])
+
             # Schedule packet at the completed isochronous cycle plus packets per buffer. The header
             # of packet has data for the completed isochronous cycle.
-            sec, cycle = self.__cycles
-            cip_header = pack('>2I', sec, cycle)
+            next_sec, next_cycle = self.__increment_cycle(sec, cycle, self.packets_per_buffer)
+            cip_header = pack('>2I', next_sec, next_cycle)
             self.register_packet(self.tag, self.sy, cip_header, self.cip_payload)
-            self.__increment_cycle(1)
 
             # Print the data of packet already sent.
-            sec, cycle = self.__ohci1394_tstamp_to_isoc_cycle(tstamps[i])
             iso_header = (len(self.cip_payload) << 16) | \
                          (self.tag << 14) | \
                          (self.channel << 8) | \

@@ -10,23 +10,23 @@ gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
 class IsoTx(Hinoko.FwIsoTx):
-    def new(self, path, channel, maximum_bytes_per_payload):
+    def new(self, path, channel, maximum_bytes_per_payload, packets_per_buffer):
         # Use 8 byte header for CIP header.
         cip_header_size = 8
         self.cip_payload = [i for i in range(maximum_bytes_per_payload)]
 
         self.allocate(path, Hinoko.FwScode.S400, channel, cip_header_size)
 
-        self.packets_per_buffer = 32
-        self.map_buffer(maximum_bytes_per_payload, self.packets_per_buffer)
+        self.map_buffer(maximum_bytes_per_payload, packets_per_buffer)
 
         self.channel = channel
+        self.packets_per_buffer = packets_per_buffer
 
     def destroy(self):
         self.unmap_buffer()
         self.release()
 
-    def begin(self, dispatcher, duration):
+    def begin(self, dispatcher, packets_per_interrupt, duration):
         self.__src = self.create_source()
         self.__src.attach(dispatcher.get_context())
         self.__dispatcher = dispatcher
@@ -46,11 +46,8 @@ class IsoTx(Hinoko.FwIsoTx):
         sec, cycle = self.__increment_cycle(sec, cycle, 800)
         cycle_match = (sec & 0x3, cycle)
 
-        # The packets for buffer are queued with skip flag.
-        packets_per_irq = 4
-
         self.__timer.start()
-        self.start(cycle_match, packets_per_irq)
+        self.start(cycle_match, packets_per_interrupt)
 
     @staticmethod
     def __increment_cycle(sec, cycle, addend):
@@ -99,13 +96,16 @@ class IsoTx(Hinoko.FwIsoTx):
 
 channel = 30
 maximum_bytes_per_payload = 32
+packets_per_buffer = 32
+packets_per_interrupt = 4
+duration = 4
 
 ctx = IsoTx()
-ctx.new('/dev/fw0', channel, maximum_bytes_per_payload)
+ctx.new('/dev/fw0', channel, maximum_bytes_per_payload, packets_per_buffer)
 
 dispatcher = GLib.MainLoop.new(None, False)
 
-ctx.begin(dispatcher, 4)
+ctx.begin(dispatcher, packets_per_interrupt, duration)
 dispatcher.run()
 ctx.finish()
 ctx.destroy()

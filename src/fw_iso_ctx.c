@@ -36,8 +36,6 @@ struct _HinokoFwIsoCtxPrivate {
 	guint data_length;
 	guint alloc_data_length;
 	guint registered_chunk_count;
-	guint accumulated_chunk_count;
-	guint chunks_per_irq;
 
 	guint curr_offset;
 	gboolean running;
@@ -604,14 +602,6 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 			if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
 				datum_length += header_length;
 
-			if (++priv->accumulated_chunk_count %
-				priv->chunks_per_irq == 0)
-				datum->control |= FW_CDEV_ISO_INTERRUPT;
-			if (priv->accumulated_chunk_count >= G_MAXINT) {
-				priv->accumulated_chunk_count %=
-							priv->chunks_per_irq;
-			}
-
 			g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d: %d",
 				chunk_count,
 				data_offset + data_length,
@@ -866,14 +856,12 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
  * @sync: The value of sync field in isochronous header for packet processing,
  * 	  up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
- * @chunks_per_irq: The number of chunks per interval of interrupt.
  * @exception: A #GError.
  *
  * Start isochronous context.
  */
-void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
-			     guint32 sync, HinokoFwIsoCtxMatchFlag tags,
-			     guint chunks_per_irq, GError **exception)
+void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, guint32 sync,
+			     HinokoFwIsoCtxMatchFlag tags, GError **exception)
 {
 	struct fw_cdev_start_iso arg = {0};
 	HinokoFwIsoCtxPrivate *priv;
@@ -918,11 +906,6 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match,
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED);
 		return;
 	}
-
-	g_return_if_fail(chunks_per_irq * 2 <= priv->chunks_per_buffer);
-
-	priv->chunks_per_irq = chunks_per_irq;
-	priv->accumulated_chunk_count = 0;
 
 	fw_iso_ctx_queue_chunks(self, exception);
 	if (*exception != NULL)

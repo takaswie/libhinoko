@@ -346,8 +346,7 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 	}
 
 	priv->prev_offset = 0;
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync,
-				tags, chunks_per_irq, exception);
+	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
 }
 
 /**

@@ -293,7 +293,7 @@ static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
 					      GError **exception)
 {
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0,
-					 NULL, 0, 0, exception);
+					 NULL, 0, 0, FALSE, exception);
 }
 
 /**

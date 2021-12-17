@@ -34,24 +34,26 @@ class IsoRxSingle(Hinoko.FwIsoRxSingle):
                Hinoko.FwIsoCtxMatchFlag.TAG2 | \
                Hinoko.FwIsoCtxMatchFlag.TAG3
 
+        # Start one half of second later. Scheduling is available with lower 2 bits of second field.
         cycle_timer = Hinoko.CycleTimer.new()
         clock_id = 4    #CLOCK_MONOTONIC_RAW
         cycle_timer = self.get_cycle_timer(clock_id, cycle_timer)
         (sec, cycle, tick) = cycle_timer.get_cycle_timer()
+        sec, cycle = self.__increment_cycle(sec, cycle, 4000)
+        cycle_match = (sec & 0x3, cycle)
 
-        # Start one half of second later.
-        cycle += 4000
+        self.__timer.start()
+        self.start(cycle_match, 0, tags, 80)
+
+    @staticmethod
+    def __increment_cycle(sec, cycle, addend):
+        cycle += addend
         if cycle >= 8000:
             cycle %= 8000
             sec += 1
             if sec >= 128:
                 sec %= 128
-
-        # Scheduling is available with lower 2 bits of second field.
-        cycle_match = (sec & 0x3, cycle)
-
-        self.__timer.start()
-        self.start(cycle_match, 0, tags, 80)
+        return (sec, cycle)
 
     def finish(self):
         self.__src.destroy()

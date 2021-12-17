@@ -17,6 +17,7 @@ methods = (
     'release',
     'map_buffer',
     'unmap_buffer',
+    'register_packet',
     'start',
     'stop',
     'get_payload',

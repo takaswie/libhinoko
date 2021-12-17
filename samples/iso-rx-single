@@ -20,6 +20,15 @@ class IsoRxSingle(Hinoko.FwIsoRxSingle):
         self.unmap_buffer()
         self.release()
 
+    def queue_packet(self):
+        schedule_interrupt = False
+
+        self.accumulated_packet_count += 1
+        if self.accumulated_packet_count % self.packets_per_interrupt == 0:
+            schedule_interrupt = True
+
+        self.register_packet(schedule_interrupt)
+
     def begin(self, dispatcher, duration):
         self.__src = self.create_source()
         self.__src.attach(dispatcher.get_context())
@@ -42,8 +51,15 @@ class IsoRxSingle(Hinoko.FwIsoRxSingle):
         sec, cycle = self.__increment_cycle(sec, cycle, 4000)
         cycle_match = (sec & 0x3, cycle)
 
+        self.accumulated_packet_count = 0
+        self.packets_per_interrupt = 80
+
+        # Schedule for some isochronous cycles.
+        for i in range(self.packets_per_interrupt * 2):
+            self.queue_packet()
+
         self.__timer.start()
-        self.start(cycle_match, 0, tags, 80)
+        self.start(cycle_match, 0, tags)
 
     @staticmethod
     def __increment_cycle(sec, cycle, addend):
@@ -84,6 +100,8 @@ class IsoRxSingle(Hinoko.FwIsoRxSingle):
             print('{0:d},{1:d},{2:08x},{3}'.format(sec, cycle, iso_header, i))
             for i, frame in enumerate(frames):
                 print('    {0:2d}: {1:08x}'.format(i, frame))
+
+            self.queue_packet()
 
 # 2 CIP headers + 3 quadlet per data block * 8 data block
 channel = 1

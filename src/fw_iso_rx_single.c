@@ -20,8 +20,6 @@
  */
 struct _HinokoFwIsoRxSinglePrivate {
 	guint header_size;
-	guint packets_per_irq;
-	guint accumulated_packet_count;
 	guint chunk_cursor;
 
 	const struct fw_cdev_event_iso_interrupt *ev;
@@ -148,7 +146,6 @@ void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self)
  * @maximum_bytes_per_payload: The maximum number of bytes per payload of IR
  *			       context.
  * @payloads_per_buffer: The number of payload in buffer.
- * @payloads_per_irq: The number of payload per interval of interrupt.
  * @exception: A #GError.
  *
  * Map intermediate buffer to share payload of IR context with 1394 OHCI
@@ -182,19 +179,21 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
 }
 
-static void fw_iso_rx_single_register_chunk(HinokoFwIsoRxSingle *self,
-					    GError **exception)
+/**
+ * hinoko_fw_iso_rx_single_register_packet:
+ * @self: A #HinokoFwIsoRxSingle.
+ * @schedule_interrupt: Whether to schedule hardware interrupt at isochronous cycle for the packet.
+ * @exception: A #GError.
+ *
+ * Register chunk of buffer to process packet for future isochronous cycle.
+ *
+ * Since: 0.6.
+ */
+void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean schedule_interrupt,
+					     GError **exception)
 {
-	HinokoFwIsoRxSinglePrivate *priv = hinoko_fw_iso_rx_single_get_instance_private(self);
-	gboolean schedule_irq = FALSE;
-
-	if (++priv->accumulated_packet_count % priv->packets_per_irq == 0)
-		schedule_irq = TRUE;
-	if (priv->accumulated_packet_count >= G_MAXINT)
-		priv->accumulated_packet_count %= priv->packets_per_irq;
-
-	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0,
-					 NULL, 0, 0, schedule_irq, exception);
+	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
+					 schedule_interrupt, exception);
 }
 
 /**
@@ -208,41 +207,23 @@ static void fw_iso_rx_single_register_chunk(HinokoFwIsoRxSingle *self,
  * @sync: The value of sync field in isochronous header for packet processing,
  * 	  up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
- * @packets_per_irq: The number of packets as interval of event. Skip cycles are
- *		     ignored.
  * @exception: A #GError.
  *
  * Start IR context.
+ *
+ * Since: 0.6.
  */
-void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
-				   const guint16 *cycle_match, guint32 sync,
-				   HinokoFwIsoCtxMatchFlag tags,
-				   guint packets_per_irq, GError **exception)
+void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
+				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **exception)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
-	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
-	// MEMO: Linux FireWire subsystem queues isochronous event independently
-	// of interrupt flag when the same number of bytes as one page is
-	// stored in the buffer of header. To avoid unexpected wakeup, check
-	// the interval.
-	g_return_if_fail(packets_per_irq > 0);
-	g_return_if_fail(priv->header_size * packets_per_irq <= sysconf(_SC_PAGESIZE));
-
-	priv->packets_per_irq = packets_per_irq;
-	priv->accumulated_packet_count = 0;
 	priv->chunk_cursor = 0;
-
-	for (i = 0; i < packets_per_irq * 2; ++i) {
-		fw_iso_rx_single_register_chunk(self, exception);
-		if (*exception != NULL)
-			return;
-	}
 
 	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
 }
@@ -268,7 +249,6 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 	guint sec;
 	guint cycle;
 	guint count;
-	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
@@ -283,13 +263,6 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 		fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_IRQ],
 		0, sec, cycle, event->header, event->header_length, count);
 	priv->ev = NULL;
-
-	for (i = 0; i < count; ++i) {
-		// Register consumed chunks to reuse.
-		fw_iso_rx_single_register_chunk(self, exception);
-		if (*exception != NULL)
-			return;
-	}
 
 	priv->chunk_cursor += count;
 	if (priv->chunk_cursor >= G_MAXINT) {

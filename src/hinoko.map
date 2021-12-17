@@ -14,7 +14,6 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_rx_single_release";
     "hinoko_fw_iso_rx_single_map_buffer";
     "hinoko_fw_iso_rx_single_unmap_buffer";
-    "hinoko_fw_iso_rx_single_start";
     "hinoko_fw_iso_rx_single_stop";
     "hinoko_sigs_marshal_VOID__UINT_UINT_POINTER_UINT_UINT";
     "hinoko_fw_iso_rx_single_get_payload";
@@ -87,4 +86,7 @@ HINOKO_0_6_0 {
 
     "hinoko_fw_iso_tx_register_packet";
     "hinoko_fw_iso_tx_start";
+
+    "hinoko_fw_iso_rx_single_register_packet";
+    "hinoko_fw_iso_rx_single_start";
 } HINOKO_0_5_0;

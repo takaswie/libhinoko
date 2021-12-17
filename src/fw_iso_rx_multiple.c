@@ -298,10 +298,12 @@ static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
 	HinokoFwIsoRxMultiplePrivate *priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 	gboolean schedule_irq = FALSE;
 
-	if (++priv->accumulated_chunk_count % priv->chunks_per_irq == 0)
-		schedule_irq = TRUE;
-	if (priv->accumulated_chunk_count >= G_MAXINT)
-		priv->accumulated_chunk_count %= priv->chunks_per_irq;
+	if (priv->chunks_per_irq > 0) {
+		if (++priv->accumulated_chunk_count % priv->chunks_per_irq == 0)
+			schedule_irq = TRUE;
+		if (priv->accumulated_chunk_count >= G_MAXINT)
+			priv->accumulated_chunk_count %= priv->chunks_per_irq;
+	}
 
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
 					 schedule_irq, exception);
@@ -318,7 +320,9 @@ static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
  * @sync: The value of sync field in isochronous header for packet processing,
  * 	  up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
- * @chunks_per_irq: The number of chunks per interval of interrupt.
+ * @chunks_per_irq: The number of chunks per interval of interrupt. When 0 is given, application
+ *		    should call #HinokoFwIsoCtx::flush_completions voluntarily to generate
+ *		    #HinokoFwIsoRxMultiple::interrupted event.
  * @exception: A #GError.
  *
  * Start IR context.
@@ -329,6 +333,7 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 				     guint chunks_per_irq, GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
+	guint chunks_per_buffer;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
@@ -336,10 +341,13 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
+	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer, NULL);
+	g_return_if_fail(chunks_per_irq < chunks_per_buffer);
+
 	priv->chunks_per_irq = chunks_per_irq;
 	priv->accumulated_chunk_count = 0;
 
-	for (i = 0; i < chunks_per_irq * 2; ++i) {
+	for (i = 0; i < chunks_per_buffer; ++i) {
 		fw_iso_rx_multiple_register_chunk(self, exception);
 		if (*exception != NULL)
 			return;

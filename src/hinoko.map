@@ -82,3 +82,8 @@ HINOKO_0_5_0 {
     "hinoko_fw_iso_ctx_error_get_type";
     "hinoko_fw_iso_ctx_error_quark";
 } HINOKO_0_4_0;
+
+HINOKO_0_6_0 {
+  global:
+    "hinoko_fw_iso_ctx_flush_completions";
+} HINOKO_0_5_0;

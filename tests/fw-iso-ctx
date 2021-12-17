@@ -18,6 +18,7 @@ props = (
 methods = (
     'get_cycle_timer',
     'create_source',
+    'flush_completions',
 )
 vmethods = (
     'do_stopped',

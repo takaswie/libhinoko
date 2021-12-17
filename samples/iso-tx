@@ -11,11 +11,11 @@ from gi.repository import Hinoko
 
 class IsoTx(Hinoko.FwIsoTx):
     def new(self, path, channel, maximum_bytes_per_payload):
-        # Use 8 byte header.
-        header_size = 8
-        self.payload = [i for i in range(maximum_bytes_per_payload)]
+        # Use 8 byte header for CIP header.
+        cip_header_size = 8
+        self.cip_payload = [i for i in range(maximum_bytes_per_payload)]
 
-        self.allocate(path, Hinoko.FwScode.S400, channel, header_size)
+        self.allocate(path, Hinoko.FwScode.S400, channel, cip_header_size)
 
         payloads_per_buffer = 32
         self.map_buffer(maximum_bytes_per_payload, payloads_per_buffer)
@@ -92,13 +92,16 @@ class IsoTx(Hinoko.FwIsoTx):
     def do_interrupted(self, sec, cycle, header, header_length, count):
         tstamps = unpack('>{0}I'.format(header_length // 4), header)
         for i in range(count):
+            # Schedule packet at the completed isochronous cycle plus packets per buffer. The header
+            # of packet has data for the completed isochronous cycle.
             sec, cycle = self.__cycles
-            header = pack('>2I', sec, cycle)
-            self.register_packet(self.tag, self.sy, header, self.payload)
+            cip_header = pack('>2I', sec, cycle)
+            self.register_packet(self.tag, self.sy, cip_header, self.cip_payload)
             self.__increment_cycle(1)
 
+            # Print the data of packet already sent.
             sec, cycle = self.__ohci1394_tstamp_to_isoc_cycle(tstamps[i])
-            iso_header = (len(self.payload) << 16) | \
+            iso_header = (len(self.cip_payload) << 16) | \
                          (self.tag << 14) | \
                          (self.channel << 8) | \
                          (0xa << 4) | \

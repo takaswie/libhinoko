@@ -237,8 +237,7 @@ void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 			return;
 	}
 
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, 0, 0,
-				packets_per_irq, exception);
+	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, 0, 0, exception);
 
 }
 

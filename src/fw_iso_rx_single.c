@@ -244,8 +244,7 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self,
 			return;
 	}
 
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync,
-				tags, packets_per_irq, exception);
+	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
 }
 
 /**

@@ -24,7 +24,8 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self);
 void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 				      HinokoFwIsoCtxMatchFlag tags, guint sy,
 				      const guint8 *header, guint header_length,
-				      guint payload_length, GError **exception);
+				      guint payload_length, gboolean schedule_interrupt,
+				      GError **exception);
 void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 				       guint64 *channel_flags,
 				       GError **exception);

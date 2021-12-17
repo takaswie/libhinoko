@@ -181,7 +181,7 @@ static void fw_iso_tx_register_chunk(HinokoFwIsoTx *self,
 
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags,
 					 sy, header, header_length,
-					 payload_length, exception);
+					 payload_length, FALSE, exception);
 }
 
 /**

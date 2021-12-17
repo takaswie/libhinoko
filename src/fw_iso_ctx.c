@@ -983,3 +983,25 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 	else
 		*frame_size = bytes_per_buffer - offset;
 }
+
+/**
+ * hinoko_fw_iso_ctx_flush_completions:
+ * @self: A #HinokoFwIsoCtx.
+ * @exception: A #GError.
+ *
+ * Flush isochronous context until recent isochronous cycle. The call of function forces the
+ * context to queue any type of interrupt event for the recent isochronous cycle. Application can
+ * process the content of isochronous packet without waiting for actual hardware interrupt.
+ *
+ * Since: 0.6.
+ */
+void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **exception)
+{
+	HinokoFwIsoCtxPrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	if (ioctl(priv->fd, FW_CDEV_IOC_FLUSH_ISO) < 0)
+		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_FLUSH_ISO");
+}

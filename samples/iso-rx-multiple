@@ -50,6 +50,12 @@ class IsoRxMultiple(Hinoko.FwIsoRxMultiple):
             self.__timer.cancel()
             print(error)
 
+    @staticmethod
+    def __ohci1394_tstamp_to_isoc_cycle(tstamp):
+        sec = (tstamp & 0x0000e000) >> 13
+        cycle = tstamp & 0x00001fff
+        return (sec, cycle)
+
     def do_interrupted(self, count):
         for i in range(count):
             data = self.get_payload(i)
@@ -59,8 +65,7 @@ class IsoRxMultiple(Hinoko.FwIsoRxMultiple):
             frames = unpack('>{0}I'.format(len(data[4:-4]) // 4), data[4:-4])
 
             tstamp = unpack('<I', data[-4:])[0]
-            sec = (tstamp & 0x0000e000) >> 13
-            cycle = tstamp & 0x00001fff
+            sec, cycle = self.__ohci1394_tstamp_to_isoc_cycle(tstamp)
 
             print('{0:d},{1:d},{2:08x},{3[0]:08x},{3[1]:08x},{4}'.format(sec, cycle, iso_header, frames, i))
             for i, frame in enumerate(frames):

@@ -63,13 +63,18 @@ class IsoRxSingle(Hinoko.FwIsoRxSingle):
             self.__timer.cancel()
             print(error)
 
+    @staticmethod
+    def __ohci1394_tstamp_to_isoc_cycle(tstamp):
+        sec = (tstamp & 0x0000e000) >> 13
+        cycle = tstamp & 0x00001fff
+        return (sec, cycle)
+
     def do_interrupted(self, sec, cycle, header, header_length, count):
         headers = unpack('>{0}I'.format(header_length // 4), header)
         for i in range(count):
             iso_header, tstamp = headers[i * 2:(i + 1) * 2]
 
-            sec = (tstamp & 0x0000e000) >> 13
-            cycle = tstamp & 0x00001fff
+            sec, cycle = self.__ohci1394_tstamp_to_isoc_cycle(tstamp)
 
             data = self.get_payload(i)
             frames = unpack('>{0}I'.format(len(data) // 4), data)

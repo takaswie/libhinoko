@@ -101,9 +101,15 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 	 * @self: A #HinokoFwIsoRxMultiple.
 	 * @count: The number of packets available in this interrupt.
 	 *
-	 * When any packet is available, the #HinokoFwIsoRxMultiple::interrupted
-	 * signal is emitted with the number of available packets. In the
-	 * handler, payload of received packet is available by a call of
+	 * When Linux FireWire subsystem generates interrupt event, the
+	 * #HinokoFwIsoRxMultiple::interrupted signal is emitted. There are two cases for Linux
+	 * FireWire subsystem to generate the event:
+	 *
+	 * - When OHCI 1394 controller generates hardware interrupt as a result to process the
+	 *   isochronous packet for the buffer chunk marked to generate hardware interrupt.
+	 * - When application calls #hinoko_fw_iso_ctx_flush_completions() explicitly.
+	 *
+	 * The handler of signal can retrieve the content of packet by call of
 	 * #hinoko_fw_iso_rx_multiple_get_payload().
 	 */
 	fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ] =
@@ -321,7 +327,7 @@ static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
  * 	  up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
  * @chunks_per_irq: The number of chunks per interval of interrupt. When 0 is given, application
- *		    should call #HinokoFwIsoCtx::flush_completions voluntarily to generate
+ *		    should call #hinoko_fw_iso_ctx_flush_completions voluntarily to generate
  *		    #HinokoFwIsoRxMultiple::interrupted event.
  * @exception: A #GError.
  *

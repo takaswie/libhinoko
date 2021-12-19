@@ -58,9 +58,17 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 	 * @header_length: the number of bytes for @header.
 	 * @count: the number of packets to handle.
 	 *
-	 * When any packet is available, the #HinokoFwIsoRxSingle::interrupted
-	 * signal is emitted with header of the packet. In a handler of the
-	 * signal, payload of received packet is available by a call of
+	 * When Linux FireWire subsystem generates interrupt event, the
+	 * #HinokoFwIsoRxSingle::interrupted signal is emitted. There are three cases for Linux
+	 * FireWire subsystem to generate the event:
+	 *
+	 * - When OHCI 1394 controller generates hardware interrupt as a result to process the
+	 *   isochronous packet for the buffer chunk marked to generate hardware interrupt.
+	 * - When the size of accumulated context header for packets since the last event reaches
+	 *   the size of memory page (usually 4,096 bytes).
+	 * - When application calls #hinoko_fw_iso_ctx_flush_completions() explicitly.
+	 *
+	 * The handler of signal can retrieve context payload of received packet by call of
 	 * #hinoko_fw_iso_rx_single_get_payload().
 	 */
 	fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_IRQ] =
@@ -185,7 +193,9 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
  * @schedule_interrupt: Whether to schedule hardware interrupt at isochronous cycle for the packet.
  * @exception: A #GError.
  *
- * Register chunk of buffer to process packet for future isochronous cycle.
+ * Register chunk of buffer to process packet for future isochronous cycle. The caller can schedule
+ * hardware interrupt to generate interrupt event. In detail, please refer to documentation about
+ * #HinokoFwIsoRxSingle::interrupted signal.
  *
  * Since: 0.6.
  */

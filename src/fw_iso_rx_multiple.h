@@ -50,10 +50,7 @@ struct _HinokoFwIsoRxMultipleClass {
 	 * @self: A #HinokoFwIsoRxMultiple.
 	 * @count: The number of packets available in this interrupt.
 	 *
-	 * When any packet is available, the handler of
-	 * #HinokoFwIsoRxMultipleClass::interrupted is called with the number of
-	 * available packets. In the handler, payload of received packet is
-	 * available by a call of #hinoko_fw_iso_rx_multiple_get_payload().
+	 * In detail, please refer to documentation about #HinokoFwIsoRxMultiple::interrupted.
 	 */
 	void (*interrupted)(HinokoFwIsoRxMultiple *self, guint count);
 };

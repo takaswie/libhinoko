@@ -55,8 +55,7 @@ struct _HinokoFwIsoTxClass {
 	 * @tstamp_length: the number of bytes for @tstamp.
 	 * @count: the number of handled packets.
 	 *
-	 * When registered packets are handled, #HinokoFwIsoTxClass::interrupted
-	 * handler is called with timestamps of the packet.
+	 * In detail, please refer to documentation about #HinokoFwIsoTx::interrupted.
 	 */
 	void (*interrupted)(HinokoFwIsoTx *self, guint sec, guint cycle,
 			    const guint8 *tstamp, guint tstamp_length,

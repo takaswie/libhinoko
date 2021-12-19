@@ -53,8 +53,15 @@ static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 	 * @tstamp_length: the number of bytes for @tstamp.
 	 * @count: the number of handled packets.
 	 *
-	 * When registered packets are handled, #HinokoFwIsoTx::interrupted
-	 * signal is emitted with timestamps of the packet.
+	 * When Linux FireWire subsystem generates interrupt event, the #HinokoFwIsoTx::interrupted
+	 * signal is emitted. There are three cases for Linux FireWire subsystem to generate the
+	 * event:
+	 *
+	 * - When OHCI 1394 controller generates hardware interrupt as a result of processing the
+	 *   isochronous packet for the buffer chunk marked to generate hardware interrupt.
+	 * - When the number of isochronous packets sent since the last interrupt event reaches
+	 *   one quarter of memory page size (usually 4,096 / 4 = 1,024 packets).
+	 * - When application calls #hinoko_fw_iso_ctx_flush_completions() explicitly.
 	 */
 	fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ] =
 		g_signal_new("interrupted",
@@ -224,7 +231,9 @@ void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
  * @schedule_interrupt: Whether to schedule hardware interrupt at isochronous cycle for the packet.
  * @exception: A #GError.
  *
- * Register packet data in a shape of header and payload of IT context.
+ * Register packet data with header and payload for IT context. The caller can schedule hardware
+ * interrupt to generate interrupt event. In detail, please refer to documentation about
+ * #HinokoFwIsoTx::interrupted.
  *
  * Since: 0.6.
  */

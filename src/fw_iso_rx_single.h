@@ -55,10 +55,7 @@ struct _HinokoFwIsoRxSingleClass {
 	 * @header_length: the number of bytes for @header.
 	 * @count: the number of packets to handle.
 	 *
-	 * When any packet is available, the
-	 * #HinokoFwIsoRxSingleClass::interrupted handler is called with header
-	 * of the packet. In the handler, payload of received packet is
-	 * available by a call of #hinoko_fw_iso_rx_single_get_payload().
+	 * In detail, please refer to documentation about #HinokoFwIsoRxSingle::interrupted.
 	 */
 	void (*interrupted)(HinokoFwIsoRxSingle *self, guint sec, guint cycle,
 			    const guint8 *header, guint header_length,

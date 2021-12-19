@@ -28,7 +28,7 @@ def handle_event(res, channel, bandwidth, exception, ev_name):
 # For Once mode. The allocation is bound to current generation of the bus and
 # lost automatically by bus reset without notification.
 res = Hinoko.FwIsoResource.new()
-res.open('/dev/fw1', 0)
+res.open('/dev/fw0', 0)
 res.connect('allocated', handle_event, 'allocated')
 res.connect('deallocated', handle_event, 'deallocated')
 
@@ -65,7 +65,7 @@ del res
 # the lifetime of file descriptor. The instance of object represents state
 # machine.
 res = Hinoko.FwIsoResourceAuto.new()
-res.open('/dev/fw1', 0)
+res.open('/dev/fw0', 0)
 res.connect('allocated', handle_event, 'allocated')
 res.connect('deallocated', handle_event, 'deallocated')
 

@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2020/12/12
+2021/12/19
 Takashi Sakamoto
 
 Instruction
@@ -75,5 +75,21 @@ How to refer document
     $ cd build
     $ ninja
     $ ninja install
+
+Loss of backward compatibility between v0.5/v0.6 releases
+=========================================================
+
+The status of project is under development. Below public functions have been changed since v0.6
+release without backward compatibility:
+
+- ``Hinoko.FwIsoTx.start()``
+- ``Hinoko.FwIsoTx.register_packet()``
+- ``Hinoko.FwIsoRxSingle.start()``
+
+Furthermore hardware interrupt is not scheduled automatically in ``Hinoko.FwIsoTx`` and
+``Hinoko.FwIsoRxSingle`` anymore. The runtime of v0.5 or before should be rewritten to schedule the
+interrupt explicitly by calling ``Hinoko.FwIsoTx.register_packet()`` and
+``Hinoko.FwIsoRxSingle.register_packet()`` if required. ``Hinawa.FwIsoCtx.flush_completions()``
+allows applciation to process content of packet without scheduling hardware interrupt.
 
 end

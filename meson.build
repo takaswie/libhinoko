@@ -1,5 +1,5 @@
 project('hinoko', 'c',
-  version: '0.5.1',
+  version: '0.6.0',
   license: 'LGPL-2.1+',
   meson_version: '>= 0.42.0',
 )

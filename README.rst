@@ -64,8 +64,6 @@ shared object for libhinoko0. Before installing, it's good to check path of the 
 ``--prefix`` meson option appropriately. The environment variables, ``GI_TYPELIB_PATH`` and
 ``LD_LIBRARY_PATH`` are available for ad-hoc settings of the above as well.
 
-When disabling object-introspection support, use ``-Dgir=false`` for meson command.
-
 How to refer document
 =====================
 

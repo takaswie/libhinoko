@@ -1,0 +1,38 @@
+[library]
+version = "@VERSION@"
+description = "libhinoko"
+authors = "Takashi Sakamoto"
+license = "LGPL-2.1-or-later"
+website_url = "https://takaswie.github.io/libhinoko-docs/"
+browse_url = "https://github.com/takaswie/libhinoko"
+repository_url = "https://github.com/takaswie/libhinoko.git"
+
+dependencies = [
+  "GLib-2.0",
+  "GObject-2.0",
+]
+
+[dependencies."GLib-2.0"]
+name = "GLib"
+description = "The base utility library"
+docs_url = "https://docs.gtk.org/glib/"
+
+[dependencies."GObject-2.0"]
+name = "GObject"
+description = "The base type system and object class"
+docs_url = "https://docs.gtk.org/gobject/"
+
+[source-location]
+base_url = "https://github.com/takaswie/libhinoko/blob/main/"
+file_format = "{filename}#L{line}"
+
+[extra]
+content_files = [
+  "overview.md",
+]
+
+content_images = [
+  "overview.png",
+]
+
+urlmap_file = "urlmap.js"

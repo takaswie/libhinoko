@@ -15,7 +15,7 @@ jobs:
         dnf -y upgrade
         dnf -y install @development-tools
         dnf -y install meson gobject-introspection-devel systemd-devel
-        dnf -y install gtk-doc python3-gobject
+        dnf -y install gi-docgen python3-gobject
     - name: Initialization for build.
       run: |
         meson --prefix=/tmp. -Ddoc=true -Dwarning_level=3 . build
@@ -45,7 +45,7 @@ jobs:
         sudo lxd init --auto
     - name: Launch container
       run: |
-        sudo lxc launch ubuntu:20.04/amd64 builder
+        sudo lxc launch ubuntu-daily:22.04/amd64 builder
         sudo lxc exec builder -- bash -c 'while [ "$(systemctl is-system-running 2>/dev/null)" != "running" ] && [ "$(systemctl is-system-running 2>/dev/null)" != "degraded" ]; do :; done'
     - name: Prepare build environment.
       run: |
@@ -53,7 +53,7 @@ jobs:
         sudo lxc exec builder -- su ubuntu -c 'sudo apt-get -y full-upgrade'
         sudo lxc exec builder -- su ubuntu -c 'sudo apt-get install -y git build-essential'
         sudo lxc exec builder -- su ubuntu -c 'sudo apt-get install -y meson ninja-build libglib2.0-dev libudev-dev gobject-introspection libgirepository1.0-dev'
-        sudo lxc exec builder -- su ubuntu -c 'sudo apt-get install -y gtk-doc-tools python3-gi'
+        sudo lxc exec builder -- su ubuntu -c 'sudo apt-get install -y gi-docgen python3-gi'
     - name: Checkout repository.
       uses: actions/checkout@v2
     - name: Generate archive and expand it inner the container.

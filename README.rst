@@ -5,8 +5,8 @@ libhinoko
 2021/12/19
 Takashi Sakamoto
 
-Instruction
-===========
+Introduction
+============
 
 This is a sister project of libhinawa.
 
@@ -45,7 +45,7 @@ Requirements to build
 - Meson 0.42.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
-- GTK-Doc 1.18-2 (optional to generate API documentation)
+- gi-docgen (optional to generate API documentation)
 
 How to build
 ============

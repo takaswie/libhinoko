@@ -17,6 +17,7 @@ sources = [
 ]
 
 headers = [
+  'hinoko.h',
   'fw_iso_ctx.h',
   'fw_iso_rx_single.h',
   'fw_iso_rx_multiple.h',
@@ -27,7 +28,7 @@ headers = [
   'hinoko_enum_types.h'
 ]
 
-inc_dir = '@0@-@1@.0'.format(meson.project_name(), major_version)
+inc_dir = meson.project_name()
 
 # Generate marshallers for GObject signals.
 marshallers = gnome.genmarshal('hinoko_sigs_marshal',
@@ -44,7 +45,7 @@ enums = gnome.mkenums_simple('hinoko_enums',
   symbol_prefix: 'hinoko',
   install_header: true,
   install_dir: join_paths(get_option('includedir'), inc_dir),
-  header_prefix: '#include <hinoko_enum_types.h>',
+  header_prefix: '#include <hinoko.h>',
 )
 
 mapfile = 'hinoko.map'
@@ -90,6 +91,7 @@ hinoko_gir = gnome.generate_gir(myself,
     'GLib-2.0',
     'GObject-2.0',
   ],
+  header: 'hinoko.h',
   install: true,
 )
 

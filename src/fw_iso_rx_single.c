@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 #include "internal.h"
-#include "hinoko_sigs_marshal.h"
 
 #include <unistd.h>
 #include <errno.h>

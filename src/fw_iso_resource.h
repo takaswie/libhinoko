@@ -2,10 +2,7 @@
 #ifndef __HINOKO_FW_ISO_RESOURCE_H__
 #define __HINOKO_FW_ISO_RESOURCE_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include <hinoko_enums.h>
+#include <hinoko.h>
 
 G_BEGIN_DECLS
 

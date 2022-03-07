@@ -2,9 +2,6 @@
 #ifndef __HINOKO_ENUM_TYPES_H__
 #define __HINOKO_ENUM_TYPES_H__
 
-#include <glib-object.h>
-#include <linux/firewire-cdev.h>
-
 /**
  * HinokoFwIsoCtxMode:
  * @HINOKO_FW_ISO_CTX_MODE_TX:		The mode of IT context of 1394 OHCI.

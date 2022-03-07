@@ -2,10 +2,7 @@
 #ifndef __HINOKO_FW_ISO_RESOURCE_AUTO_AUTO_H__
 #define __HINOKO_FW_ISO_RESOURCE_AUTO_AUTO_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include <fw_iso_resource.h>
+#include <hinoko.h>
 
 G_BEGIN_DECLS
 

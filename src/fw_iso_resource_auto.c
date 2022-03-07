@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-#include <errno.h>
-
 #include "internal.h"
 
-#include <linux/firewire-cdev.h>
+#include <errno.h>
 
 /**
  * SECTION:fw_iso_resource_auto

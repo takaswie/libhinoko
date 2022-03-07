@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-#include "cycle_timer.h"
+#include "internal.h"
 
 /**
  * SECTION:cycle_timer

@@ -2,16 +2,7 @@
 #ifndef __HINOKO_INTERNAL_H__
 #define __HINOKO_INTERNAL_H__
 
-#include <linux/firewire-cdev.h>
-#include <linux/firewire-constants.h>
-
-#include "fw_iso_ctx.h"
-#include "fw_iso_rx_single.h"
-#include "fw_iso_rx_multiple.h"
-#include "fw_iso_tx.h"
-
-#include "fw_iso_resource.h"
-#include "fw_iso_resource_auto.h"
+#include "hinoko.h"
 
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,

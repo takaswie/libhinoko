@@ -2,12 +2,7 @@
 #ifndef __HINOKO_CYCLE_TIMER__H__
 #define __HINOKO_CYCLE_TIMER__H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include <hinoko_enums.h>
-
-#include <linux/firewire-cdev.h>
+#include <hinoko.h>
 
 G_BEGIN_DECLS
 

@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <errno.h>
-#include <linux/firewire-cdev.h>
 
 /**
  * SECTION:fw_iso_ctx

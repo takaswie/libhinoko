@@ -1,5 +1,3 @@
-inc_dir = '@0@-@1@.0'.format(meson.project_name(), major_version)
-
 # Depends on glib-2.0 and gobject-2.0.
 gobject = dependency('gobject-2.0',
   version: '>=2.34.0'
@@ -27,6 +25,7 @@ headers = [
   'cycle_timer.h',
   'fw_iso_resource.h',
   'fw_iso_resource_auto.h',
+  'hinoko_enum_types.h'
 ]
 
 inc_dir = meson.project_name()
@@ -35,9 +34,10 @@ inc_dir = meson.project_name()
 marshallers = gnome.genmarshal('hinoko_sigs_marshal',
   prefix: 'hinoko_sigs_marshal',
   sources: 'hinoko_sigs_marshal.list',
+  install_header: true,
+  install_dir: join_paths(get_option('includedir'), inc_dir),
   stdinc: true,
 )
-sources += marshallers
 
 enums = gnome.mkenums_simple('hinoko_enums',
   sources: ['hinoko_enum_types.h'],
@@ -47,14 +47,12 @@ enums = gnome.mkenums_simple('hinoko_enums',
   install_dir: join_paths(get_option('includedir'), inc_dir),
   header_prefix: '#include <hinoko.h>',
 )
-headers += 'hinoko_enum_types.h'
-sources += enums
 
 mapfile = 'hinoko.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 
 myself = library(meson.project_name(),
-  sources: sources + headers,
+  sources: sources + headers + marshallers + enums,
   version: meson.project_version(),
   soversion: major_version,
   install: true,
@@ -82,7 +80,7 @@ pkg.generate(
 )
 
 hinoko_gir = gnome.generate_gir(myself,
-  sources: sources + headers,
+  sources: sources + headers + marshallers + enums,
   nsversion: '@0@.0'.format(major_version),
   namespace: 'Hinoko',
   symbol_prefix: 'hinoko_',

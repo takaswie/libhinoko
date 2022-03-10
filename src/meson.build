@@ -28,6 +28,10 @@ headers = [
   'hinoko_enum_types.h'
 ]
 
+privates = [
+  'internal.h',
+]
+
 inc_dir = meson.project_name()
 
 # Generate marshallers for GObject signals.
@@ -52,7 +56,7 @@ mapfile = 'hinoko.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 
 myself = library(meson.project_name(),
-  sources: sources + headers + marshallers + enums,
+  sources: sources + headers + privates + marshallers + enums,
   version: meson.project_version(),
   soversion: major_version,
   install: true,

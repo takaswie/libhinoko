@@ -94,3 +94,6 @@ hinoko_gir = gnome.generate_gir(myself,
   header: 'hinoko.h',
   install: true,
 )
+
+# For test.
+builddir = meson.current_build_dir()

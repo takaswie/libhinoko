@@ -70,16 +70,8 @@ install_headers(headers,
 )
 
 pkg = import('pkgconfig')
-pkg.generate(
-  version: meson.project_version(),
-  libraries: myself,
-  requires: [
-    'glib-2.0',
-    'gobject-2.0',
-  ],
-  name: meson.project_name(),
+pkg.generate(myself,
   description: 'A library to operate OHCI 1394 controller for isochronous stream',
-  filebase: meson.project_name(),
   subdirs: inc_dir,
 )
 

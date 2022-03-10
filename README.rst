@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2021/12/19
+2022/03/11
 Takashi Sakamoto
 
 Introduction
@@ -42,7 +42,7 @@ Dependencies
 Requirements to build
 =====================
 
-- Meson 0.42.0 or later
+- Meson 0.46.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
 - gi-docgen (optional to generate API documentation)

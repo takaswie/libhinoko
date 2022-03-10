@@ -94,8 +94,3 @@ hinoko_gir = gnome.generate_gir(myself,
   header: 'hinoko.h',
   install: true,
 )
-
-myself_dep = declare_dependency(
-  link_with: myself,
-  dependencies: dependencies,
-)

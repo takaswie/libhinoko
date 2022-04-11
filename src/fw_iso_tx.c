@@ -15,11 +15,10 @@
  * context in 1394 OHCI. The content of packet is split to two parts; context
  * header and context payload in a manner of Linux FireWire subsystem.
  */
-struct _HinokoFwIsoTxPrivate {
+typedef struct {
 	guint offset;
-};
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx,
-			   HINOKO_TYPE_FW_ISO_CTX)
+} HinokoFwIsoTxPrivate;
+G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx, HINOKO_TYPE_FW_ISO_CTX)
 
 static void fw_iso_tx_finalize(GObject *obj)
 {

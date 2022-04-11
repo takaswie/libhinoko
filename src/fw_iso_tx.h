@@ -8,35 +8,7 @@ G_BEGIN_DECLS
 
 #define HINOKO_TYPE_FW_ISO_TX	(hinoko_fw_iso_tx_get_type())
 
-#define HINOKO_FW_ISO_TX(obj)					\
-	(G_TYPE_CHECK_INSTANCE_CAST((obj),			\
-				    HINOKO_TYPE_FW_ISO_TX,	\
-				    HinokoFwIsoTx))
-#define HINOKO_IS_FW_ISO_TX(obj)				\
-	(G_TYPE_CHECK_INSTANCE_TYPE((obj),			\
-				    HINOKO_TYPE_FW_ISO_TX))
-
-#define HINOKO_FW_ISO_TX_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_CAST((klass),			\
-				 HINOKO_TYPE_FW_ISO_TX,		\
-				 HinokoFwIsoTxClass))
-#define HINOKO_IS_FW_ISO_TX_CLASS(klass)			\
-	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
-				 HINOKO_TYPE_FW_ISO_TX))
-#define HINOKO_FW_ISO_TX_GET_CLASS(obj)				\
-	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
-				   HINOKO_TYPE_FW_ISO_TX,	\
-				   HinokoFwIsoTxClass))
-
-typedef struct _HinokoFwIsoTx		HinokoFwIsoTx;
-typedef struct _HinokoFwIsoTxClass	HinokoFwIsoTxClass;
-typedef struct _HinokoFwIsoTxPrivate	HinokoFwIsoTxPrivate;
-
-struct _HinokoFwIsoTx {
-	HinokoFwIsoCtx parent_instance;
-
-	HinokoFwIsoTxPrivate *priv;
-};
+G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoTx, hinoko_fw_iso_tx, HINOKO, FW_ISO_TX, HinokoFwIsoCtx);
 
 struct _HinokoFwIsoTxClass {
 	HinokoFwIsoCtxClass parent_class;
@@ -57,8 +29,6 @@ struct _HinokoFwIsoTxClass {
 			    const guint8 *tstamp, guint tstamp_length,
 			    guint count);
 };
-
-GType hinoko_fw_iso_tx_get_type(void) G_GNUC_CONST;
 
 HinokoFwIsoTx *hinoko_fw_iso_tx_new(void);
 

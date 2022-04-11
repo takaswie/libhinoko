@@ -20,7 +20,7 @@
  * subsystem specific request commands. This object is designed for internal
  * use, therefore a few method and properties are available for applications.
  */
-struct _HinokoFwIsoCtxPrivate {
+typedef struct {
 	int fd;
 	guint handle;
 
@@ -38,9 +38,8 @@ struct _HinokoFwIsoCtxPrivate {
 
 	guint curr_offset;
 	gboolean running;
-};
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx,
-				    G_TYPE_OBJECT)
+} HinokoFwIsoCtxPrivate;
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
 
 /**
  * hinoko_fw_iso_ctx_error_quark:
@@ -697,7 +696,7 @@ static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
 	if (*exception != NULL)
 		return;
 
-	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(ev->closure), exception);
+	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), exception);
 }
 
 static void handle_irq_mc_event(struct fw_cdev_event_iso_interrupt_mc *ev,
@@ -715,7 +714,7 @@ static void handle_irq_mc_event(struct fw_cdev_event_iso_interrupt_mc *ev,
 	if (*exception != NULL)
 		return;
 
-	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX(ev->closure), exception);
+	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), exception);
 }
 
 static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)

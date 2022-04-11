@@ -17,7 +17,7 @@ struct ctx_payload {
 	unsigned int offset;
 	unsigned int length;
 };
-struct _HinokoFwIsoRxMultiplePrivate {
+typedef struct {
 	GByteArray *channels;
 
 	guint prev_offset;
@@ -28,9 +28,8 @@ struct _HinokoFwIsoRxMultiplePrivate {
 
 	guint chunks_per_irq;
 	guint accumulated_chunk_count;
-};
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple,
-			   HINOKO_TYPE_FW_ISO_CTX)
+} HinokoFwIsoRxMultiplePrivate;
+G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple, HINOKO_TYPE_FW_ISO_CTX)
 
 enum fw_iso_rx_multiple_prop_type {
 	FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS = 1,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-#ifndef __HINOKO_CYCLE_TIMER__H__
-#define __HINOKO_CYCLE_TIMER__H__
+#ifndef __HINOKO_CYCLE_TIMER_H__
+#define __HINOKO_CYCLE_TIMER_H__
 
 #include <hinoko.h>
 

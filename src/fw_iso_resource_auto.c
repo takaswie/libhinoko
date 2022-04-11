@@ -14,15 +14,16 @@
  * kept even if the generation of the bus updates. The maintenance of allocated
  * isochronous resource is done by Linux FireWire subsystem.
  */
-struct _HinokoFwIsoResourceAutoPrivate {
+typedef struct {
 	gboolean allocated;
 	guint channel;
 	guint bandwidth;
 
 	GMutex mutex;
 	guint handle;
-};
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, HINOKO_TYPE_FW_ISO_RESOURCE)
+} HinokoFwIsoResourceAutoPrivate;
+G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto,
+			   HINOKO_TYPE_FW_ISO_RESOURCE)
 
 /**
  * hinoko_fw_iso_resource_auto_error_quark:

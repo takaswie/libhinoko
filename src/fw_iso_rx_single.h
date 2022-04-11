@@ -8,35 +8,8 @@ G_BEGIN_DECLS
 
 #define HINOKO_TYPE_FW_ISO_RX_SINGLE	(hinoko_fw_iso_rx_single_get_type())
 
-#define HINOKO_FW_ISO_RX_SINGLE(obj)					\
-	(G_TYPE_CHECK_INSTANCE_CAST((obj),				\
-				    HINOKO_TYPE_FW_ISO_RX_SINGLE,	\
-				    HinokoFwIsoRxSingle))
-#define HINOKO_IS_FW_ISO_RX_SINGLE(obj)					\
-	(G_TYPE_CHECK_INSTANCE_TYPE((obj),				\
-				    HINOKO_TYPE_FW_ISO_RX_SINGLE))
-
-#define HINOKO_FW_ISO_RX_SINGLE_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_CAST((klass),				\
-				 HINOKO_TYPE_FW_ISO_RX_SINGLE,		\
-				 HinokoFwIsoRxSingleClass))
-#define HINOKO_IS_FW_ISO_RX_SINGLE_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_TYPE((klass),				\
-				 HINOKO_TYPE_FW_ISO_RX_SINGLE))
-#define HINOKO_FW_ISO_RX_SINGLE_GET_CLASS(obj)				\
-	(G_TYPE_INSTANCE_GET_CLASS((obj),				\
-				   HINOKO_TYPE_FW_ISO_RX_SINGLE,	\
-				   HinokoFwIsoRxSingleClass))
-
-typedef struct _HinokoFwIsoRxSingle		HinokoFwIsoRxSingle;
-typedef struct _HinokoFwIsoRxSingleClass	HinokoFwIsoRxSingleClass;
-typedef struct _HinokoFwIsoRxSinglePrivate	HinokoFwIsoRxSinglePrivate;
-
-struct _HinokoFwIsoRxSingle {
-	HinokoFwIsoCtx parent_instance;
-
-	HinokoFwIsoRxSinglePrivate *priv;
-};
+G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single, HINOKO, FW_ISO_RX_SINGLE,
+			 HinokoFwIsoCtx);
 
 struct _HinokoFwIsoRxSingleClass {
 	HinokoFwIsoCtxClass parent_class;
@@ -57,8 +30,6 @@ struct _HinokoFwIsoRxSingleClass {
 			    const guint8 *header, guint header_length,
 			    guint count);
 };
-
-GType hinoko_fw_iso_rx_single_get_type(void) G_GNUC_CONST;
 
 HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void);
 

@@ -685,8 +685,8 @@ static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
 		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE((gpointer)ev->closure);
 
 		hinoko_fw_iso_rx_single_handle_event(ctx, ev, exception);
-	} else if (HINOKO_IS_FW_ISO_TX(ev->closure)) {
-		HinokoFwIsoTx *ctx = HINOKO_FW_ISO_TX(ev->closure);
+	} else if (HINOKO_IS_FW_ISO_TX((gpointer)ev->closure)) {
+		HinokoFwIsoTx *ctx = HINOKO_FW_ISO_TX((gpointer)ev->closure);
 
 		hinoko_fw_iso_tx_handle_event(ctx, ev, exception);
 	} else {

@@ -17,14 +17,13 @@
  * FireWire subsystem.
  *
  */
-struct _HinokoFwIsoRxSinglePrivate {
+typedef struct {
 	guint header_size;
 	guint chunk_cursor;
 
 	const struct fw_cdev_event_iso_interrupt *ev;
-};
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single,
-			   HINOKO_TYPE_FW_ISO_CTX)
+} HinokoFwIsoRxSinglePrivate;
+G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single, HINOKO_TYPE_FW_ISO_CTX)
 
 static void fw_iso_rx_single_finalize(GObject *obj)
 {

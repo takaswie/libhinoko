@@ -681,8 +681,8 @@ static gboolean check_src(GSource *gsrc)
 static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
 			     GError **exception)
 {
-	if (HINOKO_IS_FW_ISO_RX_SINGLE(ev->closure)) {
-		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE(ev->closure);
+	if (HINOKO_IS_FW_ISO_RX_SINGLE((gpointer)ev->closure)) {
+		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE((gpointer)ev->closure);
 
 		hinoko_fw_iso_rx_single_handle_event(ctx, ev, exception);
 	} else if (HINOKO_IS_FW_ISO_TX(ev->closure)) {

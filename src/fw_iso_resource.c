@@ -19,9 +19,9 @@
  * of isochronous resource allocation/deallocation by file descriptor owned
  * internally. This object is designed to be used for any derived object.
  */
-struct _HinokoFwIsoResourcePrivate {
+typedef struct {
 	int fd;
-};
+} HinokoFwIsoResourcePrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_OBJECT)
 
 /**

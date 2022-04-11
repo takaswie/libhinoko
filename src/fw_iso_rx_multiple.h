@@ -8,35 +8,8 @@ G_BEGIN_DECLS
 
 #define HINOKO_TYPE_FW_ISO_RX_MULTIPLE	(hinoko_fw_iso_rx_multiple_get_type())
 
-#define HINOKO_FW_ISO_RX_MULTIPLE(obj)					\
-	(G_TYPE_CHECK_INSTANCE_CAST((obj),				\
-				    HINOKO_TYPE_FW_ISO_RX_MULTIPLE,	\
-				    HinokoFwIsoRxMultiple))
-#define HINOKO_IS_FW_ISO_RX_MULTIPLE(obj)				\
-	(G_TYPE_CHECK_INSTANCE_TYPE((obj),				\
-				    HINOKO_TYPE_FW_ISO_RX_MULTIPLE))
-
-#define HINOKO_FW_ISO_RX_MULTIPLE_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_CAST((klass),				\
-				 HINOKO_TYPE_FW_ISO_RX_MULTIPLE,	\
-				 HinokoFwIsoRxMultipleClass))
-#define HINOKO_IS_FW_ISO_RX_MULTIPLE_CLASS(klass)			\
-	(G_TYPE_CHECK_CLASS_TYPE((klass),				\
-				 HINOKO_TYPE_FW_ISO_RX_MULTIPLE))
-#define HINOKO_FW_ISO_RX_MULTIPLE_GET_CLASS(obj)			\
-	(G_TYPE_INSTANCE_GET_CLASS((obj),				\
-				   HINOKO_TYPE_FW_ISO_RX_MULTIPLE,	\
-				   HinokoFwIsoRxMultipleClass))
-
-typedef struct _HinokoFwIsoRxMultiple		HinokoFwIsoRxMultiple;
-typedef struct _HinokoFwIsoRxMultipleClass	HinokoFwIsoRxMultipleClass;
-typedef struct _HinokoFwIsoRxMultiplePrivate	HinokoFwIsoRxMultiplePrivate;
-
-struct _HinokoFwIsoRxMultiple {
-	HinokoFwIsoCtx parent_instance;
-
-	HinokoFwIsoRxMultiplePrivate *priv;
-};
+G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple, HINOKO,
+			 FW_ISO_RX_MULTIPLE, HinokoFwIsoCtx);
 
 struct _HinokoFwIsoRxMultipleClass {
 	HinokoFwIsoCtxClass parent_class;
@@ -50,8 +23,6 @@ struct _HinokoFwIsoRxMultipleClass {
 	 */
 	void (*interrupted)(HinokoFwIsoRxMultiple *self, guint count);
 };
-
-GType hinoko_fw_iso_rx_multiple_get_type(void) G_GNUC_CONST;
 
 HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void);
 

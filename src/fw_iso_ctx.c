@@ -702,9 +702,8 @@ static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
 static void handle_irq_mc_event(struct fw_cdev_event_iso_interrupt_mc *ev,
 				GError **exception)
 {
-	if (HINOKO_IS_FW_ISO_RX_MULTIPLE(ev->closure)) {
-		HinokoFwIsoRxMultiple *ctx =
-					HINOKO_FW_ISO_RX_MULTIPLE(ev->closure);
+	if (HINOKO_IS_FW_ISO_RX_MULTIPLE((gpointer)ev->closure)) {
+		HinokoFwIsoRxMultiple *ctx = HINOKO_FW_ISO_RX_MULTIPLE((gpointer)ev->closure);
 
 		hinoko_fw_iso_rx_multiple_handle_event(ctx, ev, exception);
 	} else {

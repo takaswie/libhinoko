@@ -25,7 +25,7 @@ struct _HinokoFwIsoCtxClass {
 	 * When isochronous context is stopped, #HinokoFwIsoCtxClass::stopped
 	 * handler is called. When any error occurs, it's reported.
 	 */
-	void (*stopped)(HinokoFwIsoCtx *self, GError *error);
+	void (*stopped)(HinokoFwIsoCtx *self, const GError *error);
 };
 
 

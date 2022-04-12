@@ -110,25 +110,29 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * A local node of the node corresponding to the given path is used as the
  * controller, thus any path is accepted as long as process has enough
  * permission for the path.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
-				      const char *path,
-				      guint channel, guint header_size,
-				      GError **exception)
+gboolean hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self, const char *path,
+					  guint channel, guint header_size, GError **exception)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	if (!hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
 					HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0, channel, header_size,
 					exception))
-		return;
+		return FALSE;
 
 	priv->header_size = header_size;
+
+	return TRUE;
 }
 
 /**
@@ -155,18 +159,20 @@ void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self)
  *
  * Map intermediate buffer to share payload of IR context with 1394 OHCI
  * controller.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
-					guint maximum_bytes_per_payload,
-					guint payloads_per_buffer,
-					GError **exception)
+gboolean hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
+					    guint maximum_bytes_per_payload,
+					    guint payloads_per_buffer, GError **exception)
 {
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
-	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
-				     maximum_bytes_per_payload,
-				     payloads_per_buffer, exception);
+	return hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), maximum_bytes_per_payload,
+					    payloads_per_buffer, exception);
 }
 
 /**
@@ -194,12 +200,14 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
  * hardware interrupt to generate interrupt event. In detail, please refer to documentation about
  * #HinokoFwIsoRxSingle::interrupted signal.
  *
- * Since: 0.6.
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean schedule_interrupt,
-					     GError **exception)
+gboolean hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self,
+						 gboolean schedule_interrupt, GError **exception)
 {
-	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
+	return hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
 					 schedule_interrupt, exception);
 }
 
@@ -218,21 +226,24 @@ void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean
  *
  * Start IR context.
  *
- * Since: 0.6.
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
-				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **exception)
+gboolean hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
+				       guint32 sync, HinokoFwIsoCtxMatchFlag tags,
+				       GError **exception)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	priv->chunk_cursor = 0;
 
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
+	return hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
 }
 
 /**
@@ -292,10 +303,14 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
  * @exception: A #GError.
  *
  * Retrieve payload of IR context for a handled packet corresponding to index.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
-					 const guint8 **payload, guint *length,
-					 GError **exception)
+gboolean hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
+					     const guint8 **payload, guint *length,
+					     GError **exception)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 	unsigned int bytes_per_chunk;
@@ -305,13 +320,13 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	guint offset;
 	guint frame_size;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
-	g_return_if_fail(priv->ev != NULL);
-	g_return_if_fail(index * priv->header_size <= priv->ev->header_length);
+	g_return_val_if_fail(priv->ev != NULL, FALSE);
+	g_return_val_if_fail(index * priv->header_size <= priv->ev->header_length, FALSE);
 
 	g_object_get(G_OBJECT(self),
 		     "bytes-per-chunk", &bytes_per_chunk,
@@ -327,5 +342,7 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	offset = index * bytes_per_chunk;
 	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset, *length,
 				      payload, &frame_size);
-	g_return_if_fail(frame_size == *length);
+	g_return_val_if_fail(frame_size == *length, FALSE);
+
+	return TRUE;
 }

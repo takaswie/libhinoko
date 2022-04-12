@@ -181,9 +181,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 					HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, 0, 0, 0, exception))
 		return;
 
-	hinoko_fw_iso_ctx_set_rx_channels(HINOKO_FW_ISO_CTX(self),
-					  &channel_flags, exception);
-	if (*exception != NULL)
+	if (!hinoko_fw_iso_ctx_set_rx_channels(HINOKO_FW_ISO_CTX(self), &channel_flags, exception))
 		return;
 	if (channel_flags == 0) {
 		g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR,

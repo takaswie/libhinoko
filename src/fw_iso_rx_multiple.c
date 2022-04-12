@@ -259,8 +259,9 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 
 	priv->concat_frames = g_malloc_n(4, bytes_per_chunk);
 
-	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
-				     chunks_per_buffer, exception);
+	if (!hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
+					  chunks_per_buffer, exception))
+		return;
 
 	g_object_get(G_OBJECT(self),
 		     "bytes-per-chunk", &bytes_per_chunk,

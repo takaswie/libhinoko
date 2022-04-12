@@ -324,28 +324,30 @@ void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
  *
  * Map intermediate buffer to share payload of isochronous context with 1394
  * OHCI controller.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
  */
-void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
-				  guint chunks_per_buffer, GError **exception)
+gboolean hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
+				      guint chunks_per_buffer, GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	unsigned int datum_size;
 	int prot;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(bytes_per_chunk > 0);
-	g_return_if_fail(chunks_per_buffer > 0);
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), FALSE);
+	g_return_val_if_fail(bytes_per_chunk > 0, FALSE);
+	g_return_val_if_fail(chunks_per_buffer > 0, FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return;
+		return FALSE;
 	}
 
 	if (priv->addr != NULL) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_MAPPED);
-		return;
+		return FALSE;
 	}
 
 	datum_size = sizeof(struct fw_cdev_iso_packet);
@@ -366,11 +368,13 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	if (priv->addr == MAP_FAILED) {
 		generate_syscall_error(exception, errno,
 				       "mmap(%d)", bytes_per_chunk * chunks_per_buffer);
-		return;
+		return FALSE;
 	}
 
 	priv->bytes_per_chunk = bytes_per_chunk;
 	priv->chunks_per_buffer = chunks_per_buffer;
+
+	return TRUE;
 }
 
 /**

@@ -21,21 +21,19 @@ struct _HinokoFwIsoResourceAutoClass {
 
 HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new();
 
-void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
-						guint8 *channel_candidates,
-						gsize channel_candidates_count,
-						guint bandwidth,
-						GError **exception);
-void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
-					       guint8 *channel_candidates,
-					       gsize channel_candidates_count,
-					       guint bandwidth,
-					       GError **exception);
+gboolean hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
+						    guint8 *channel_candidates,
+						    gsize channel_candidates_count, guint bandwidth,
+						    GError **exception);
+gboolean hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
+						   guint8 *channel_candidates,
+						   gsize channel_candidates_count, guint bandwidth,
+						   GError **exception);
 
-void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
-						  GError **exception);
-void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
-						 GError **exception);
+gboolean hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
+						      GError **exception);
+gboolean hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
+						     GError **exception);
 
 G_END_DECLS
 

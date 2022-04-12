@@ -46,7 +46,7 @@ struct _HinokoFwIsoResourceClass {
 	 * handler is called to notify the result, channel, and bandwidth.
 	 */
 	void (*deallocated)(HinokoFwIsoResource *self, guint channel,
-			    guint bandwidth, GError *error);
+			    guint bandwidth, const GError *error);
 };
 
 HinokoFwIsoResource *hinoko_fw_iso_resource_new();

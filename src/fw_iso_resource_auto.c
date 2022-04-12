@@ -175,10 +175,8 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	}
 	res.bandwidth = bandwidth;
 
-	hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
-				     FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res,
-				     exception);
-	if (*exception == NULL)
+	if (hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
+					 FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res, exception))
 		priv->handle = res.handle;
 end:
 	g_mutex_unlock(&priv->mutex);

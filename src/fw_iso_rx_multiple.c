@@ -380,9 +380,9 @@ void hinoko_fw_iso_rx_multiple_stop(HinokoFwIsoRxMultiple *self)
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
 }
 
-void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
-				struct fw_cdev_event_iso_interrupt_mc *event,
-				GError **exception)
+gboolean hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
+						struct fw_cdev_event_iso_interrupt_mc *event,
+						GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 	unsigned int bytes_per_chunk;
@@ -394,7 +394,7 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 	unsigned int chunk_end;
 	struct ctx_payload *ctx_payload;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	g_object_get(G_OBJECT(self),
@@ -458,11 +458,13 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 	chunk_end = (priv->prev_offset + accum_length) / bytes_per_chunk;
 	for (; chunk_pos < chunk_end; ++chunk_pos) {
 		if (!fw_iso_rx_multiple_register_chunk(self, exception))
-			return;
+			return FALSE;
 	}
 
 	priv->prev_offset += accum_length;
 	priv->prev_offset %= bytes_per_buffer;
+
+	return TRUE;
 }
 
 /**

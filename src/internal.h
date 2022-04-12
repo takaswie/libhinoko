@@ -18,8 +18,8 @@ gboolean hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 					  GError **exception);
 gboolean hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self, guint64 *channel_flags,
 					   GError **exception);
-void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, guint32 sync,
-			     HinokoFwIsoCtxMatchFlag tags, GError **exception);
+gboolean hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, guint32 sync,
+				 HinokoFwIsoCtxMatchFlag tags, GError **exception);
 void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self);
 void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 				   guint length, const guint8 **frames,

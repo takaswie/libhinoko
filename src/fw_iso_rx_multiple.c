@@ -177,10 +177,8 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
-	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
-				   HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, 0, 0,
-				   0, exception);
-	if (*exception != NULL)
+	if (!hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
+					HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, 0, 0, 0, exception))
 		return;
 
 	hinoko_fw_iso_ctx_set_rx_channels(HINOKO_FW_ISO_CTX(self),

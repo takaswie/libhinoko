@@ -445,33 +445,36 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
  * @exception: A #GError.
  *
  * Indicate channels to listen to for IR context in buffer-fill mode.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
  */
-void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
-				       guint64 *channel_flags,
-				       GError **exception)
+gboolean hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self, guint64 *channel_flags,
+					   GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	struct fw_cdev_set_iso_channels set = {0};
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-	g_return_if_fail(priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
+	g_return_val_if_fail(priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, FALSE);
 
 	if (priv->fd < 0) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return;
+		return FALSE;
 	}
 
 	set.channels = *channel_flags;
 	set.handle = priv->handle;
 	if (ioctl(priv->fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
 		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_SET_ISO_CHANNELS");
-		return;
+		return FALSE;
 	}
 
 	*channel_flags = set.channels;
+
+	return TRUE;
 }
 
 /**

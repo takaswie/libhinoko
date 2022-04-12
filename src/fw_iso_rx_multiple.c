@@ -151,26 +151,28 @@ HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
  * A local node of the node corresponding to the given path is used as the
  * controller, thus any path is accepted as long as process has enough
  * permission for the path.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
-					const char *path,
-					const guint8 *channels,
-					guint channels_length,
-					GError **exception)
+gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const char *path,
+					    const guint8 *channels, guint channels_length,
+					    GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 
 	guint64 channel_flags;
 	int i;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
-	g_return_if_fail(channels_length > 0);
+	g_return_val_if_fail(channels_length > 0, FALSE);
 
 	channel_flags = 0;
 	for (i = 0; i < channels_length; ++i) {
-		g_return_if_fail(channels[i] < 64);
+		g_return_val_if_fail(channels[i] < 64, FALSE);
 
 		channel_flags |= G_GUINT64_CONSTANT(1) << channels[i];
 	}
@@ -179,15 +181,15 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 
 	if (!hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
 					HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, 0, 0, 0, exception))
-		return;
+		return FALSE;
 
 	if (!hinoko_fw_iso_ctx_set_rx_channels(HINOKO_FW_ISO_CTX(self), &channel_flags, exception))
-		return;
+		return FALSE;
 	if (channel_flags == 0) {
 		g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR,
 				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
 				    "No isochronous channel is available");
-		return;
+		return FALSE;
 	}
 
 	priv->channels = g_byte_array_new();
@@ -197,6 +199,8 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 
 		g_byte_array_append(priv->channels, (const guint8 *)&i, 1);
 	}
+
+	return TRUE;
 }
 
 /**
@@ -231,16 +235,18 @@ void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self)
  *
  * Map an intermediate buffer to share payload of IR context with 1394 OHCI
  * controller.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
-					  guint bytes_per_chunk,
-					  guint chunks_per_buffer,
-					  GError **exception)
+gboolean hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self, guint bytes_per_chunk,
+					      guint chunks_per_buffer, GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
@@ -248,7 +254,7 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 		g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR,
 				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
 				    "No isochronous channel is available");
-		return;
+		return FALSE;
 	}
 
 	// The size of each chunk should be aligned to quadlet.
@@ -259,7 +265,7 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 
 	if (!hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
 					  chunks_per_buffer, exception))
-		return;
+		return FALSE;
 
 	g_object_get(G_OBJECT(self),
 		     "bytes-per-chunk", &bytes_per_chunk,
@@ -267,6 +273,8 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 
 	priv->ctx_payloads = g_malloc_n(bytes_per_chunk * chunks_per_buffer / 8 / 2,
 					sizeof(*priv->ctx_payloads));
+
+	return TRUE;
 }
 
 /**
@@ -326,34 +334,37 @@ static gboolean fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self, G
  * @exception: A #GError.
  *
  * Start IR context.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
-				     const guint16 *cycle_match, guint32 sync,
-				     HinokoFwIsoCtxMatchFlag tags,
-				     guint chunks_per_irq, GError **exception)
+gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guint16 *cycle_match,
+					 guint32 sync, HinokoFwIsoCtxMatchFlag tags,
+					 guint chunks_per_irq, GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 	guint chunks_per_buffer;
 	int i;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	g_object_get(G_OBJECT(self), "chunks-per-buffer", &chunks_per_buffer, NULL);
-	g_return_if_fail(chunks_per_irq < chunks_per_buffer);
+	g_return_val_if_fail(chunks_per_irq < chunks_per_buffer, FALSE);
 
 	priv->chunks_per_irq = chunks_per_irq;
 	priv->accumulated_chunk_count = 0;
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
 		if (!fw_iso_rx_multiple_register_chunk(self, exception))
-			return;
+			return FALSE;
 	}
 
 	priv->prev_offset = 0;
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
+	return hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
 }
 
 /**
@@ -462,21 +473,25 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
  * 	     frame for payload of IR context.
  * @length: The number of bytes in the above @payload.
  * @exception: A #GError.
+ *
+ * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
-					guint index, const guint8 **payload,
-					guint *length, GError **exception)
+gboolean hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self, guint index,
+					       const guint8 **payload, guint *length,
+					       GError **exception)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 	struct ctx_payload *ctx_payload;
 	guint frame_size;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
+	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
-	g_return_if_fail(index < priv->ctx_payload_count);
+	g_return_val_if_fail(index < priv->ctx_payload_count, FALSE);
 	ctx_payload = &priv->ctx_payloads[index];
 
 	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self),
@@ -490,11 +505,13 @@ void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
 		memcpy(priv->concat_frames, *payload, done);
 		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), 0, rest,
 					      payload, &frame_size);
-		g_return_if_fail(frame_size == rest);
+		g_return_val_if_fail(frame_size == rest, FALSE);
 		memcpy(priv->concat_frames + done, *payload, rest);
 
 		*payload = priv->concat_frames;
 	}
 
 	*length = ctx_payload->length;
+
+	return TRUE;
 }

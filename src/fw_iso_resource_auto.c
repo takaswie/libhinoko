@@ -118,7 +118,7 @@ static void hinoko_fw_iso_resource_auto_init(HinokoFwIsoResourceAuto *self)
 }
 
 /**
- * hinoko_fw_iso_resource_auto:
+ * hinoko_fw_iso_resource_auto_new:
  *
  * Allocate and return an instance of #HinokoFwIsoResourceAuto object.
  *

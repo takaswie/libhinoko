@@ -416,20 +416,20 @@ void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 }
 
 // For internal use.
-gboolean hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self, unsigned long request, void *argp,
-				      GError **exception)
+void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
+				  unsigned long request, void *argp,
+				  GError **exception)
 {
 	HinokoFwIsoResourcePrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
-	g_return_val_if_fail(request == FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE ||
-			     request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE,
-			     FALSE);
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(request == FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE ||
+			 request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 	if (priv->fd < 0) {
 		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
-		return FALSE;
+		return;
 	}
 
 	if (ioctl(priv->fd, request, argp) < 0) {
@@ -447,10 +447,7 @@ gboolean hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self, unsigned long r
 			break;
 		}
 		generate_syscall_error(exception, errno, "ioctl(%s)", arg);
-		return FALSE;
 	}
-
-	return TRUE;
 }
 
 static void handle_iso_resource_event(HinokoFwIsoResource *self,

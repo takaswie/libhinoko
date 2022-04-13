@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2022/04/12
+2022/03/11
 Takashi Sakamoto
 
 Introduction
@@ -73,42 +73,6 @@ How to refer document
     $ cd build
     $ ninja
     $ ninja install
-
-Loss of backward compatibility between v0.6/v0.7 releases
-=========================================================
-
-The status of project is under development. Below public functions have been changed since v0.7
-release without backward compatibility:
-
-- ``Hinoko.FwIsoCtx.get_cycle_timer()``
-- ``Hinoko.FwIsoCtx.create_source()``
-- ``Hinoko.FwIsoCtx.flush_completions()``
-- ``Hinoko.FwIsoRxSingle.allocate()``
-- ``Hinoko.FwIsoRxSingle.map_buffer()``
-- ``Hinoko.FwIsoRxSingle.register_packet()``
-- ``Hinoko.FwIsoRxSingle.start()``
-- ``Hinoko.FwIsoRxSingle.get_payload()``
-- ``Hinoko.FwIsoRxMultiple.allocate()``
-- ``Hinoko.FwIsoRxMultiple.map_buffer()``
-- ``Hinoko.FwIsoRxMultiple.start()``
-- ``Hinoko.FwIsoRxMultiple.get_payload()``
-- ``Hinoko.FwIsoTx.allocate()``
-- ``Hinoko.FwIsoTx.map_buffer()``
-- ``Hinoko.FwIsoTx.start()``
-- ``Hinoko.FwIsoTx.register_packet()``
-- ``Hinoko.FwIsoResource.open()``
-- ``Hinoko.FwIsoResource.create_source()``
-- ``Hinoko.FwIsoResource.allocate_once_async()``
-- ``Hinoko.FwIsoResource.deallocate_once_async()``
-- ``Hinoko.FwIsoResource.allocate_once_sync()``
-- ``Hinoko.FwIsoResource.deallocate_once_sync()``
-- ``Hinoko.FwIsoResourceAuto.allocate_async()``
-- ``Hinoko.FwIsoResourceAuto.deallocate_async()``
-- ``Hinoko.FwIsoResourceAuto.allocate_sync()``
-- ``Hinoko.FwIsoResourceAuto.deallocate_sync()``
-
-They are rewritten to return value of gboolean type according to convension of GNOME project for
-throw functions which has an argument of GError to report failure.
 
 Loss of backward compatibility between v0.5/v0.6 releases
 =========================================================

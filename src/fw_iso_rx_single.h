@@ -33,26 +33,28 @@ struct _HinokoFwIsoRxSingleClass {
 
 HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void);
 
-gboolean hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self, const char *path,
-					  guint channel, guint header_size, GError **exception);
+void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
+				      const char *path,
+				      guint channel, guint header_size,
+				      GError **exception);
 void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self);
 
-gboolean hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
-					    guint maximum_bytes_per_payload,
-					    guint payloads_per_buffer, GError **exception);
+void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
+					guint maximum_bytes_per_payload,
+					guint payloads_per_buffer,
+					GError **exception);
 void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self);
 
-gboolean hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self,
-						 gboolean schedule_interrupt, GError **exception);
+void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean schedule_interrupt,
+					     GError **exception);
 
-gboolean hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
-				       guint32 sync, HinokoFwIsoCtxMatchFlag tags,
-				       GError **exception);
+void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
+				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **exception);
 void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self);
 
-gboolean hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
-					     const guint8 **payload, guint *length,
-					     GError **exception);
+void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
+					 const guint8 **payload, guint *length,
+					 GError **exception);
 
 G_END_DECLS
 

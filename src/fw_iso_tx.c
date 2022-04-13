@@ -292,9 +292,9 @@ gboolean hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,HinokoFwIsoCtxMatc
 	return TRUE;
 }
 
-gboolean hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
-				       struct fw_cdev_event_iso_interrupt *event,
-				       GError **exception)
+void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
+				   struct fw_cdev_event_iso_interrupt *event,
+				   GError **exception)
 {
 	guint sec = (event->cycle & 0x0000e000) >> 13;
 	guint cycle = event->cycle & 0x00001fff;
@@ -302,6 +302,4 @@ gboolean hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 
 	g_signal_emit(self, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ], 0, sec, cycle, event->header,
 		      event->header_length, pkt_count);
-
-	return TRUE;
 }

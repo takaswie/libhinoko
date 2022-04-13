@@ -586,7 +586,7 @@ gboolean hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 	return TRUE;
 }
 
-static gboolean fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
+static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	guint data_offset = 0;
@@ -594,7 +594,7 @@ static gboolean fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception
 	unsigned int bytes_per_buffer;
 	guint buf_offset;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), FALSE);
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	bytes_per_buffer = priv->bytes_per_chunk * priv->chunks_per_buffer;
@@ -649,7 +649,7 @@ static gboolean fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception
 		if (ioctl(priv->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0) {
 			generate_syscall_error(exception, errno,
 					       "ioctl(%s)", "FW_CDEV_IOC_QUEUE_ISO");
-			return FALSE;
+			return;
 		}
 
 		g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d",
@@ -671,8 +671,6 @@ static gboolean fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception
 
 	priv->data_length = 0;
 	priv->registered_chunk_count = 0;
-
-	return TRUE;
 }
 
 static void fw_iso_ctx_stop(HinokoFwIsoCtx *self, GError *exception)
@@ -707,37 +705,42 @@ static gboolean check_src(GSource *gsrc)
 	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
-static gboolean handle_irq_event(struct fw_cdev_event_iso_interrupt *ev, GError **exception)
+static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
+			     GError **exception)
 {
 	if (HINOKO_IS_FW_ISO_RX_SINGLE((gpointer)ev->closure)) {
 		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE((gpointer)ev->closure);
 
-		if (!hinoko_fw_iso_rx_single_handle_event(ctx, ev, exception))
-			return FALSE;
+		hinoko_fw_iso_rx_single_handle_event(ctx, ev, exception);
 	} else if (HINOKO_IS_FW_ISO_TX((gpointer)ev->closure)) {
 		HinokoFwIsoTx *ctx = HINOKO_FW_ISO_TX((gpointer)ev->closure);
 
-		if (!hinoko_fw_iso_tx_handle_event(ctx, ev, exception))
-			return FALSE;
+		hinoko_fw_iso_tx_handle_event(ctx, ev, exception);
 	} else {
-		return FALSE;
+		return;
 	}
 
-	return fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), exception);
+	if (*exception != NULL)
+		return;
+
+	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), exception);
 }
 
-static gboolean handle_irq_mc_event(struct fw_cdev_event_iso_interrupt_mc *ev, GError **exception)
+static void handle_irq_mc_event(struct fw_cdev_event_iso_interrupt_mc *ev,
+				GError **exception)
 {
 	if (HINOKO_IS_FW_ISO_RX_MULTIPLE((gpointer)ev->closure)) {
 		HinokoFwIsoRxMultiple *ctx = HINOKO_FW_ISO_RX_MULTIPLE((gpointer)ev->closure);
 
-		if (!hinoko_fw_iso_rx_multiple_handle_event(ctx, ev, exception))
-			return FALSE;
+		hinoko_fw_iso_rx_multiple_handle_event(ctx, ev, exception);
 	} else {
-		return FALSE;
+		return;
 	}
 
-	return fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), exception);
+	if (*exception != NULL)
+		return;
+
+	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), exception);
 }
 
 static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
@@ -777,14 +780,16 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		switch (ev->common.type) {
 		case FW_CDEV_EVENT_ISO_INTERRUPT:
 			exception = NULL;
-			if (!handle_irq_event(&ev->iso_interrupt, &exception))
+			handle_irq_event(&ev->iso_interrupt, &exception);
+			if (exception != NULL)
 				goto error;
 			size = sizeof(ev->iso_interrupt) +
 			       ev->iso_interrupt.header_length;
 			break;
 		case FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL:
 			exception = NULL;
-			if (!handle_irq_mc_event(&ev->iso_interrupt_mc, &exception))
+			handle_irq_mc_event(&ev->iso_interrupt_mc, &exception);
+			if (exception != NULL)
 				goto error;
 			size = sizeof(ev->iso_interrupt_mc);
 			break;
@@ -933,7 +938,8 @@ gboolean hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_matc
 		return FALSE;
 	}
 
-	if (!fw_iso_ctx_queue_chunks(self, exception))
+	fw_iso_ctx_queue_chunks(self, exception);
+	if (*exception != NULL)
 		return FALSE;
 
 	arg.sync = sync;

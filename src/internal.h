@@ -25,17 +25,17 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 				   guint length, const guint8 **frames,
 				   guint *frame_size);
 
-gboolean hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
-					      struct fw_cdev_event_iso_interrupt *event,
-					      GError **exception);
+void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
+				struct fw_cdev_event_iso_interrupt *event,
+				GError **exception);
 
-gboolean hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
-						struct fw_cdev_event_iso_interrupt_mc *event,
-						GError **exception);
+void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
+				struct fw_cdev_event_iso_interrupt_mc *event,
+				GError **exception);
 
-gboolean hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
-				       struct fw_cdev_event_iso_interrupt *event,
-				       GError **exception);
+void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
+				   struct fw_cdev_event_iso_interrupt *event,
+				   GError **exception);
 
 void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 				  unsigned long request, void *argp,

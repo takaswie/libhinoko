@@ -259,16 +259,16 @@ void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self)
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
 }
 
-gboolean hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
-					      struct fw_cdev_event_iso_interrupt *event,
-					      GError **exception)
+void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
+				struct fw_cdev_event_iso_interrupt *event,
+				GError **exception)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 	guint sec;
 	guint cycle;
 	guint count;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	sec = (event->cycle & 0x0000e000) >> 13;
@@ -291,8 +291,6 @@ gboolean hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 
 		priv->chunk_cursor %= chunks_per_buffer;
 	}
-
-	return TRUE;
 }
 
 /**

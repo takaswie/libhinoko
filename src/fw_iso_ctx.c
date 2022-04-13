@@ -488,62 +488,57 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
  * @exception: A #GError.
  *
  * Register data on buffer for payload of isochronous context.
- *
- * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
  */
-gboolean hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
-					  HinokoFwIsoCtxMatchFlag tags, guint sy,
-					  const guint8 *header, guint header_length,
-					  guint payload_length, gboolean schedule_interrupt,
-					  GError **exception)
+void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
+				      HinokoFwIsoCtxMatchFlag tags, guint sy,
+				      const guint8 *header, guint header_length,
+				      guint payload_length, gboolean schedule_interrupt,
+				      GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
-
 	struct fw_cdev_iso_packet *datum;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), FALSE);
-	g_return_val_if_fail(skip == TRUE || skip == FALSE, FALSE);
-	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(skip == TRUE || skip == FALSE);
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
-	g_return_val_if_fail(tags == 0 ||
-			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 ||
-			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 ||
-			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 ||
-			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3,
-			     FALSE);
+	g_return_if_fail(tags == 0 ||
+			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 ||
+			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 ||
+			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 ||
+			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3);
 
-	g_return_val_if_fail(sy < 16, FALSE);
+	g_return_if_fail(sy < 16);
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
 		if (!skip) {
-			g_return_val_if_fail(header_length == priv->header_size, FALSE);
-			g_return_val_if_fail(payload_length <= priv->bytes_per_chunk, FALSE);
+			g_return_if_fail(header_length == priv->header_size);
+			g_return_if_fail(payload_length <= priv->bytes_per_chunk);
 		} else {
-			g_return_val_if_fail(payload_length == 0, FALSE);
-			g_return_val_if_fail(header_length == 0, FALSE);
-			g_return_val_if_fail(header == NULL, FALSE);
+			g_return_if_fail(payload_length == 0);
+			g_return_if_fail(header_length == 0);
+			g_return_if_fail(header == NULL);
 		}
 	} else if (priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
 		   priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
-		g_return_val_if_fail(tags == 0, FALSE);
-		g_return_val_if_fail(sy == 0, FALSE);
-		g_return_val_if_fail(header == NULL, FALSE);
-		g_return_val_if_fail(header_length == 0, FALSE);
-		g_return_val_if_fail(payload_length == 0, FALSE);
+		g_return_if_fail(tags == 0);
+		g_return_if_fail(sy == 0);
+		g_return_if_fail(header == NULL);
+		g_return_if_fail(header_length == 0);
+		g_return_if_fail(payload_length == 0);
 	}
 
-	g_return_val_if_fail(priv->data_length + sizeof(*datum) + header_length <= priv->alloc_data_length,
-			     FALSE);
+	g_return_if_fail(priv->data_length + sizeof(*datum) + header_length <= priv->alloc_data_length);
 
 	if (priv->fd < 0) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return FALSE;
+		return;
 	}
 
 	if (priv->addr == NULL) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
-		return FALSE;
+		return;
 	}
 
 	datum = (struct fw_cdev_iso_packet *)(priv->data + priv->data_length);
@@ -571,8 +566,6 @@ gboolean hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 
 	if (schedule_interrupt)
 		datum->control |= FW_CDEV_ISO_INTERRUPT;
-
-	return TRUE;
 }
 
 static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)

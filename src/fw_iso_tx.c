@@ -259,9 +259,10 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 	if (header_length == 0 && payload_length == 0)
 		skip = TRUE;
 
-	if (!hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags, sy, header,
-					      header_length, payload_length, schedule_interrupt,
-					      exception))
+	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags, sy, header,
+					 header_length, payload_length, schedule_interrupt,
+					 exception);
+	if (*exception != NULL)
 		return;
 
 	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), priv->offset,

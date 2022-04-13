@@ -416,34 +416,26 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
  *
  * Retrieve the value of cycle timer register. This method call is available
  * once any isochronous context is created.
- *
- * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
- *
- * Since: 0.7.
  */
-gboolean hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
-					   HinokoCycleTimer *const *cycle_timer,
-					   GError **exception)
+void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
+				       HinokoCycleTimer *const *cycle_timer,
+				       GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), FALSE);
-	g_return_val_if_fail(cycle_timer != NULL, FALSE);
-	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(cycle_timer != NULL);
+	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return FALSE;
+		return;
 	}
 
 	(*cycle_timer)->clk_id = clock_id;
-	if (ioctl(priv->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_timer) < 0) {
+	if (ioctl(priv->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_timer) < 0)
 		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_CYCLE_TIMER2");
-		return FALSE;
-	}
-
-	return TRUE;
 }
 
 /**
@@ -823,12 +815,9 @@ static void finalize_src(GSource *gsrc)
  * @exception: A #GError.
  *
  * Create Gsource for GMainContext to dispatch events for isochronous context.
- *
- * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
- *
- * Since: 0.7.
  */
-gboolean hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc, GError **exception)
+void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
+				     GError **exception)
 {
 	static GSourceFuncs funcs = {
 		.check		= check_src,
@@ -838,14 +827,14 @@ gboolean hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc, G
 	HinokoFwIsoCtxPrivate *priv;
 	FwIsoCtxSource *src;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), FALSE);
-	g_return_val_if_fail(gsrc != NULL, FALSE);
-	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(gsrc != NULL);
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 	if (priv->fd < 0) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return FALSE;
+		return;
 	}
 
 	*gsrc = g_source_new(&funcs, sizeof(FwIsoCtxSource));
@@ -870,8 +859,6 @@ gboolean hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc, G
 
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
 	src->self = g_object_ref(self);
-
-	return TRUE;
 }
 
 /**
@@ -1014,21 +1001,15 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
  * context to queue any type of interrupt event for the recent isochronous cycle. Application can
  * process the content of isochronous packet without waiting for actual hardware interrupt.
  *
- * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
- *
- * Since: 0.7.
+ * Since: 0.6.
  */
-gboolean hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **exception)
+void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), FALSE);
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	if (ioctl(priv->fd, FW_CDEV_IOC_FLUSH_ISO) < 0) {
+	if (ioctl(priv->fd, FW_CDEV_IOC_FLUSH_ISO) < 0)
 		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_FLUSH_ISO");
-		return FALSE;
-	}
-
-	return TRUE;
 }

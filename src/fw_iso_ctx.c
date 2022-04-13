@@ -201,57 +201,54 @@ static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)
  * Allocate a isochronous context to 1394 OHCI controller. A local node of the
  * node corresponding to the given path is used as the controller, thus any
  * path is accepted as long as process has enough permission for the path.
- *
- * Returns: %TRUE if the overall operation finished successfully, otherwise %FALSE.
  */
-gboolean hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
-				    HinokoFwIsoCtxMode mode, HinokoFwScode scode, guint channel,
-				    guint header_size, GError **exception)
+void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
+				HinokoFwIsoCtxMode mode, HinokoFwScode scode,
+				guint channel, guint header_size,
+				GError **exception)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	struct fw_cdev_get_info info = {0};
 	struct fw_cdev_create_iso_context create = {0};
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(self), FALSE);
-	g_return_val_if_fail(path != NULL && strlen(path) > 0, FALSE);
-	g_return_val_if_fail(exception != NULL && *exception == NULL, FALSE);
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	g_return_if_fail(path != NULL && strlen(path) > 0);
+	g_return_if_fail(exception != NULL && *exception == NULL);
 
 	// Linux firewire stack supports three types of isochronous context
 	// described in 1394 OHCI specification.
-	g_return_val_if_fail(mode == HINOKO_FW_ISO_CTX_MODE_TX ||
+	g_return_if_fail(mode == HINOKO_FW_ISO_CTX_MODE_TX ||
 			 mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
-			 mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE,
-			 FALSE);
+			 mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
 
-	g_return_val_if_fail(scode == HINOKO_FW_SCODE_S100 ||
+	g_return_if_fail(scode == HINOKO_FW_SCODE_S100 ||
 			 scode == HINOKO_FW_SCODE_S200 ||
 			 scode == HINOKO_FW_SCODE_S400 ||
 			 scode == HINOKO_FW_SCODE_S800 ||
 			 scode == HINOKO_FW_SCODE_S1600 ||
-			 scode == HINOKO_FW_SCODE_S3200,
-			 FALSE);
+			 scode == HINOKO_FW_SCODE_S3200);
 
 	// IEEE 1394 specification supports isochronous channel up to 64.
-	g_return_val_if_fail(channel < 64, FALSE);
+	g_return_if_fail(channel < 64);
 
 	// Headers should be aligned to quadlet.
-	g_return_val_if_fail(header_size % 4 == 0, FALSE);
+	g_return_if_fail(header_size % 4 == 0);
 
 	if (mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE) {
 		// At least, 1 quadlet is required for iso_header.
-		g_return_val_if_fail(header_size >= 4, FALSE);
-		g_return_val_if_fail(channel < 64, FALSE);
+		g_return_if_fail(header_size >= 4);
+		g_return_if_fail(channel < 64);
 	} else if (mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
 		// Needless.
-		g_return_val_if_fail(header_size == 0, FALSE);
-		g_return_val_if_fail(channel == 0, FALSE);
+		g_return_if_fail(header_size == 0);
+		g_return_if_fail(channel == 0);
 	}
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd >= 0) {
 		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_ALLOCATED);
-		return FALSE;
+		return;
 	}
 
 	priv->fd = open(path, O_RDWR);
@@ -261,7 +258,7 @@ gboolean hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 			generate_file_error(exception, code, "open(%s)", path);
 		else
 			generate_syscall_error(exception, errno, "open(%s)", path);
-		return FALSE;
+		return;
 	}
 
 	// Support FW_CDEV_VERSION_AUTO_FLUSH_ISO_OVERFLOW.
@@ -270,7 +267,7 @@ gboolean hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
 		close(priv->fd);
 		priv->fd = -1;
-		return FALSE;
+		return;
 	}
 
 	create.type = mode;
@@ -283,14 +280,12 @@ gboolean hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_CREATE_ISO_CONTEXT");
 		close(priv->fd);
 		priv->fd = -1;
-		return FALSE;
+		return;
 	}
 
 	priv->handle = create.handle;
 	priv->mode = mode;
 	priv->header_size = header_size;
-
-	return TRUE;
 }
 
 /**

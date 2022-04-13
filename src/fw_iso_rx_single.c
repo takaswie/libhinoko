@@ -123,9 +123,10 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
-	if (!hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
-					HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0, channel, header_size,
-					exception))
+	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
+				 HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0,
+				 channel, header_size, exception);
+	if (*exception != NULL)
 		return;
 
 	priv->header_size = header_size;

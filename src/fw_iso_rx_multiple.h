@@ -26,23 +26,28 @@ struct _HinokoFwIsoRxMultipleClass {
 
 HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void);
 
-gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const char *path,
-					    const guint8 *channels, guint channels_length,
-					    GError **exception);
+void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
+					const char *path,
+					const guint8 *channels,
+					guint channels_length,
+					GError **exception);
 void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self);
 
-gboolean hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self, guint bytes_per_chunk,
-					      guint chunks_per_buffer, GError **exception);
+void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
+					  guint bytes_per_chunk,
+					  guint chunks_per_buffer,
+					  GError **exception);
 void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self);
 
-gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guint16 *cycle_match,
-					 guint32 sync, HinokoFwIsoCtxMatchFlag tags,
-					 guint chunks_per_irq, GError **exception);
+void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
+				     const guint16 *cycle_match, guint32 sync,
+				     HinokoFwIsoCtxMatchFlag tags,
+				     guint chunks_per_irq, GError **exception);
 void hinoko_fw_iso_rx_multiple_stop(HinokoFwIsoRxMultiple *self);
 
-gboolean hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self, guint index,
-					       const guint8 **payload, guint *length,
-					       GError **exception);
+void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
+					guint index, const guint8 **payload,
+					guint *length, GError **exception);
 
 G_END_DECLS
 

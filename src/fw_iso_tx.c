@@ -151,9 +151,9 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 	g_return_if_fail(exception != NULL && *exception == NULL);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
-	if (!hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), maximum_bytes_per_payload,
-					  payloads_per_buffer, exception))
-		return;
+	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
+				     maximum_bytes_per_payload,
+				     payloads_per_buffer, exception);
 
 	priv->offset = 0;
 }

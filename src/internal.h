@@ -37,7 +37,7 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 
 void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 				   struct fw_cdev_event_iso_interrupt *event,
-				   GError **exception);
+				   GError **error);
 
 void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 				  unsigned long request, void *argp,

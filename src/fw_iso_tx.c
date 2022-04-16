@@ -97,7 +97,7 @@ HinokoFwIsoTx *hinoko_fw_iso_tx_new(void)
  * @scode: A #HinokoFwScode to indicate speed of isochronous communication.
  * @channel: An isochronous channel to transfer.
  * @header_size: The number of bytes for header of IT context.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Allocate an IT context to 1394 OHCI controller. A local node of the node
  * corresponding to the given path is used as the controller, thus any path is
@@ -105,14 +105,14 @@ HinokoFwIsoTx *hinoko_fw_iso_tx_new(void)
  */
 void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
 			       HinokoFwScode scode, guint channel,
-			       guint header_size, GError **exception)
+			       guint header_size, GError **error)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
 				   HINOKO_FW_ISO_CTX_MODE_TX, scode, channel,
-				   header_size, exception);
+				   header_size, error);
 }
 
 /**
@@ -135,7 +135,7 @@ void hinoko_fw_iso_tx_release(HinokoFwIsoTx *self)
  * @self: A #HinokoFwIsoTx.
  * @maximum_bytes_per_payload: The number of bytes for payload of IT context.
  * @payloads_per_buffer: The number of payloads of IT context in buffer.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Map intermediate buffer to share payload of IT context with 1394 OHCI
  * controller.
@@ -143,17 +143,17 @@ void hinoko_fw_iso_tx_release(HinokoFwIsoTx *self)
 void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 				 guint maximum_bytes_per_payload,
 				 guint payloads_per_buffer,
-				 GError **exception)
+				 GError **error)
 {
 	HinokoFwIsoTxPrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
 				     maximum_bytes_per_payload,
-				     payloads_per_buffer, exception);
+				     payloads_per_buffer, error);
 
 	priv->offset = 0;
 }
@@ -182,18 +182,18 @@ void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self)
  * 		 element should be the second part of isochronous cycle, up to
  * 		 3. The second element should be the cycle part of isochronous
  * 		 cycle, up to 7999.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Start IT context.
  *
  * Since: 0.6.
  */
-void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match, GError **exception)
+void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match, GError **error)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, 0, 0, exception);
+	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, 0, 0, error);
 
 }
 
@@ -227,7 +227,7 @@ void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
  * 	     for isochronous packet.
  * @payload_length: The number of bytes for the @payload.
  * @schedule_interrupt: Whether to schedule hardware interrupt at isochronous cycle for the packet.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Register packet data with header and payload for IT context. The caller can schedule hardware
  * interrupt to generate interrupt event. In detail, please refer to documentation about
@@ -239,7 +239,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 				HinokoFwIsoCtxMatchFlag tags, guint sy,
 				const guint8 *header, guint header_length,
 				const guint8 *payload, guint payload_length,
-				gboolean schedule_interrupt, GError **exception)
+				gboolean schedule_interrupt, GError **error)
 {
 	HinokoFwIsoTxPrivate *priv;
 	const guint8 *frames;
@@ -251,7 +251,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 			 (header == NULL && header_length == 0));
 	g_return_if_fail((payload != NULL && payload_length > 0) ||
 			 (payload == NULL && payload_length == 0));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
@@ -261,8 +261,8 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags, sy, header,
 					 header_length, payload_length, schedule_interrupt,
-					 exception);
-	if (*exception != NULL)
+					 error);
+	if (*error != NULL)
 		return;
 
 	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), priv->offset,
@@ -284,7 +284,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 
 void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 				   struct fw_cdev_event_iso_interrupt *event,
-				   GError **exception)
+				   GError **error)
 {
 	guint sec = (event->cycle & 0x0000e000) >> 13;
 	guint cycle = event->cycle & 0x00001fff;

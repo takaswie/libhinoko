@@ -145,7 +145,7 @@ HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
  * @channels: (array length=channels_length) (element-type guint8): an array
  *	      for channels to listen to.
  * @channels_length: The length of @channels.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Allocate an IR context to 1394 OHCI controller for buffer-fill mode.
  * A local node of the node corresponding to the given path is used as the
@@ -156,7 +156,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 					const char *path,
 					const guint8 *channels,
 					guint channels_length,
-					GError **exception)
+					GError **error)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 
@@ -164,7 +164,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	g_return_if_fail(channels_length > 0);
 
@@ -179,16 +179,16 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
 				   HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, 0, 0,
-				   0, exception);
-	if (*exception != NULL)
+				   0, error);
+	if (*error != NULL)
 		return;
 
 	hinoko_fw_iso_ctx_set_rx_channels(HINOKO_FW_ISO_CTX(self),
-					  &channel_flags, exception);
-	if (*exception != NULL)
+					  &channel_flags, error);
+	if (*error != NULL)
 		return;
 	if (channel_flags == 0) {
-		g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR,
+		g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR,
 				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
 				    "No isochronous channel is available");
 		return;
@@ -231,7 +231,7 @@ void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self)
  * @bytes_per_chunk: The maximum number of bytes for payload of isochronous
  *		     packet (not payload for isochronous context).
  * @chunks_per_buffer: The number of chunks in buffer.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Map an intermediate buffer to share payload of IR context with 1394 OHCI
  * controller.
@@ -239,17 +239,17 @@ void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self)
 void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 					  guint bytes_per_chunk,
 					  guint chunks_per_buffer,
-					  GError **exception)
+					  GError **error)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
 	if (priv->channels == NULL) {
-		g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR,
+		g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR,
 				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
 				    "No isochronous channel is available");
 		return;
@@ -262,7 +262,7 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	priv->concat_frames = g_malloc_n(4, bytes_per_chunk);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self), bytes_per_chunk,
-				     chunks_per_buffer, exception);
+				     chunks_per_buffer, error);
 
 	g_object_get(G_OBJECT(self),
 		     "bytes-per-chunk", &bytes_per_chunk,
@@ -297,7 +297,7 @@ void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self)
 }
 
 static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
-					      GError **exception)
+					      GError **error)
 {
 	HinokoFwIsoRxMultiplePrivate *priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 	gboolean schedule_irq = FALSE;
@@ -310,7 +310,7 @@ static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
 	}
 
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
-					 schedule_irq, exception);
+					 schedule_irq, error);
 }
 
 /**
@@ -327,21 +327,21 @@ static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
  * @chunks_per_irq: The number of chunks per interval of interrupt. When 0 is given, application
  *		    should call #hinoko_fw_iso_ctx_flush_completions voluntarily to generate
  *		    #HinokoFwIsoRxMultiple::interrupted event.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Start IR context.
  */
 void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 				     const guint16 *cycle_match, guint32 sync,
 				     HinokoFwIsoCtxMatchFlag tags,
-				     guint chunks_per_irq, GError **exception)
+				     guint chunks_per_irq, GError **error)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 	guint chunks_per_buffer;
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
@@ -352,13 +352,13 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 	priv->accumulated_chunk_count = 0;
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
-		fw_iso_rx_multiple_register_chunk(self, exception);
-		if (*exception != NULL)
+		fw_iso_rx_multiple_register_chunk(self, error);
+		if (*error != NULL)
 			return;
 	}
 
 	priv->prev_offset = 0;
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
+	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, error);
 }
 
 /**
@@ -376,7 +376,7 @@ void hinoko_fw_iso_rx_multiple_stop(HinokoFwIsoRxMultiple *self)
 
 void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 				struct fw_cdev_event_iso_interrupt_mc *event,
-				GError **exception)
+				GError **error)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 	unsigned int bytes_per_chunk;
@@ -451,8 +451,8 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 	chunk_pos = priv->prev_offset / bytes_per_chunk;
 	chunk_end = (priv->prev_offset + accum_length) / bytes_per_chunk;
 	for (; chunk_pos < chunk_end; ++chunk_pos) {
-		fw_iso_rx_multiple_register_chunk(self, exception);
-		if (*exception != NULL)
+		fw_iso_rx_multiple_register_chunk(self, error);
+		if (*error != NULL)
 			return;
 	}
 
@@ -467,18 +467,18 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
  * @payload: (array length=length)(out)(transfer none): The array with data
  * 	     frame for payload of IR context.
  * @length: The number of bytes in the above @payload.
- * @exception: A #GError.
+ * @error: A #GError.
  */
 void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
 					guint index, const guint8 **payload,
-					guint *length, GError **exception)
+					guint *length, GError **error)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
 	struct ctx_payload *ctx_payload;
 	guint frame_size;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 

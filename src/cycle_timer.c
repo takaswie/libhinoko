@@ -2,13 +2,11 @@
 #include "internal.h"
 
 /**
- * SECTION:cycle_timer
- * @Title: HinokoCycleTimer
- * @Short_description: A boxed object to represent data for cycle timer.
- * @include: cycle_timer.h
+ * HinokoCycleTimer:
+ * A boxed object to represent data for cycle timer.
  *
- * A #HinokoCycleTimer is an boxed object to represent the value of cycle
- * timer and timestamp referring to clock_id.
+ * A [struct@CycleTimer] is an boxed object to represent the value of cycle timer and timestamp
+ * referring to clock_id.
  */
 HinokoCycleTimer *hinoko_cycle_timer_copy(const HinokoCycleTimer *self)
 {
@@ -28,9 +26,9 @@ G_DEFINE_BOXED_TYPE(HinokoCycleTimer, hinoko_cycle_timer, hinoko_cycle_timer_cop
 /**
  * hinoko_cycle_timer_new:
  *
- * Allocate and return an instance of HinokoCycleTimer.
+ * Allocate and return an instance of [struct@CycleTimer].
  *
- * Returns: (transfer none): An instance of HinokoCycleTimer.
+ * Returns: (transfer none): An instance of [struct@CycleTimer].
  */
 HinokoCycleTimer *hinoko_cycle_timer_new()
 {
@@ -39,12 +37,12 @@ HinokoCycleTimer *hinoko_cycle_timer_new()
 
 /**
  * hinoko_cycle_timer_get_timestamp:
- * @self: A #HinokoCycleTimer.
+ * @self: A [struct@CycleTimer].
  * @tv_sec: (out): The second part of timestamp.
  * @tv_nsec: (out): The nanosecond part of timestamp.
  *
- * Get timestamp with enough sizee of strorage. The timestamp refers to
- * clock_id available by hinoko_cycle_timer_get_clock_id().
+ * Get timestamp with enough sizee of strorage. The timestamp refers to clock_id available by
+ * [method@CycleTimer.get_clock_id].
  */
 void hinoko_cycle_timer_get_timestamp(HinokoCycleTimer *self, gint64 *tv_sec,
 				      gint32 *tv_nsec)
@@ -55,10 +53,10 @@ void hinoko_cycle_timer_get_timestamp(HinokoCycleTimer *self, gint64 *tv_sec,
 
 /**
  * hinoko_cycle_timer_get_clock_id:
- * @self: A #HinokoCycleTimer.
- * @clock_id: (out): The numerical ID of clock source for the reference
- *            timestamp. One CLOCK_REALTIME(0), CLOCK_MONOTONIC(1), and
- *            CLOCK_MONOTONIC_RAW(4) is available in UAPI of Linux kernel.
+ * @self: A [struct@CycleTimer].
+ * @clock_id: (out): The numerical ID of clock source for the reference timestamp. One of
+ *	      CLOCK_REALTIME(0), CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(4) is available in
+ *	      UAPI of Linux kernel.
  *
  * Get the ID of clock for timestamp.
  */
@@ -69,10 +67,9 @@ void hinoko_cycle_timer_get_clock_id(HinokoCycleTimer *self, gint *clock_id)
 
 /**
  * hinoko_cycle_timer_get_cycle_timer:
- * @self: A #HinokoCycleTimer.
- * @cycle_timer: (array fixed-size=3)(out caller-allocates): The value of cycle
- * 		 timer register of 1394 OHCI, including three elements; second,
- * 		 cycle and offset.
+ * @self: A [struct@CycleTimer].
+ * @cycle_timer: (array fixed-size=3)(out caller-allocates): The value of cycle timer register of
+ *		 1394 OHCI, including three elements; second, cycle, and offset.
  *
  * Get the value of cycle timer in 1394 OHCI controller.
  */

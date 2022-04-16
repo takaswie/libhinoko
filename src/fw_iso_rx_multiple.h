@@ -16,10 +16,10 @@ struct _HinokoFwIsoRxMultipleClass {
 
 	/**
 	 * HinokoFwIsoRxMultipleClass::interrupted:
-	 * @self: A #HinokoFwIsoRxMultiple.
+	 * @self: A [class@FwIsoRxMultiple].
 	 * @count: The number of packets available in this interrupt.
 	 *
-	 * In detail, please refer to documentation about #HinokoFwIsoRxMultiple::interrupted.
+	 * Class closure for the [signal@FwIsoRxMultiple::interrupted].
 	 */
 	void (*interrupted)(HinokoFwIsoRxMultiple *self, guint count);
 };

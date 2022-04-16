@@ -4,14 +4,11 @@
 #include <errno.h>
 
 /**
- * SECTION:fw_iso_rx_multiple
- * @Title: HinokoFwIsoRxMultiple
- * @Short_description: An object to receive isochronous packet for several
- *		       channels.
- * @include: fw_iso_rx_multiple.h
+ * HinokoFwIsoRxMultiple:
+ * An object to receive isochronous packet for several channels.
  *
- * A #HinokoFwIsoRxMultiple receives isochronous packets for several channels by
- * IR context for buffer-fill mode in 1394 OHCI.
+ * A [class@FwIsoRxMultiple] receives isochronous packets for several channels by IR context for
+ * buffer-fill mode in 1394 OHCI.
  */
 struct ctx_payload {
 	unsigned int offset;
@@ -96,19 +93,18 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 
 	/**
 	 * HinokoFwIsoRxMultiple::interrupted:
-	 * @self: A #HinokoFwIsoRxMultiple.
+	 * @self: A [class@FwIsoRxMultiple].
 	 * @count: The number of packets available in this interrupt.
 	 *
-	 * When Linux FireWire subsystem generates interrupt event, the
-	 * #HinokoFwIsoRxMultiple::interrupted signal is emitted. There are two cases for Linux
-	 * FireWire subsystem to generate the event:
+	 * Emitted when Linux FireWire subsystem generates interrupt event. There are two cases
+	 * for Linux FireWire subsystem to generate the event:
 	 *
 	 * - When OHCI 1394 controller generates hardware interrupt as a result to process the
 	 *   isochronous packet for the buffer chunk marked to generate hardware interrupt.
-	 * - When application calls #hinoko_fw_iso_ctx_flush_completions() explicitly.
+	 * - When application calls [method@FwIsoCtx.flush_completions] explicitly.
 	 *
 	 * The handler of signal can retrieve the content of packet by call of
-	 * #hinoko_fw_iso_rx_multiple_get_payload().
+	 * [method@FwIsoRxMultiple.get_payload].
 	 */
 	fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ] =
 		g_signal_new("interrupted",
@@ -129,9 +125,9 @@ static void hinoko_fw_iso_rx_multiple_init(HinokoFwIsoRxMultiple *self)
 /**
  * hinoko_fw_iso_rx_multiple_new:
  *
- * Instantiate #HinokoFwIsoRxMultiple object and return the instance.
+ * Instantiate [class@FwIsoRxMultiple] object and return the instance.
  *
- * Returns: an instance of #HinokoFwIsoRxMultiple.
+ * Returns: an instance of [class@FwIsoRxMultiple].
  */
 HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
 {
@@ -140,17 +136,16 @@ HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
 
 /**
  * hinoko_fw_iso_rx_multiple_allocate:
- * @self: A #HinokoFwIsoRxMultiple.
+ * @self: A [class@FwIsoRxMultiple].
  * @path: A path to any Linux FireWire character device.
- * @channels: (array length=channels_length) (element-type guint8): an array
- *	      for channels to listen to.
- * @channels_length: The length of @channels.
- * @error: A #GError.
+ * @channels: (array length=channels_length) (element-type guint8): an array for channels to listen
+ *	      to.
+ * @channels_length: The length of channels.
+ * @error: A [struct@GLib.Error].
  *
- * Allocate an IR context to 1394 OHCI controller for buffer-fill mode.
- * A local node of the node corresponding to the given path is used as the
- * controller, thus any path is accepted as long as process has enough
- * permission for the path.
+ * Allocate an IR context to 1394 OHCI controller for buffer-fill mode. A local node of the node
+ * corresponding to the given path is used as the controller, thus any path is accepted as long as
+ * process has enough permission for the path.
  */
 void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 					const char *path,
@@ -205,7 +200,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 
 /**
  * hinoko_fw_iso_rx_multiple_release:
- * @self: A #HinokoFwIsoRxMultiple.
+ * @self: A [class@FwIsoRxMultiple].
  *
  * Release allocated IR context from 1394 OHCI controller.
  */
@@ -227,11 +222,11 @@ void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self)
 
 /**
  * hinoko_fw_iso_rx_multiple_map_buffer:
- * @self: A #HinokoFwIsoRxMultiple.
- * @bytes_per_chunk: The maximum number of bytes for payload of isochronous
- *		     packet (not payload for isochronous context).
+ * @self: A [class@FwIsoRxMultiple].
+ * @bytes_per_chunk: The maximum number of bytes for payload of isochronous packet (not payload for
+ *		     isochronous context).
  * @chunks_per_buffer: The number of chunks in buffer.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
  * Map an intermediate buffer to share payload of IR context with 1394 OHCI
  * controller.
@@ -274,10 +269,9 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 
 /**
  * hinoko_fw_iso_rx_multiple_unmap_buffer:
- * @self: A #HinokoFwIsoRxMultiple.
+ * @self: A [class@FwIsoRxMultiple].
  *
- * Unmap intermediate buffer shard with 1394 OHCI controller for payload
- * of IR context.
+ * Unmap intermediate buffer shard with 1394 OHCI controller for payload of IR context.
  */
 void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self)
 {
@@ -315,19 +309,17 @@ static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
 
 /**
  * hinoko_fw_iso_rx_multiple_start:
- * @self: A #HinokoFwIsoRxMultiple.
- * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable):
- * 		 The isochronous cycle to start packet processing. The first
- * 		 element should be the second part of isochronous cycle, up to
- * 		 3. The second element should be the cycle part of isochronous
- * 		 cycle, up to 7999.
- * @sync: The value of sync field in isochronous header for packet processing,
- * 	  up to 15.
+ * @self: A [class@FwIsoRxMultiple].
+ * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable): The isochronous cycle
+ *		 to start packet processing. The first element should be the second part of
+ *		 isochronous cycle, up to 3. The second element should be the cycle part of
+ *		 isochronous cycle, up to 7999.
+ * @sync: The value of sync field in isochronous header for packet processing, up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
  * @chunks_per_irq: The number of chunks per interval of interrupt. When 0 is given, application
- *		    should call #hinoko_fw_iso_ctx_flush_completions voluntarily to generate
- *		    #HinokoFwIsoRxMultiple::interrupted event.
- * @error: A #GError.
+ *		    should call [method@FwIsoCtx.flush_completions] voluntarily to generate
+ *		    [signal@FwIsoRxMultiple::interrupted] event.
+ * @error: A [struct@GLib.Error]
  *
  * Start IR context.
  */
@@ -363,7 +355,7 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 
 /**
  * hinoko_fw_iso_rx_multiple_stop:
- * @self: A #HinokoFwIsoRxMultiple.
+ * @self: A [class@FwIsoRxMultiple].
  *
  * Stop IR context.
  */
@@ -462,12 +454,12 @@ void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 
 /**
  * hinoko_fw_iso_rx_multiple_get_payload:
- * @self: A #HinokoFwIsoRxMultiple.
+ * @self: A [class@FwIsoRxMultiple].
  * @index: the index of packet available in this interrupt.
- * @payload: (array length=length)(out)(transfer none): The array with data
- * 	     frame for payload of IR context.
+ * @payload: (array length=length)(out)(transfer none): The array with data frame for payload of
+ *	     IR context.
  * @length: The number of bytes in the above @payload.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  */
 void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self,
 					guint index, const guint8 **payload,

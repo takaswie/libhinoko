@@ -52,10 +52,10 @@ struct _HinokoFwIsoResourceClass {
 HinokoFwIsoResource *hinoko_fw_iso_resource_new();
 
 void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
-				 gint open_flag, GError **exception);
+				 gint open_flag, GError **error);
 
 void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
-					  GSource **gsrc, GError **exception);
+					  GSource **gsrc, GError **error);
 
 guint hinoko_fw_iso_resource_calculate_bandwidth(guint bytes_per_payload,
 						 HinokoFwScode scode);
@@ -64,23 +64,23 @@ void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
 						guint8 *channel_candidates,
 						gsize channel_candidates_count,
 						guint bandwidth,
-						GError **exception);
+						GError **error);
 
 void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
 						  guint channel,
 						  guint bandwidth,
-						  GError **exception);
+						  GError **error);
 
 void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 					       guint8 *channel_candidates,
 					       gsize channel_candidates_count,
 					       guint bandwidth,
-					       GError **exception);
+					       GError **error);
 
 void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 						 guint channel,
 						 guint bandwidth,
-						 GError **exception);
+						 GError **error);
 
 G_END_DECLS
 

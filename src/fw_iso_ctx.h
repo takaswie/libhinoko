@@ -31,12 +31,12 @@ struct _HinokoFwIsoCtxClass {
 
 void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 				       HinokoCycleTimer *const *cycle_timer,
-				       GError **exception);
+				       GError **error);
 
 void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
-				     GError **exception);
+				     GError **error);
 
-void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **exception);
+void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **error);
 
 G_END_DECLS
 

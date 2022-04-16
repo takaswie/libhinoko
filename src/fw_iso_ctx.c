@@ -62,16 +62,16 @@ static const char *const err_msgs[] = {
 	[HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED] = "No chunk registered before starting",
 };
 
-#define generate_local_error(exception, code) \
-	g_set_error_literal(exception, HINOKO_FW_ISO_CTX_ERROR, code, err_msgs[code])
+#define generate_local_error(error, code) \
+	g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR, code, err_msgs[code])
 
-#define generate_syscall_error(exception, errno, format, arg)		\
-	g_set_error(exception, HINOKO_FW_ISO_CTX_ERROR,			\
+#define generate_syscall_error(error, errno, format, arg)		\
+	g_set_error(error, HINOKO_FW_ISO_CTX_ERROR,			\
 		    HINOKO_FW_ISO_CTX_ERROR_FAILED,			\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
-#define generate_file_error(exception, code, format, arg) \
-	g_set_error(exception, G_FILE_ERROR, code, format, arg)
+#define generate_file_error(error, code, format, arg) \
+	g_set_error(error, G_FILE_ERROR, code, format, arg)
 
 typedef struct {
 	GSource src;
@@ -196,7 +196,7 @@ static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)
  * @scode: The speed of context, one of #HinokoFwScode enumerations.
  * @channel: The numerical channel of context up to 64.
  * @header_size: The number of bytes for header of isochronous context.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Allocate a isochronous context to 1394 OHCI controller. A local node of the
  * node corresponding to the given path is used as the controller, thus any
@@ -205,7 +205,7 @@ static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,
 				guint channel, guint header_size,
-				GError **exception)
+				GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	struct fw_cdev_get_info info = {0};
@@ -213,7 +213,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	// Linux firewire stack supports three types of isochronous context
 	// described in 1394 OHCI specification.
@@ -247,7 +247,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd >= 0) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_ALLOCATED);
 		return;
 	}
 
@@ -255,16 +255,16 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	if  (priv->fd < 0) {
 		GFileError code = g_file_error_from_errno(errno);
 		if (code != G_FILE_ERROR_FAILED)
-			generate_file_error(exception, code, "open(%s)", path);
+			generate_file_error(error, code, "open(%s)", path);
 		else
-			generate_syscall_error(exception, errno, "open(%s)", path);
+			generate_syscall_error(error, errno, "open(%s)", path);
 		return;
 	}
 
 	// Support FW_CDEV_VERSION_AUTO_FLUSH_ISO_OVERFLOW.
 	info.version = 5;
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
 		close(priv->fd);
 		priv->fd = -1;
 		return;
@@ -277,7 +277,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	create.header_size = header_size;
 
 	if (ioctl(priv->fd, FW_CDEV_IOC_CREATE_ISO_CONTEXT, &create) < 0) {
-		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_CREATE_ISO_CONTEXT");
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_CREATE_ISO_CONTEXT");
 		close(priv->fd);
 		priv->fd = -1;
 		return;
@@ -315,13 +315,13 @@ void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
  * @bytes_per_chunk: The number of bytes per chunk in buffer going to be
  *		     allocated.
  * @chunks_per_buffer: The number of chunks in buffer going to be allocated.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Map intermediate buffer to share payload of isochronous context with 1394
  * OHCI controller.
  */
 void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
-				  guint chunks_per_buffer, GError **exception)
+				  guint chunks_per_buffer, GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	unsigned int datum_size;
@@ -330,16 +330,16 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(bytes_per_chunk > 0);
 	g_return_if_fail(chunks_per_buffer > 0);
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
 	if (priv->addr != NULL) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_MAPPED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_MAPPED);
 		return;
 	}
 
@@ -359,7 +359,7 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	priv->addr = mmap(NULL, bytes_per_chunk * chunks_per_buffer, prot,
 			  MAP_SHARED, priv->fd, 0);
 	if (priv->addr == MAP_FAILED) {
-		generate_syscall_error(exception, errno,
+		generate_syscall_error(error, errno,
 				       "mmap(%d)", bytes_per_chunk * chunks_per_buffer);
 		return;
 	}
@@ -403,62 +403,62 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
  *            CLOCK_REALTIME(0), CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(2)
  *            is available in UAPI of Linux kernel.
  * @cycle_timer: (inout): A #HinokoCycleTimer to store data of cycle timer.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Retrieve the value of cycle timer register. This method call is available
  * once any isochronous context is created.
  */
 void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 				       HinokoCycleTimer *const *cycle_timer,
-				       GError **exception)
+				       GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(cycle_timer != NULL);
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
 	(*cycle_timer)->clk_id = clock_id;
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_timer) < 0)
-		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_CYCLE_TIMER2");
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_CYCLE_TIMER2");
 }
 
 /**
  * hinoko_fw_iso_ctx_set_rx_channels:
  * @self: A #HinokoFwIsoCtx.
  * @channel_flags: Flags for channels to listen to.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Indicate channels to listen to for IR context in buffer-fill mode.
  */
 void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 				       guint64 *channel_flags,
-				       GError **exception)
+				       GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	struct fw_cdev_set_iso_channels set = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 	g_return_if_fail(priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
 
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
 	set.channels = *channel_flags;
 	set.handle = priv->handle;
 	if (ioctl(priv->fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
-		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_SET_ISO_CHANNELS");
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_SET_ISO_CHANNELS");
 		return;
 	}
 
@@ -476,7 +476,7 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
  * @header_length: The number of bytes for @header.
  * @payload_length: The number of bytes for payload of isochronous context.
  * @schedule_interrupt: schedule hardware interrupt at isochronous cycle for the chunk.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Register data on buffer for payload of isochronous context.
  */
@@ -484,14 +484,14 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 				      HinokoFwIsoCtxMatchFlag tags, guint sy,
 				      const guint8 *header, guint header_length,
 				      guint payload_length, gboolean schedule_interrupt,
-				      GError **exception)
+				      GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	struct fw_cdev_iso_packet *datum;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(skip == TRUE || skip == FALSE);
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	g_return_if_fail(tags == 0 ||
 			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 ||
@@ -523,12 +523,12 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 	g_return_if_fail(priv->data_length + sizeof(*datum) + header_length <= priv->alloc_data_length);
 
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
 	if (priv->addr == NULL) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
 		return;
 	}
 
@@ -559,7 +559,7 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 		datum->control |= FW_CDEV_ISO_INTERRUPT;
 }
 
-static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
+static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
 	guint data_offset = 0;
@@ -620,7 +620,7 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 		arg.data = (__u64)(priv->addr + buf_offset);
 		arg.handle = priv->handle;
 		if (ioctl(priv->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0) {
-			generate_syscall_error(exception, errno,
+			generate_syscall_error(error, errno,
 					       "ioctl(%s)", "FW_CDEV_IOC_QUEUE_ISO");
 			return;
 		}
@@ -646,7 +646,7 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **exception)
 	priv->registered_chunk_count = 0;
 }
 
-static void fw_iso_ctx_stop(HinokoFwIsoCtx *self, GError *exception)
+static void fw_iso_ctx_stop(HinokoFwIsoCtx *self, GError *error)
 {
 	struct fw_cdev_stop_iso arg = {0};
 	HinokoFwIsoCtxPrivate *priv =
@@ -664,7 +664,7 @@ static void fw_iso_ctx_stop(HinokoFwIsoCtx *self, GError *exception)
 	priv->curr_offset = 0;
 
 	g_signal_emit(self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0,
-		      exception, NULL);
+		      error, NULL);
 }
 
 static gboolean check_src(GSource *gsrc)
@@ -672,48 +672,48 @@ static gboolean check_src(GSource *gsrc)
 	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
 	GIOCondition condition;
 
-	// Don't go to dispatch if nothing available. As an exception, return
+	// Don't go to dispatch if nothing available. As an error, return
 	// TRUE for POLLERR to call .dispatch for internal destruction.
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
 static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
-			     GError **exception)
+			     GError **error)
 {
 	if (HINOKO_IS_FW_ISO_RX_SINGLE((gpointer)ev->closure)) {
 		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE((gpointer)ev->closure);
 
-		hinoko_fw_iso_rx_single_handle_event(ctx, ev, exception);
+		hinoko_fw_iso_rx_single_handle_event(ctx, ev, error);
 	} else if (HINOKO_IS_FW_ISO_TX((gpointer)ev->closure)) {
 		HinokoFwIsoTx *ctx = HINOKO_FW_ISO_TX((gpointer)ev->closure);
 
-		hinoko_fw_iso_tx_handle_event(ctx, ev, exception);
+		hinoko_fw_iso_tx_handle_event(ctx, ev, error);
 	} else {
 		return;
 	}
 
-	if (*exception != NULL)
+	if (*error != NULL)
 		return;
 
-	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), exception);
+	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), error);
 }
 
 static void handle_irq_mc_event(struct fw_cdev_event_iso_interrupt_mc *ev,
-				GError **exception)
+				GError **error)
 {
 	if (HINOKO_IS_FW_ISO_RX_MULTIPLE((gpointer)ev->closure)) {
 		HinokoFwIsoRxMultiple *ctx = HINOKO_FW_ISO_RX_MULTIPLE((gpointer)ev->closure);
 
-		hinoko_fw_iso_rx_multiple_handle_event(ctx, ev, exception);
+		hinoko_fw_iso_rx_multiple_handle_event(ctx, ev, error);
 	} else {
 		return;
 	}
 
-	if (*exception != NULL)
+	if (*error != NULL)
 		return;
 
-	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), exception);
+	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), error);
 }
 
 static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
@@ -723,7 +723,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	HinokoFwIsoCtxPrivate *priv =
 				hinoko_fw_iso_ctx_get_instance_private(self);
 	GIOCondition condition;
-	GError *exception;
+	GError *error;
 	int len;
 	guint8 *buf;
 
@@ -737,7 +737,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	len = read(priv->fd, src->buf, src->len);
 	if (len < 0) {
 		if (errno != EAGAIN) {
-			generate_file_error(&exception, g_file_error_from_errno(errno),
+			generate_file_error(&error, g_file_error_from_errno(errno),
 					    "read %s", strerror(errno));
 			goto error;
 		}
@@ -752,17 +752,17 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 		switch (ev->common.type) {
 		case FW_CDEV_EVENT_ISO_INTERRUPT:
-			exception = NULL;
-			handle_irq_event(&ev->iso_interrupt, &exception);
-			if (exception != NULL)
+			error = NULL;
+			handle_irq_event(&ev->iso_interrupt, &error);
+			if (error != NULL)
 				goto error;
 			size = sizeof(ev->iso_interrupt) +
 			       ev->iso_interrupt.header_length;
 			break;
 		case FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL:
-			exception = NULL;
-			handle_irq_mc_event(&ev->iso_interrupt_mc, &exception);
-			if (exception != NULL)
+			error = NULL;
+			handle_irq_mc_event(&ev->iso_interrupt_mc, &error);
+			if (error != NULL)
 				goto error;
 			size = sizeof(ev->iso_interrupt_mc);
 			break;
@@ -777,7 +777,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
 error:
-	fw_iso_ctx_stop(self, exception);
+	fw_iso_ctx_stop(self, error);
 	return G_SOURCE_REMOVE;
 }
 
@@ -793,12 +793,12 @@ static void finalize_src(GSource *gsrc)
  * hinoko_fw_iso_ctx_create_source:
  * @self: A #hinokoFwIsoCtx.
  * @gsrc: (out): A #GSource.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Create Gsource for GMainContext to dispatch events for isochronous context.
  */
 void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
-				     GError **exception)
+				     GError **error)
 {
 	static GSourceFuncs funcs = {
 		.check		= check_src,
@@ -810,11 +810,11 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(gsrc != NULL);
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
@@ -853,28 +853,28 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
  * @sync: The value of sync field in isochronous header for packet processing,
  * 	  up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Start isochronous context.
  */
 void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, guint32 sync,
-			     HinokoFwIsoCtxMatchFlag tags, GError **exception)
+			     HinokoFwIsoCtxMatchFlag tags, GError **error)
 {
 	struct fw_cdev_start_iso arg = {0};
 	HinokoFwIsoCtxPrivate *priv;
 	gint cycle;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return;
 	}
 
 	if (priv->addr == NULL) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
 		return;
 	}
 
@@ -900,12 +900,12 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, g
 
 	// Not prepared.
 	if (priv->data_length == 0) {
-		generate_local_error(exception, HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED);
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED);
 		return;
 	}
 
-	fw_iso_ctx_queue_chunks(self, exception);
-	if (*exception != NULL)
+	fw_iso_ctx_queue_chunks(self, error);
+	if (*error != NULL)
 		return;
 
 	arg.sync = sync;
@@ -913,7 +913,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, g
 	arg.tags = tags;
 	arg.handle = priv->handle;
 	if (ioctl(priv->fd, FW_CDEV_IOC_START_ISO, &arg) < 0) {
-		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_START_ISO");
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_START_ISO");
 		return;
 	}
 
@@ -972,7 +972,7 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 /**
  * hinoko_fw_iso_ctx_flush_completions:
  * @self: A #HinokoFwIsoCtx.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Flush isochronous context until recent isochronous cycle. The call of function forces the
  * context to queue any type of interrupt event for the recent isochronous cycle. Application can
@@ -980,7 +980,7 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
  *
  * Since: 0.6.
  */
-void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **exception)
+void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
 
@@ -988,5 +988,5 @@ void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **exceptio
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (ioctl(priv->fd, FW_CDEV_IOC_FLUSH_ISO) < 0)
-		generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_FLUSH_ISO");
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_FLUSH_ISO");
 }

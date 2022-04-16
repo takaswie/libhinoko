@@ -29,7 +29,7 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 
 void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 				struct fw_cdev_event_iso_interrupt *event,
-				GError **exception);
+				GError **error);
 
 void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
 				struct fw_cdev_event_iso_interrupt_mc *event,

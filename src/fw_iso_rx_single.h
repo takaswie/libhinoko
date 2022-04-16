@@ -36,25 +36,25 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void);
 void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 				      const char *path,
 				      guint channel, guint header_size,
-				      GError **exception);
+				      GError **error);
 void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self);
 
 void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					guint maximum_bytes_per_payload,
 					guint payloads_per_buffer,
-					GError **exception);
+					GError **error);
 void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self);
 
 void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean schedule_interrupt,
-					     GError **exception);
+					     GError **error);
 
 void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
-				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **exception);
+				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error);
 void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self);
 
 void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 					 const guint8 **payload, guint *length,
-					 GError **exception);
+					 GError **error);
 
 G_END_DECLS
 

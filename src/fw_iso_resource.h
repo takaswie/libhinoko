@@ -20,30 +20,26 @@ struct _HinokoFwIsoResourceClass {
 
 	/**
 	 * HinokoFwIsoResourceClass::allocated:
-	 * @self: A #HinokoFwIsoResource.
+	 * @self: A [class@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @error: A #GError. Error can be generated with domain of
-	 *	   #hinoko_fw_iso_resource_error_quark() and code of
-	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
+	 * @error: A [struct@GLib.Error]. Error can be generated with domain of
+	 *	   Hinoko.FwIsoResourceError and its EVENT code.
 	 *
-	 * When allocation of isochronous resource finishes, the #HinokoFwIsoResourceClass::allocated
-	 * handler is called to notify the result, channel, and bandwidth.
+	 * Class closure for the [signal@FwIsoResource::allocated] signal.
 	 */
 	void (*allocated)(HinokoFwIsoResource *self, guint channel,
 			  guint bandwidth, const GError *error);
 
 	/**
 	 * HinokoFwIsoResourceClass::deallocated:
-	 * @self: A #HinokoFwIsoResource.
+	 * @self: A [class@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @error: A #GError. Error can be generated with domain of
-	 *	   #hinoko_fw_iso_resource_error_quark() and code of
-	 *	   #HINOKO_FW_ISO_RESOURCE_ERROR_EVENT.
+	 * @error: A [struct@GLib.Error]. Error can be generated with domain of
+	 *	   Hinoko.FwIsoResourceError and its EVENT code.
 	 *
-	 * When deallocation of isochronous resource finishes, the #HinokoFwIsoResourceClass::deallocated
-	 * handler is called to notify the result, channel, and bandwidth.
+	 * Class closure for the [signal@FwIsoResource::deallocated] signal.
 	 */
 	void (*deallocated)(HinokoFwIsoResource *self, guint channel,
 			    guint bandwidth, const GError *error);

@@ -10,12 +10,10 @@
 #include <errno.h>
 
 /**
- * SECTION:fw_iso_ctx
- * @Title: HinokoFwIsoCtx
- * @Short_description: An abstract object to maintain isochronous context.
- * @include: fw_iso_ctx.h
+ * HinokoFwIsoCtx
+ * An abstract object to maintain isochronous context.
  *
- * A #HinokoFwIsoCtx is an abstract object to maintain isochronous context by
+ * A [class@FwIsoCtx] is an abstract object to maintain isochronous context by
  * UAPI of Linux FireWire subsystem. All of operations utilize ioctl(2) with
  * subsystem specific request commands. This object is designed for internal
  * use, therefore a few method and properties are available for applications.
@@ -44,9 +42,10 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OB
 /**
  * hinoko_fw_iso_ctx_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinokoFwIsoCtxError.
+ * Return the [alias@GLib.Quark] for error domain of [struct@GLib.Error] which has code in
+ * Hinoko.FwIsoCtxError.
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinoko-fw-iso-ctx-error-quark, hinoko_fw_iso_ctx_error)
 
@@ -164,11 +163,10 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 
 	/**
 	 * HinokoFwIsoCtx::stopped:
-	 * @self: A #HinokoFwIsoCtx.
-	 * @error: (nullable): A #GError.
+	 * @self: A [class@FwIsoCtx].
+	 * @error: (nullable): A [struct@GLib.Error].
 	 *
-	 * When isochronous context is stopped, #HinokoFwIsoCtx::stopped is
-	 * emitted.
+	 * Emitted when isochronous context is stopped.
 	 */
 	fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED] =
 		g_signal_new("stopped",
@@ -190,13 +188,13 @@ static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)
 
 /**
  * hinoko_fw_iso_ctx_allocate:
- * @self: A #HinokoFwIsoCtx.
+ * @self: A [class@FwIsoCtx].
  * @path: A path to any Linux FireWire character device.
- * @mode: The mode of context, one of #HinokoFwIsoCtxMode enumerations.
- * @scode: The speed of context, one of #HinokoFwScode enumerations.
- * @channel: The numerical channel of context up to 64.
+ * @mode: The mode of context, one of [enum@FwIsoCtxMode] enumerations.
+ * @scode: The speed of context, one of [enum@FwScode] enumerations.
+ * @channel: The numeric channel of context up to 64.
  * @header_size: The number of bytes for header of isochronous context.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
  * Allocate a isochronous context to 1394 OHCI controller. A local node of the
  * node corresponding to the given path is used as the controller, thus any
@@ -290,7 +288,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 
 /**
  * hinoko_fw_iso_ctx_release:
- * @self: A #HinokoFwIsoCtx.
+ * @self: A [class@FwIsoCtx].
  *
  * Release allocated isochronous context from 1394 OHCI controller.
  */
@@ -311,14 +309,12 @@ void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
 
 /**
  * hinoko_fw_iso_ctx_map_buffer:
- * @self: A #HinokoFwIsoCtx.
- * @bytes_per_chunk: The number of bytes per chunk in buffer going to be
- *		     allocated.
+ * @self: A [class@FwIsoCtx].
+ * @bytes_per_chunk: The number of bytes per chunk in buffer going to be allocated.
  * @chunks_per_buffer: The number of chunks in buffer going to be allocated.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
- * Map intermediate buffer to share payload of isochronous context with 1394
- * OHCI controller.
+ * Map intermediate buffer to share payload of isochronous context with 1394 OHCI controller.
  */
 void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 				  guint chunks_per_buffer, GError **error)
@@ -370,10 +366,9 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 
 /**
  * hinoko_fw_iso_ctx_unmap_buffer:
- * @self: A #HinokoFwIsoCtx.
+ * @self: A [class@FwIsoCtx].
  *
- * Unmap intermediate buffer shard with 1394 OHCI controller for payload
- * of isochronous context.
+ * Unmap intermediate buffer shard with 1394 OHCI controller for payload of isochronous context.
  */
 void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 {
@@ -398,12 +393,11 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 
 /**
  * hinoko_fw_iso_ctx_get_cycle_timer:
- * @self: A #HinokoFwIsoCtx.
- * @clock_id: The numerical ID of clock source for the reference timestamp. One
- *            CLOCK_REALTIME(0), CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(2)
- *            is available in UAPI of Linux kernel.
- * @cycle_timer: (inout): A #HinokoCycleTimer to store data of cycle timer.
- * @error: A #GError.
+ * @self: A [class@FwIsoCtx].
+ * @clock_id: The numeric ID of clock source for the reference timestamp. One CLOCK_REALTIME(0),
+ *	      CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(2) is available in UAPI of Linux kernel.
+ * @cycle_timer: (inout): A [struct@CycleTimer] to store data of cycle timer.
+ * @error: A [struct@GLib.Error].
  *
  * Retrieve the value of cycle timer register. This method call is available
  * once any isochronous context is created.
@@ -431,9 +425,9 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 
 /**
  * hinoko_fw_iso_ctx_set_rx_channels:
- * @self: A #HinokoFwIsoCtx.
+ * @self: A [class@FwIsoCtx].
  * @channel_flags: Flags for channels to listen to.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
  * Indicate channels to listen to for IR context in buffer-fill mode.
  */
@@ -467,16 +461,16 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 
 /**
  * hinoko_fw_iso_ctx_register_chunk:
- * @self: A #HinokoFwIsoCtx.
+ * @self: A [class@FwIsoCtx].
  * @skip: Whether to skip packet transmission or not.
  * @tags: The value of tag field for isochronous packet to handle.
  * @sy: The value of sy field for isochronous packet to handle.
- * @header: (array length=header_length) (element-type guint8): The content of
- * 	    header for IT context, nothing for IR context.
+ * @header: (array length=header_length) (element-type guint8): The content of header for IT
+ *	    context, nothing for IR context.
  * @header_length: The number of bytes for @header.
  * @payload_length: The number of bytes for payload of isochronous context.
  * @schedule_interrupt: schedule hardware interrupt at isochronous cycle for the chunk.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
  * Register data on buffer for payload of isochronous context.
  */
@@ -791,11 +785,12 @@ static void finalize_src(GSource *gsrc)
 
 /**
  * hinoko_fw_iso_ctx_create_source:
- * @self: A #hinokoFwIsoCtx.
- * @gsrc: (out): A #GSource.
- * @error: A #GError.
+ * @self: A [class@FwIsoCtx].
+ * @gsrc: (out): A [struct@GLib.Source].
+ * @error: A [struct@GLib.Error].
  *
- * Create Gsource for GMainContext to dispatch events for isochronous context.
+ * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
+ * context.
  */
 void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 				     GError **error)
@@ -844,16 +839,14 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 
 /**
  * hinoko_fw_iso_ctx_start:
- * @self: A #HinokoFwIsoCtx.
- * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable):
- * 		 The isochronous cycle to start packet processing. The first
- * 		 element should be the second part of isochronous cycle, up to
- * 		 3. The second element should be the cycle part of isochronous
- * 		 cycle, up to 7999.
- * @sync: The value of sync field in isochronous header for packet processing,
- * 	  up to 15.
+ * @self: A [class@FwIsoCtx].
+ * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable): The isochronous cycle
+ *		 to start packet processing. The first element should be the second part of
+ *		 isochronous cycle, up to 3. The second element should be the cycle part of
+ *		 isochronous cycle, up to 7999.
+ * @sync: The value of sync field in isochronous header for packet processing, up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
  * Start isochronous context.
  */
@@ -922,7 +915,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, g
 
 /**
  * hinoko_fw_iso_ctx_stop:
- * @self: A #HinokoFwIsoCtx.
+ * @self: A [class@FwIsoCtx].
  *
  * Stop isochronous context.
  */
@@ -935,11 +928,11 @@ void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 
 /**
  * hinoko_fw_iso_ctx_read_frames:
- * @self: A #HinokoFwIsoCtx.
+ * @self: A [class@FwIsoCtx].
  * @offset: offset from head of buffer.
  * @length: the number of bytes to read.
- * @frames: (array length=frame_size)(out)(transfer none)(nullable): The array
- * 	    to fill the same data frame as @frame_size.
+ * @frames: (array length=frame_size)(out)(transfer none)(nullable): The array to fill the same
+ *	    data frame as @frame_size.
  * @frame_size: this value is for a case to truncate due to the end of buffer.
  *
  * Read frames to given buffer.
@@ -971,8 +964,8 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 
 /**
  * hinoko_fw_iso_ctx_flush_completions:
- * @self: A #HinokoFwIsoCtx.
- * @error: A #GError.
+ * @self: A [class@FwIsoCtx].
+ * @error: A [struct@GLib.Error].
  *
  * Flush isochronous context until recent isochronous cycle. The call of function forces the
  * context to queue any type of interrupt event for the recent isochronous cycle. Application can

@@ -19,11 +19,10 @@ struct _HinokoFwIsoCtxClass {
 
 	/**
 	 * HinokoFwIsoCtxClass::stopped:
-	 * @self: A #HinokoFwIsoCtx.
-	 * @error: (nullable): A #GError.
+	 * @self: A [class@FwIsoCtx].
+	 * @error: (nullable): A [struct@GLib.Error].
 	 *
-	 * When isochronous context is stopped, #HinokoFwIsoCtxClass::stopped
-	 * handler is called. When any error occurs, it's reported.
+	 * Class closure for the [signal@FwIsoCtx::stopped] signal.
 	 */
 	void (*stopped)(HinokoFwIsoCtx *self, const GError *error);
 };

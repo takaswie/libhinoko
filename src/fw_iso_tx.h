@@ -15,15 +15,15 @@ struct _HinokoFwIsoTxClass {
 
 	/**
 	 * HinokoFwIsoTxClass::interrupted:
-	 * @self: A #HinokoFwIsoTx.
+	 * @self: A [class@FwIsoTx].
 	 * @sec: sec part of isochronous cycle when interrupt occurs.
 	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
-	 * @tstamp: (array length=tstamp_length) (element-type guint8): A series
-	 *	    of timestamps for packets already handled.
+	 * @tstamp: (array length=tstamp_length) (element-type guint8): A series of timestamps for
+	 *	    packets already handled.
 	 * @tstamp_length: the number of bytes for @tstamp.
 	 * @count: the number of handled packets.
 	 *
-	 * In detail, please refer to documentation about #HinokoFwIsoTx::interrupted.
+	 * Class closure for the [signal@FwIsoTx::interrupted] signal.
 	 */
 	void (*interrupted)(HinokoFwIsoTx *self, guint sec, guint cycle,
 			    const guint8 *tstamp, guint tstamp_length,

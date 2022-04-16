@@ -43,8 +43,8 @@ static const char *const err_msgs[] = {
 		"No event to the request arrives within timeout.",
 };
 
-#define generate_local_error(exception, code) \
-	g_set_error_literal(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR, code, err_msgs[code])
+#define generate_local_error(error, code) \
+	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR, code, err_msgs[code])
 
 enum fw_iso_resource_auto_prop_type {
 	FW_ISO_RESOURCE_AUTO_PROP_ALLOCATED = 1,
@@ -137,7 +137,7 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
  *			to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @exception: A #GError. Error can be generated with domain of
+ * @error: A #GError. Error can be generated with domain of
  *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate allocation of isochronous resource. When the allocation is done,
@@ -147,14 +147,14 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 						guint8 *channel_candidates,
 						gsize channel_candidates_count,
 						guint bandwidth,
-						GError **exception)
+						GError **error)
 {
 	HinokoFwIsoResourceAutoPrivate *priv;
 	struct fw_cdev_allocate_iso_resource res = {0};
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
@@ -165,7 +165,7 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	g_mutex_lock(&priv->mutex);
 
 	if (priv->allocated) {
-		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED);
 		goto end;
 	}
 
@@ -177,8 +177,8 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 
 	hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
 				     FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res,
-				     exception);
-	if (*exception == NULL)
+				     error);
+	if (*error == NULL)
 		priv->handle = res.handle;
 end:
 	g_mutex_unlock(&priv->mutex);
@@ -187,27 +187,27 @@ end:
 /**
  * hinoko_fw_iso_resource_auto_deallocate_async:
  * @self: A #HinokoFwIsoResourceAuto.
- * @exception: A #GError. Error can be generated with domain of
+ * @error: A #GError. Error can be generated with domain of
  *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * #HinokoFwIsoResource::deallocated signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
-						  GError **exception)
+						  GError **error)
 {
 	HinokoFwIsoResourceAutoPrivate *priv;
 	struct fw_cdev_deallocate dealloc = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
 	g_mutex_lock(&priv->mutex);
 
 	if (!priv->allocated) {
-		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED);
+		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED);
 		goto end;
 	}
 
@@ -215,7 +215,7 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 
 	hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
 				     FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE,
-				     &dealloc, exception);
+				     &dealloc, error);
 end:
 	g_mutex_unlock(&priv->mutex);
 }
@@ -249,7 +249,7 @@ static void handle_event_signal(HinokoFwIsoResourceAuto *self, guint channel,
  *			to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @exception: A #GError. Error can be generated with domain of
+ * @error: A #GError. Error can be generated with domain of
  *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate allocation of isochronous resource and wait for #HinokoFwIsoResource::allocated signal.
@@ -260,14 +260,14 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 					       guint8 *channel_candidates,
 					       gsize channel_candidates_count,
 					       guint bandwidth,
-					       GError **exception)
+					       GError **error)
 {
 	struct waiter w;
 	guint64 expiration;
 	gulong handler_id;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	g_mutex_init(&w.mutex);
 	g_cond_init(&w.cond);
@@ -282,8 +282,8 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 
 	hinoko_fw_iso_resource_auto_allocate_async(self, channel_candidates,
 						   channel_candidates_count,
-						   bandwidth, exception);
-	if (*exception != NULL) {
+						   bandwidth, error);
+	if (*error != NULL) {
 		g_signal_handler_disconnect(self, handler_id);
 		return;
 	}
@@ -297,29 +297,29 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 	g_mutex_unlock(&w.mutex);
 
 	if (w.handled == FALSE)
-		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT);
+		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT);
 	else if (w.error != NULL)
-		*exception = w.error;	// Delegate ownership.
+		*error = w.error;	// Delegate ownership.
 }
 
 /**
  * hinoko_fw_iso_resource_auto_deallocate_sync:
  * @self: A #HinokoFwIsoResourceAuto.
- * @exception: A #GError. Error can be generated with domain of
+ * @error: A #GError. Error can be generated with domain of
  *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * #HinokoFwIsoResource::deallocated signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
-						 GError **exception)
+						 GError **error)
 {
 	struct waiter w;
 	guint64 expiration;
 	gulong handler_id;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	g_mutex_init(&w.mutex);
 	g_cond_init(&w.cond);
@@ -332,8 +332,8 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 	handler_id = g_signal_connect(self, "deallocated",
 				      (GCallback)handle_event_signal, &w);
 
-	hinoko_fw_iso_resource_auto_deallocate_async(self, exception);
-	if (*exception != NULL) {
+	hinoko_fw_iso_resource_auto_deallocate_async(self, error);
+	if (*error != NULL) {
 		g_signal_handler_disconnect(self, handler_id);
 		return;
 	}
@@ -347,9 +347,9 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 	g_mutex_unlock(&w.mutex);
 
 	if (w.handled == FALSE)
-		generate_local_error(exception, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT);
+		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT);
 	else if (w.error != NULL)
-		*exception = w.error;	// Delegate ownership.
+		*error = w.error;	// Delegate ownership.
 }
 
 void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,

@@ -41,7 +41,7 @@ void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
 
 void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 				  unsigned long request, void *argp,
-				  GError **exception);
+				  GError **error);
 
 void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,
 					struct fw_cdev_event_iso_resource *ev);

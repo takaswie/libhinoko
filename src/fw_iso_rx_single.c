@@ -5,13 +5,10 @@
 #include <errno.h>
 
 /**
- * SECTION:fw_iso_rx_single
- * @Title: HinokoFwIsoRxSingle
- * @Short_description: An object to receive isochronous packet for single
- *		       channel.
- * @include: fw_iso_rx_single.h
+ * HinokoFwIsoRxSingle:
+ * An object to receive isochronous packet for single channel.
  *
- * A #HinokoFwIsoRxSingle receives isochronous packets for single channel by IR
+ * A [class@FwIsoRxSingle] receives isochronous packets for single channel by IR
  * context for packet-per-buffer mode in 1394 OHCI. The content of packet is
  * split to two parts; context header and context payload in a manner of Linux
  * FireWire subsystem.
@@ -48,26 +45,25 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 
 	/**
 	 * HinokoFwIsoRxSingle::interrupted:
-	 * @self: A #HinokoFwIsoRxSingle.
+	 * @self: A [class@FwIsoRxSingle]
 	 * @sec: sec part of isochronous cycle when interrupt occurs.
 	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
-	 * @header: (array length=header_length) (element-type guint8): The
-	 * 	    headers of IR context for handled packets.
+	 * @header: (array length=header_length) (element-type guint8): The headers of IR context
+	 *	    for handled packets.
 	 * @header_length: the number of bytes for @header.
 	 * @count: the number of packets to handle.
 	 *
-	 * When Linux FireWire subsystem generates interrupt event, the
-	 * #HinokoFwIsoRxSingle::interrupted signal is emitted. There are three cases for Linux
-	 * FireWire subsystem to generate the event:
+	 * Emitted when Linux FireWire subsystem generates interrupt event. There are three cases
+	 * for Linux FireWire subsystem to generate the event:
 	 *
 	 * - When OHCI 1394 controller generates hardware interrupt as a result to process the
 	 *   isochronous packet for the buffer chunk marked to generate hardware interrupt.
 	 * - When the size of accumulated context header for packets since the last event reaches
 	 *   the size of memory page (usually 4,096 bytes).
-	 * - When application calls #hinoko_fw_iso_ctx_flush_completions() explicitly.
+	 * - When application calls [method@FwIsoCtx.flush_completions] explicitly.
 	 *
 	 * The handler of signal can retrieve context payload of received packet by call of
-	 * #hinoko_fw_iso_rx_single_get_payload().
+	 * [method@FwIsoRxSingle.get_payload].
 	 */
 	fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_IRQ] =
 		g_signal_new("interrupted",
@@ -89,9 +85,9 @@ static void hinoko_fw_iso_rx_single_init(HinokoFwIsoRxSingle *self)
 /**
  * hinoko_fw_iso_rx_single_new:
  *
- * Instantiate #HinokoFwIsoRxSingle object and return the instance.
+ * Instantiate [class@FwIsoRxSingle] object and return the instance.
  *
- * Returns: an instance of #HinokoFwIsoRxSingle.
+ * Returns: an instance of [class@FwIsoRxSingle].
  */
 HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
 {
@@ -100,16 +96,15 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
 
 /**
  * hinoko_fw_iso_rx_single_allocate:
- * @self: A #HinokoFwIsoRxSingle.
+ * @self: A [class@FwIsoRxSingle].
  * @path: A path to any Linux FireWire character device.
  * @channel: An isochronous channel to listen.
  * @header_size: The number of bytes for header of IR context.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
- * Allocate an IR context to 1394 OHCI controller for packet-per-buffer mode.
- * A local node of the node corresponding to the given path is used as the
- * controller, thus any path is accepted as long as process has enough
- * permission for the path.
+ * Allocate an IR context to 1394 OHCI controller for packet-per-buffer mode. A local node of the
+ * node corresponding to the given path is used as the controller, thus any path is accepted as
+ * long as process has enough permission for the path.
  */
 void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 				      const char *path,
@@ -134,7 +129,7 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 
 /**
  * hinoko_fw_iso_rx_single_release:
- * @self: A #HinokoFwIsoRxSingle.
+ * @self: A [class@FwIsoRxSingle].
  *
  * Release allocated IR context from 1394 OHCI controller.
  */
@@ -148,14 +143,12 @@ void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self)
 
 /*
  * hinoko_fw_iso_rx_single_map_buffer:
- * @self: A #HinokoFwIsoRxSingle.
- * @maximum_bytes_per_payload: The maximum number of bytes per payload of IR
- *			       context.
+ * @self: A [class@FwIsoRxSingle].
+ * @maximum_bytes_per_payload: The maximum number of bytes per payload of IR context.
  * @payloads_per_buffer: The number of payload in buffer.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
- * Map intermediate buffer to share payload of IR context with 1394 OHCI
- * controller.
+ * Map intermediate buffer to share payload of IR context with 1394 OHCI controller.
  */
 void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					guint maximum_bytes_per_payload,
@@ -172,10 +165,9 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 
 /**
  * hinoko_fw_iso_rx_single_unmap_buffer:
- * @self: A #HinokoFwIsoRxSingle.
+ * @self: A [class@FwIsoRxSingle].
  *
- * Unmap intermediate buffer shard with 1394 OHCI controller for payload
- * of IR context.
+ * Unmap intermediate buffer shard with 1394 OHCI controller for payload of IR context.
  */
 void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 {
@@ -187,13 +179,13 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 
 /**
  * hinoko_fw_iso_rx_single_register_packet:
- * @self: A #HinokoFwIsoRxSingle.
+ * @self: A [class@FwIsoRxSingle].
  * @schedule_interrupt: Whether to schedule hardware interrupt at isochronous cycle for the packet.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
  * Register chunk of buffer to process packet for future isochronous cycle. The caller can schedule
  * hardware interrupt to generate interrupt event. In detail, please refer to documentation about
- * #HinokoFwIsoRxSingle::interrupted signal.
+ * [signal@FwIsoRxSingle::interrupted] signal.
  *
  * Since: 0.6.
  */
@@ -206,16 +198,14 @@ void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean
 
 /**
  * hinoko_fw_iso_rx_single_start:
- * @self: A #HinokoFwIsoRxSingle.
- * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable):
- * 		 The isochronous cycle to start packet processing. The first
- * 		 element should be the second part of isochronous cycle, up to
- * 		 3. The second element should be the cycle part of isochronous
- * 		 cycle, up to 7999.
- * @sync: The value of sync field in isochronous header for packet processing,
- * 	  up to 15.
+ * @self: A [class@FwIsoRxSingle].
+ * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable): The isochronous cycle
+ *		 to start packet processing. The first element should be the second part of
+ *		 isochronous cycle, up to 3. The second element should be the cycle part of
+ *		 isochronous cycle, up to 7999.
+ * @sync: The value of sync field in isochronous header for packet processing, up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
  * Start IR context.
  *
@@ -238,7 +228,7 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cyc
 
 /**
  * hinoko_fw_iso_rx_single_stop:
- * @self: A #HinokoFwIsoRxSingle.
+ * @self: A [class@FwIsoRxSingle].
  *
  * Stop IR context.
  */
@@ -285,12 +275,12 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 
 /**
  * hinoko_fw_iso_rx_single_get_payload:
- * @self: A #HinokoFwIsoRxSingle.
+ * @self: A [class@FwIsoRxSingle].
  * @index: the index inner available packets.
- * @payload: (element-type guint8)(array length=length)(out)(transfer none): The
- *	     array with data frame for payload of IR context.
- * @length: The number of bytes in the above @payload.
- * @error: A #GError.
+ * @payload: (element-type guint8)(array length=length)(out)(transfer none): The array with data
+ *	     frame for payload of IR context.
+ * @length: The number of bytes in the above payload.
+ * @error: A [struct@GLib.Error].
  *
  * Retrieve payload of IR context for a handled packet corresponding to index.
  */

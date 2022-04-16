@@ -16,15 +16,15 @@ struct _HinokoFwIsoRxSingleClass {
 
 	/**
 	 * HinokoFwIsoRxSingleClass::interrupted:
-	 * @self: A #HinokoFwIsoRxSingle.
+	 * @self: A [class@FwIsoRxSingle].
 	 * @sec: sec part of isochronous cycle when interrupt occurs.
 	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
-	 * @header: (array length=header_length) (element-type guint8): The
-	 * 	    headers of IR context for handled packets.
-	 * @header_length: the number of bytes for @header.
+	 * @header: (array length=header_length) (element-type guint8): The headers of IR context
+	 *	    for handled packets.
+	 * @header_length: the number of bytes for header.
 	 * @count: the number of packets to handle.
 	 *
-	 * In detail, please refer to documentation about #HinokoFwIsoRxSingle::interrupted.
+	 * Class closure for the [signal@FwIsoRxSingle::interrupted] signal.
 	 */
 	void (*interrupted)(HinokoFwIsoRxSingle *self, guint sec, guint cycle,
 			    const guint8 *header, guint header_length,

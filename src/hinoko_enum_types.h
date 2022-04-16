@@ -65,7 +65,7 @@ typedef enum /*< flags >*/
  * @HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT:	No event to the request arrives within timeout.
  * @HINOKO_FW_ISO_RESOURCE_ERROR_EVENT:		Event for the request arrives but includes error code.
  *
- * A set of error code for GError with domain which equals to #hinoko_fw_iso_resource_error_quark();
+ * A set of error code for [class@FwIsoResource].
  */
 typedef enum {
 	HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,
@@ -85,7 +85,7 @@ typedef enum {
  * @HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_TIMEOUT:		No event to the request arrives within
  *							timeout.
  *
- * A set of error code for GError with domain which equals to #hinoko_fw_iso_resource_error_quark();
+ * A set of error code for [class@FwIsoResourceAuto].
  */
 typedef enum {
 	HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED,
@@ -108,7 +108,7 @@ typedef enum {
  * @HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED:	No chunk registered before starting.
  * @HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL:	No isochronous channel is available.
  *
- * A set of error code for GError with domain which equals to #hinoko_fw_iso_ctx_error_quark();
+ * A set of error code for [class@FwIsoCtx].
  */
 typedef enum {
 	HINOKO_FW_ISO_CTX_ERROR_FAILED,

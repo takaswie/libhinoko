@@ -4,15 +4,12 @@
 #include <errno.h>
 
 /**
- * SECTION:fw_iso_resource_auto
- * @Title: HinokoFwIsoResourceAuto
- * @Short_description: An object to maintain allocated isochronous resource.
- * @include: fw_iso_resource_auto.h
+ * HinokoFwIsoResourceAuto:
+ * An object to maintain allocated isochronous resource.
  *
- * A #HinokoFwIsoResourceAuto is an object to maintain isochronous resource
- * during the lifetime of the object. The allocated isochronous resource is
- * kept even if the generation of the bus updates. The maintenance of allocated
- * isochronous resource is done by Linux FireWire subsystem.
+ * A [class@FwIsoResourceAuto]is an object to maintain isochronous resource during the lifetime of
+ * the object. The allocated isochronous resource is kept even if the generation of the bus
+ * updates. The maintenance of allocated isochronous resource is done by Linux FireWire subsystem.
  */
 typedef struct {
 	gboolean allocated;
@@ -28,9 +25,10 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto,
 /**
  * hinoko_fw_iso_resource_auto_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinokoFwIsoResourceAutoError.
+ * Return the [alias@GLib.Quark] for error domain of [struct@GLib.Error] which has code in
+ * Hinoko.FwIsoResourceAutoError.
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinoko-fw-iso-resource-auto-error-quark, hinoko_fw_iso_resource_auto_error)
 
@@ -120,9 +118,9 @@ static void hinoko_fw_iso_resource_auto_init(HinokoFwIsoResourceAuto *self)
 /**
  * hinoko_fw_iso_resource_auto_new:
  *
- * Allocate and return an instance of #HinokoFwIsoResourceAuto object.
+ * Allocate and return an instance of [class@FwIsoResourceAuto]object.
  *
- * Returns: A #HinokoFwIsoResourceAuto.
+ * Returns: A [class@FwIsoResourceAuto]
  */
 HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
 {
@@ -131,17 +129,17 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
 
 /**
  * hinoko_fw_iso_resource_auto_allocate_async:
- * @self: A #HinokoFwIsoResourceAuto.
+ * @self: A [class@FwIsoResourceAuto]
  * @channel_candidates: (array length=channel_candidates_count): The array with
  *			elements for numerical number for isochronous channel
  *			to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @error: A #GError. Error can be generated with domain of
- *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of
+ *	   Hinoko.FwIsoResourceError and Hinoko.FwIsoResourceAutoError.
  *
  * Initiate allocation of isochronous resource. When the allocation is done,
- * #HinokoFwIsoResource::allocated signal is emit to notify the result, channel, and bandwidth.
+ * [signal@FwIsoResource::allocated] signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 						guint8 *channel_candidates,
@@ -186,12 +184,12 @@ end:
 
 /**
  * hinoko_fw_iso_resource_auto_deallocate_async:
- * @self: A #HinokoFwIsoResourceAuto.
- * @error: A #GError. Error can be generated with domain of
- *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
+ * @self: A [class@FwIsoResourceAuto]
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of
+ *	   Hinoko.FwIsoResourceError, and Hinoko.FwIsoResourceAutoError.
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
- * #HinokoFwIsoResource::deallocated signal is emit to notify the result, channel, and bandwidth.
+ * [signal@FwIsoResource::deallocated] signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 						  GError **error)
@@ -243,18 +241,17 @@ static void handle_event_signal(HinokoFwIsoResourceAuto *self, guint channel,
 
 /**
  * hinoko_fw_iso_resource_auto_allocate_sync:
- * @self: A #HinokoFwIsoResourceAuto.
- * @channel_candidates: (array length=channel_candidates_count): The array with
- *			elements for numerical number for isochronous channel
- *			to be allocated.
+ * @self: A [class@FwIsoResourceAuto]
+ * @channel_candidates: (array length=channel_candidates_count): The array with elements for
+ *			numerical number for isochronous channel to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @error: A #GError. Error can be generated with domain of
- *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of
+ *	   Hinoko.FwIsoResourceError, and Hinoko.FwIsoResourceAutoError.
  *
- * Initiate allocation of isochronous resource and wait for #HinokoFwIsoResource::allocated signal.
- * When the call is successful, #HinokoFwIsoResourceAuto:channel and #HinokoFwIsoResourceAuto:bandwidth
- * properties are available.
+ * Initiate allocation of isochronous resource and wait for [signal@FwIsoResource::allocated]
+ * signal. When the call is successful, [property@FwIsoResourceAuto:channel] and
+ * [property@FwIsoResourceAuto:bandwidth] properties are available.
  */
 void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 					       guint8 *channel_candidates,
@@ -304,12 +301,12 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 
 /**
  * hinoko_fw_iso_resource_auto_deallocate_sync:
- * @self: A #HinokoFwIsoResourceAuto.
- * @error: A #GError. Error can be generated with domain of
- *	       #hinoko_fw_iso_resource_error_quark(), and #hinoko_fw_iso_resource_auto_error_quark().
+ * @self: A [class@FwIsoResourceAuto]
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of
+ *	   Hinoko.FwIsoResourceError, and Hinoko.FwIsoResourceAutoError.
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
- * #HinokoFwIsoResource::deallocated signal is emit to notify the result, channel, and bandwidth.
+ * [signal@FwIsoResource::deallocated] signal is emit to notify the result, channel, and bandwidth.
  */
 void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 						 GError **error)

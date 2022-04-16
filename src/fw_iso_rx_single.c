@@ -104,7 +104,7 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * @path: A path to any Linux FireWire character device.
  * @channel: An isochronous channel to listen.
  * @header_size: The number of bytes for header of IR context.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Allocate an IR context to 1394 OHCI controller for packet-per-buffer mode.
  * A local node of the node corresponding to the given path is used as the
@@ -114,19 +114,19 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
 void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 				      const char *path,
 				      guint channel, guint header_size,
-				      GError **exception)
+				      GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
 				 HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0,
-				 channel, header_size, exception);
-	if (*exception != NULL)
+				 channel, header_size, error);
+	if (*error != NULL)
 		return;
 
 	priv->header_size = header_size;
@@ -152,7 +152,7 @@ void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self)
  * @maximum_bytes_per_payload: The maximum number of bytes per payload of IR
  *			       context.
  * @payloads_per_buffer: The number of payload in buffer.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Map intermediate buffer to share payload of IR context with 1394 OHCI
  * controller.
@@ -160,14 +160,14 @@ void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self)
 void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					guint maximum_bytes_per_payload,
 					guint payloads_per_buffer,
-					GError **exception)
+					GError **error)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
 				     maximum_bytes_per_payload,
-				     payloads_per_buffer, exception);
+				     payloads_per_buffer, error);
 }
 
 /**
@@ -189,7 +189,7 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
  * hinoko_fw_iso_rx_single_register_packet:
  * @self: A #HinokoFwIsoRxSingle.
  * @schedule_interrupt: Whether to schedule hardware interrupt at isochronous cycle for the packet.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Register chunk of buffer to process packet for future isochronous cycle. The caller can schedule
  * hardware interrupt to generate interrupt event. In detail, please refer to documentation about
@@ -198,10 +198,10 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
  * Since: 0.6.
  */
 void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean schedule_interrupt,
-					     GError **exception)
+					     GError **error)
 {
 	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
-					 schedule_interrupt, exception);
+					 schedule_interrupt, error);
 }
 
 /**
@@ -215,25 +215,25 @@ void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean
  * @sync: The value of sync field in isochronous header for packet processing,
  * 	  up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Start IR context.
  *
  * Since: 0.6.
  */
 void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
-				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **exception)
+				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	priv->chunk_cursor = 0;
 
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, exception);
+	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, error);
 }
 
 /**
@@ -251,7 +251,7 @@ void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self)
 
 void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
 				struct fw_cdev_event_iso_interrupt *event,
-				GError **exception)
+				GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 	guint sec;
@@ -290,13 +290,13 @@ void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
  * @payload: (element-type guint8)(array length=length)(out)(transfer none): The
  *	     array with data frame for payload of IR context.
  * @length: The number of bytes in the above @payload.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Retrieve payload of IR context for a handled packet corresponding to index.
  */
 void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 					 const guint8 **payload, guint *length,
-					 GError **exception)
+					 GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 	unsigned int bytes_per_chunk;
@@ -307,7 +307,7 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	guint frame_size;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(exception != NULL && *exception == NULL);
+	g_return_if_fail(error != NULL && *error == NULL);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 

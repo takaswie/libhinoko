@@ -164,7 +164,7 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 	/**
 	 * HinokoFwIsoCtx::stopped:
 	 * @self: A [class@FwIsoCtx].
-	 * @error: (nullable): A [struct@GLib.Error].
+	 * @error: (transfer none) (nullable): A [struct@GLib.Error].
 	 *
 	 * Emitted when isochronous context is stopped.
 	 */

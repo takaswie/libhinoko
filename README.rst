@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2022/04/17
+2022/04/18
 Takashi Sakamoto
 
 Introduction
@@ -73,6 +73,30 @@ How to refer document
     $ meson install -C build
 
 You can see documentation files under ``(directory-to-install)/share/doc/hinoko/``.
+
+Loss of backward compatibility between v0.6/v0.7 releases
+=========================================================
+
+The status of project is still under development. Below public functions are removed since v0.7
+release without backward compatibility:
+
+- ``Hinoko.FwIsoResource.allocate_once_async``
+- ``Hinoko.FwIsoResource.allocate_once_sync``
+- ``Hinoko.FwIsoResource.deallocate_once_async``
+- ``Hinoko.FwIsoResource.deallocate_once_sync``
+
+``Hinoko.FwIsoResourceOnce`` is newly added and some alternative functions are available:
+
+- ``Hinoko.FwIsoResourceOnce.allocate_async``
+- ``Hinoko.FwIsoResourceOnce.allocate_sync``
+- ``Hinoko.FwIsoResourceOnce.deallocate_async``
+- ``Hinoko.FwIsoResourceOnce.deallocate_sync``
+
+Additionally, below puclic functions are changed to have an argument for the value of timeout to
+wait for event:
+
+- ``Hinoko.FwIsoResourceAuto.allocate_sync``
+- ``Hinoko.FwIsoResourceAuto.deallocate_sync``
 
 Loss of backward compatibility between v0.5/v0.6 releases
 =========================================================

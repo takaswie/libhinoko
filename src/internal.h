@@ -43,7 +43,8 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 				  unsigned long request, void *argp,
 				  GError **error);
 
-void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,
-					struct fw_cdev_event_iso_resource *ev);
+void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self, guint channel,
+					      guint bandwidth, const char *signal_name,
+					      const GError *error);
 
 #endif

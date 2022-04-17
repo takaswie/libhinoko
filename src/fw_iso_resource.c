@@ -446,14 +446,8 @@ static void handle_iso_resource_event(HinokoFwIsoResource *self,
 {
 	guint channel;
 	guint bandwidth;
-	int sig_type;
+	enum fw_iso_resource_sig_type signal_type;
 	GError *error = NULL;
-
-	// To change state machine for auto mode.
-	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self)) {
-		hinoko_fw_iso_resource_auto_handle_event(
-					HINOKO_FW_ISO_RESOURCE_AUTO(self), ev);
-	}
 
 	if (ev->channel >= 0) {
 		channel = ev->channel;
@@ -465,12 +459,24 @@ static void handle_iso_resource_event(HinokoFwIsoResource *self,
 	}
 
 	if (ev->type == FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED)
-		sig_type = FW_ISO_RESOURCE_SIG_ALLOCATED;
+		signal_type = FW_ISO_RESOURCE_SIG_ALLOCATED;
 	else
-		sig_type = FW_ISO_RESOURCE_SIG_DEALLOCATED;
+		signal_type = FW_ISO_RESOURCE_SIG_DEALLOCATED;
 
-	g_signal_emit(self, fw_iso_resource_sigs[sig_type],
-		      0, channel, bandwidth, error);
+	// To change state machine for auto mode.
+	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self)) {
+		const char *signal_name;
+
+		if (signal_type == FW_ISO_RESOURCE_SIG_ALLOCATED)
+			signal_name = "allocated";
+		else
+			signal_name = "deallocated";
+
+		hinoko_fw_iso_resource_auto_handle_event(HINOKO_FW_ISO_RESOURCE_AUTO(self),
+							 channel, bandwidth, signal_name, error);
+	}
+
+	g_signal_emit(self, fw_iso_resource_sigs[signal_type], 0, channel, bandwidth, error);
 
 	if (error != NULL)
 		g_clear_error(&error);

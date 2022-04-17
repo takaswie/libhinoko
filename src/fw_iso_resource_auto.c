@@ -349,25 +349,26 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 		*error = w.error;	// Delegate ownership.
 }
 
-void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self,
-					struct fw_cdev_event_iso_resource *ev)
+void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self, guint channel,
+					      guint bandwidth, const char *signal_name,
+					      const GError *error)
 {
 	HinokoFwIsoResourceAutoPrivate *priv =
 			hinoko_fw_iso_resource_auto_get_instance_private(self);
 
-	if (ev->type == FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED) {
-		if (ev->channel >= 0) {
+	if (!strcmp(signal_name, "allocated")) {
+		if (error == NULL) {
 			g_mutex_lock(&priv->mutex);
-			priv->channel = ev->channel;
-			priv->bandwidth = ev->bandwidth;
+			priv->channel = channel;
+			priv->bandwidth = bandwidth;
 			priv->allocated = TRUE;
 			g_mutex_unlock(&priv->mutex);
 		}
-	} else {
-		if (ev->channel >= 0) {
+	} else if (!strcmp(signal_name, "deallocated")) {
+		if (error == NULL) {
 			g_mutex_lock(&priv->mutex);
 			priv->channel = 0;
-			priv->bandwidth -= ev->bandwidth;
+			priv->bandwidth -= bandwidth;
 			priv->allocated = FALSE;
 			g_mutex_unlock(&priv->mutex);
 		}

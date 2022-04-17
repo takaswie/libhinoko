@@ -94,8 +94,8 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 * @self: A [class@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @error: A [struct@GLib.Error]. Error can be generated with domain of
-	 *	   Hinoko.FwIsoResourceError and its EVENT code.
+	 * @error: (transfer none) (nullable): A [struct@GLib.Error]. Error can be generated with
+	 *	   domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Emitted when allocation of isochronous resource finishes.
 	 */
@@ -114,8 +114,8 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 * @self: A [class@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @error: A [struct@GLib.Error]. Error can be generated with domain of
-	 *	   Hinoko.FwIsoResourceError and its EVENT code.
+	 * @error: (transfer none) (nullable): A [struct@GLib.Error]. Error can be generated with
+	 *	   domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Emitted when deallocation of isochronous resource finishes.
 	 */
@@ -447,7 +447,7 @@ static void handle_iso_resource_event(HinokoFwIsoResource *self,
 	guint channel;
 	guint bandwidth;
 	int sig_type;
-	GError *error;
+	GError *error = NULL;
 
 	// To change state machine for auto mode.
 	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self)) {
@@ -458,7 +458,6 @@ static void handle_iso_resource_event(HinokoFwIsoResource *self,
 	if (ev->channel >= 0) {
 		channel = ev->channel;
 		bandwidth = ev->bandwidth;
-		error = NULL;
 	} else {
 		channel = 0;
 		bandwidth = 0;

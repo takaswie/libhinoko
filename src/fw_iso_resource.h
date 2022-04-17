@@ -23,8 +23,8 @@ struct _HinokoFwIsoResourceClass {
 	 * @self: A [class@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @error: A [struct@GLib.Error]. Error can be generated with domain of
-	 *	   Hinoko.FwIsoResourceError and its EVENT code.
+	 * @error: (transfer none) (nullable): A [struct@GLib.Error]. Error can be generated with
+	 *	   domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Class closure for the [signal@FwIsoResource::allocated] signal.
 	 */
@@ -36,8 +36,8 @@ struct _HinokoFwIsoResourceClass {
 	 * @self: A [class@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @error: A [struct@GLib.Error]. Error can be generated with domain of
-	 *	   Hinoko.FwIsoResourceError and its EVENT code.
+	 * @error: (transfer none) (nullable): A [struct@GLib.Error]. Error can be generated with
+	 *	   domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Class closure for the [signal@FwIsoResource::deallocated] signal.
 	 */

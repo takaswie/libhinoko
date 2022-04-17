@@ -29,12 +29,12 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 					       guint8 *channel_candidates,
 					       gsize channel_candidates_count,
-					       guint bandwidth,
+					       guint bandwidth, guint timeout_ms,
 					       GError **error);
 
 void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 						  GError **error);
-void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
+void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self, guint timeout_ms,
 						 GError **error);
 
 G_END_DECLS

@@ -93,4 +93,7 @@ HINOKO_0_7_0 {
   global:
     "hinoko_fw_iso_resource_auto_allocate_sync";
     "hinoko_fw_iso_resource_auto_deallocate_sync";
+
+    "hinoko_fw_iso_resource_once_get_type";
+    "hinoko_fw_iso_resource_once_new";
 } HINOKO_0_5_0;

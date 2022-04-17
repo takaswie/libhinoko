@@ -47,4 +47,19 @@ void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self, gui
 					      guint bandwidth, const char *signal_name,
 					      const GError *error);
 
+struct fw_iso_resource_waiter {
+	GMutex mutex;
+	GCond cond;
+	GError *error;
+	gboolean handled;
+	guint64 expiration;
+	gulong handler_id;
+};
+
+void fw_iso_resource_waiter_init(HinokoFwIsoResource *self, struct fw_iso_resource_waiter *w,
+				 const char *signal_name, guint timeout_ms);
+
+void fw_iso_resource_waiter_wait(HinokoFwIsoResource *self, struct fw_iso_resource_waiter *w,
+				 GError **error);
+
 #endif

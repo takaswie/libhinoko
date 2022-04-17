@@ -272,18 +272,10 @@ void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
 		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE");
 }
 
-struct waiter {
-	GMutex mutex;
-	GCond cond;
-	GError *error;
-	gboolean handled;
-};
-
-static void handle_event_signal(HinokoFwIsoResource *self, guint channel,
-				guint bandwidth, const GError *error,
-				gpointer user_data)
+static void handle_event_signal(HinokoFwIsoResource *self, guint channel, guint bandwidth,
+				const GError *error, gpointer user_data)
 {
-	struct waiter *w = (struct waiter *)user_data;
+	struct fw_iso_resource_waiter *w = (struct fw_iso_resource_waiter *)user_data;
 
 	g_mutex_lock(&w->mutex);
 	if (error != NULL)
@@ -291,6 +283,41 @@ static void handle_event_signal(HinokoFwIsoResource *self, guint channel,
 	w->handled = TRUE;
 	g_cond_signal(&w->cond);
 	g_mutex_unlock(&w->mutex);
+}
+
+// For internal use.
+void fw_iso_resource_waiter_init(HinokoFwIsoResource *self, struct fw_iso_resource_waiter *w,
+				 const char *signal_name, guint timeout_ms)
+{
+	g_mutex_init(&w->mutex);
+	g_cond_init(&w->cond);
+	w->error = NULL;
+	w->handled = FALSE;
+	w->expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
+	w->handler_id = g_signal_connect(self, signal_name, G_CALLBACK(handle_event_signal), w);
+}
+
+// For internal use.
+void fw_iso_resource_waiter_wait(HinokoFwIsoResource *self, struct fw_iso_resource_waiter *w,
+				 GError **error)
+{
+	if (*error != NULL) {
+		g_signal_handler_disconnect(self, w->handler_id);
+		return;
+	}
+
+	g_mutex_lock(&w->mutex);
+	while (w->handled == FALSE) {
+		if (!g_cond_wait_until(&w->cond, &w->mutex, w->expiration))
+			break;
+	}
+	g_signal_handler_disconnect(self, w->handler_id);
+	g_mutex_unlock(&w->mutex);
+
+	if (w->handled == FALSE)
+		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
+	else if (w->error != NULL)
+		*error = w->error;	// Delegate ownership.
 }
 
 /**
@@ -312,44 +339,18 @@ void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
 					       guint bandwidth,
 					       GError **error)
 {
-	struct waiter w;
-	guint64 expiration;
-	gulong handler_id;
+	struct fw_iso_resource_waiter w;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
 	g_return_if_fail(error != NULL && *error == NULL);
 
-	g_mutex_init(&w.mutex);
-	g_cond_init(&w.cond);
-	w.error = NULL;
-	w.handled = FALSE;
-
-	// For safe, use 100 msec for timeout.
-	expiration = g_get_monotonic_time() + 100 * G_TIME_SPAN_MILLISECOND;
-
-	handler_id = g_signal_connect(self, "allocated",
-				      (GCallback)handle_event_signal, &w);
+	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", 100);
 
 	hinoko_fw_iso_resource_allocate_once_async(self, channel_candidates,
 						   channel_candidates_count,
 						   bandwidth, error);
-	if (*error != NULL) {
-		g_signal_handler_disconnect(self, handler_id);
-		return;
-	}
 
-	g_mutex_lock(&w.mutex);
-	while (w.handled == FALSE) {
-		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
-			break;
-	}
-	g_signal_handler_disconnect(self, handler_id);
-	g_mutex_unlock(&w.mutex);
-
-	if (w.handled == FALSE)
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
-	else if (w.error != NULL)
-		*error = w.error;	// Delegate ownership.
+	fw_iso_resource_waiter_wait(HINOKO_FW_ISO_RESOURCE(self), &w, error);
 }
 
 /**
@@ -367,43 +368,17 @@ void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
 						 guint bandwidth,
 						 GError **error)
 {
-	struct waiter w;
-	guint64 expiration;
-	gulong handler_id;
+	struct fw_iso_resource_waiter w;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
 	g_return_if_fail(error != NULL && *error == NULL);
 
-	g_mutex_init(&w.mutex);
-	g_cond_init(&w.cond);
-	w.error = NULL;
-	w.handled = FALSE;
-
-	// For safe, use 100 msec for timeout.
-	expiration = g_get_monotonic_time() + 100 * G_TIME_SPAN_MILLISECOND;
-
-	handler_id = g_signal_connect(self, "deallocated",
-				      (GCallback)handle_event_signal, &w);
+	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", 100);
 
 	hinoko_fw_iso_resource_deallocate_once_async(self, channel, bandwidth,
 						     error);
-	if (*error != NULL) {
-		g_signal_handler_disconnect(self, handler_id);
-		return;
-	}
 
-	g_mutex_lock(&w.mutex);
-	while (w.handled == FALSE) {
-		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
-			break;
-	}
-	g_signal_handler_disconnect(self, handler_id);
-	g_mutex_unlock(&w.mutex);
-
-	if (w.handled == FALSE)
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
-	else if (w.error != NULL)
-		*error = w.error;	// Delegate ownership.
+	fw_iso_resource_waiter_wait(HINOKO_FW_ISO_RESOURCE(self), &w, error);
 }
 
 // For internal use.

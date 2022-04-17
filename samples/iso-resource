@@ -27,7 +27,7 @@ def handle_event(res, channel, bandwidth, exception, ev_name):
 
 # For Once mode. The allocation is bound to current generation of the bus and
 # lost automatically by bus reset without notification.
-res = Hinoko.FwIsoResource.new()
+res = Hinoko.FwIsoResourceOnce.new()
 res.open('/dev/fw0', 0)
 res.connect('allocated', handle_event, 'allocated')
 res.connect('deallocated', handle_event, 'deallocated')
@@ -37,7 +37,7 @@ src.attach(ctx)
 
 for i in range(2):
     try:
-        res.allocate_once_sync((use_channel, ), use_bandwidth)
+        res.allocate_sync((use_channel, ), use_bandwidth, 100)
     except GLib.Error as e:
         if e.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
             print(e)
@@ -48,7 +48,7 @@ for i in range(2):
     sleep(2)
 
     try:
-        res.deallocate_once_sync(use_channel, use_bandwidth)
+        res.deallocate_sync(use_channel, use_bandwidth, 100)
     except GLib.Error as e:
         if e.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
             print(e)

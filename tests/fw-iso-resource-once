@@ -13,6 +13,10 @@ target = Hinoko.FwIsoResourceOnce()
 props = ()
 methods = (
     'new',
+    'allocate_async',
+    'deallocate_async',
+    'allocate_sync',
+    'deallocate_sync',
 )
 vmethods = ()
 signals = ()

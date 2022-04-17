@@ -187,91 +187,6 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 	}
 }
 
-/**
- * hinoko_fw_iso_resource_allocate_once_async:
- * @self: A [class@FwIsoResource].
- * @channel_candidates: (array length=channel_candidates_count): The array with
- *			elements for numerical number for isochronous channel
- *			to be allocated.
- * @channel_candidates_count: The number of channel candidates.
- * @bandwidth: The amount of bandwidth to be allocated.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError.
- *
- * Initiate allocation of isochronous resource without any wait. When the
- * allocation finishes, [signal@FwIsoResource::allocated] signal is emit to notify the result,
- * channel, and bandwidth.
- */
-void hinoko_fw_iso_resource_allocate_once_async(HinokoFwIsoResource *self,
-						guint8 *channel_candidates,
-						gsize channel_candidates_count,
-						guint bandwidth,
-						GError **error)
-{
-	HinokoFwIsoResourcePrivate *priv;
-	struct fw_cdev_allocate_iso_resource res = {0};
-	int i;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
-
-	priv = hinoko_fw_iso_resource_get_instance_private(self);
-	if (priv->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
-		return;
-	}
-
-	g_return_if_fail(channel_candidates != NULL);
-	g_return_if_fail(channel_candidates_count > 0);
-	g_return_if_fail(bandwidth > 0);
-
-	for (i = 0; i < channel_candidates_count; ++i) {
-		if (channel_candidates[i] < 64)
-			res.channels |= 1ull << channel_candidates[i];
-	}
-	res.bandwidth = bandwidth;
-
-	if (ioctl(priv->fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0)
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE");
-}
-
-/**
- * hinoko_fw_iso_resource_deallocate_once_async:
- * @self: A [class@FwIsoResource].
- * @channel: The channel number to be deallocated.
- * @bandwidth: The amount of bandwidth to be deallocated.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError.
- *
- * Initiate deallocation of isochronous resource without any wait. When the
- * deallocation finishes, [signal@FwIsoResource::deallocated] signal is emit to notify the result,
- * channel, and bandwidth.
- */
-void hinoko_fw_iso_resource_deallocate_once_async(HinokoFwIsoResource *self,
-						  guint channel,
-						  guint bandwidth,
-						  GError **error)
-{
-	HinokoFwIsoResourcePrivate *priv;
-	struct fw_cdev_allocate_iso_resource res = {0};
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
-
-	priv = hinoko_fw_iso_resource_get_instance_private(self);
-	if (priv->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
-		return;
-	}
-
-	g_return_if_fail(channel < 64);
-	g_return_if_fail(bandwidth > 0);
-
-	res.channels = 1ull << channel;
-	res.bandwidth = bandwidth;
-
-	if (ioctl(priv->fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0)
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE");
-}
-
 static void handle_event_signal(HinokoFwIsoResource *self, guint channel, guint bandwidth,
 				const GError *error, gpointer user_data)
 {
@@ -320,67 +235,6 @@ void fw_iso_resource_waiter_wait(HinokoFwIsoResource *self, struct fw_iso_resour
 		*error = w->error;	// Delegate ownership.
 }
 
-/**
- * hinoko_fw_iso_resource_allocate_once_sync:
- * @self: A [class@FwIsoResource].
- * @channel_candidates: (array length=channel_candidates_count): The array with
- *			elements for numerical number for isochronous channel
- *			to be allocated.
- * @channel_candidates_count: The number of channel candidates.
- * @bandwidth: The amount of bandwidth to be allocated.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError.
- *
- * Initiate allocation of isochronous resource and wait for [signal@FwIsoResource::allocated]
- * signal.
- */
-void hinoko_fw_iso_resource_allocate_once_sync(HinokoFwIsoResource *self,
-					       guint8 *channel_candidates,
-					       gsize channel_candidates_count,
-					       guint bandwidth,
-					       GError **error)
-{
-	struct fw_iso_resource_waiter w;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
-
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", 100);
-
-	hinoko_fw_iso_resource_allocate_once_async(self, channel_candidates,
-						   channel_candidates_count,
-						   bandwidth, error);
-
-	fw_iso_resource_waiter_wait(HINOKO_FW_ISO_RESOURCE(self), &w, error);
-}
-
-/**
- * hinoko_fw_iso_resource_deallocate_once_sync:
- * @self: A [class@FwIsoResource].
- * @channel: The channel number to be deallocated.
- * @bandwidth: The amount of bandwidth to be deallocated.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError.
- *
- * Initiate deallocation of isochronous resource. When the deallocation is done,
- * [signal@FwIsoResource::deallocated] signal is emit to notify the result, channel, and bandwidth.
- */
-void hinoko_fw_iso_resource_deallocate_once_sync(HinokoFwIsoResource *self,
-						 guint channel,
-						 guint bandwidth,
-						 GError **error)
-{
-	struct fw_iso_resource_waiter w;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
-
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", 100);
-
-	hinoko_fw_iso_resource_deallocate_once_async(self, channel, bandwidth,
-						     error);
-
-	fw_iso_resource_waiter_wait(HINOKO_FW_ISO_RESOURCE(self), &w, error);
-}
-
 // For internal use.
 void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 				  unsigned long request, void *argp,
@@ -390,7 +244,9 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
 	g_return_if_fail(request == FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE ||
-			 request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE);
+			 request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE ||
+			 request == FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE ||
+			 request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 	if (priv->fd < 0) {
@@ -407,6 +263,12 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 			break;
 		case FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE:
 			arg = "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE";
+			break;
+		case FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE:
+			arg = "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE";
+			break;
+		case FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE:
+			arg = "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE";
 			break;
 		default:
 			arg = "Unknown";

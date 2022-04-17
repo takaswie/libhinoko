@@ -16,10 +16,6 @@ methods = (
     'open',
     'create_source',
     'calculate_bandwidth',
-    'allocate_once_async',
-    'deallocate_once_async',
-    'allocate_once_sync',
-    'deallocate_once_sync',
 )
 vmethods = (
     'do_allocated',

@@ -9,10 +9,9 @@ import gi
 gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
-target = Hinoko.FwIsoResource()
+target = Hinoko.FwIsoResource
 props = ()
 methods = (
-    'new',
     'open',
     'create_source',
     'calculate_bandwidth',

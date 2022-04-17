@@ -10,16 +10,16 @@
 
 /**
  * HinokoFwIsoResource:
- * An object to initiate requests and listen events of isochronous resource allocation/deallocation.
+ * An abstract object to listen events of isochronous resource allocation/deallocation.
  *
- * A [class@FwIsoResource] is an object to initiate requests and listen events of isochronous
- * resource allocation/deallocation by file descriptor owned internally. This object is designed to
- * be used for any derived object.
+ * The [class@FwIsoResource] is an abstract object to listen events of isochronous resource
+ * allocation/deallocation by file descriptor owned internally. This object is designed to be used
+ * for any derived object.
  */
 typedef struct {
 	int fd;
 } HinokoFwIsoResourcePrivate;
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_OBJECT)
 
 /**
  * hinoko_fw_iso_resource_error_quark:
@@ -135,18 +135,6 @@ static void hinoko_fw_iso_resource_init(HinokoFwIsoResource *self)
 	HinokoFwIsoResourcePrivate *priv =
 			hinoko_fw_iso_resource_get_instance_private(self);
 	priv->fd = -1;
-}
-
-/**
- * hinoko_fw_iso_resource_new:
- *
- * Allocate and return an instance of [class@FwIsoResource].
- *
- * Returns: A [class@FwIsoResource].
- */
-HinokoFwIsoResource *hinoko_fw_iso_resource_new()
-{
-	return g_object_new(HINOKO_TYPE_FW_ISO_RESOURCE, NULL);
 }
 
 /**

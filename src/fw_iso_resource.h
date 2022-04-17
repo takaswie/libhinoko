@@ -45,8 +45,6 @@ struct _HinokoFwIsoResourceClass {
 			    guint bandwidth, const GError *error);
 };
 
-HinokoFwIsoResource *hinoko_fw_iso_resource_new();
-
 void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 				 gint open_flag, GError **error);
 

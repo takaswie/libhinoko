@@ -51,7 +51,6 @@ HINOKO_0_3_0 {
 HINOKO_0_4_0 {
   global:
     "hinoko_fw_iso_resource_get_type";
-    "hinoko_fw_iso_resource_new";
     "hinoko_fw_iso_resource_open";
     "hinoko_fw_iso_resource_create_source";
     "hinoko_fw_iso_resource_calculate_bandwidth";

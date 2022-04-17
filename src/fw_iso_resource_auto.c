@@ -223,17 +223,20 @@ end:
  *			numerical number for isochronous channel to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
+ * @timeout_ms: The timeout to wait for allocated event.
  * @error: A [struct@GLib.Error]. Error can be generated with domain of
  *	   Hinoko.FwIsoResourceError, and Hinoko.FwIsoResourceAutoError.
  *
  * Initiate allocation of isochronous resource and wait for [signal@FwIsoResource::allocated]
  * signal. When the call is successful, [property@FwIsoResourceAuto:channel] and
  * [property@FwIsoResourceAuto:bandwidth] properties are available.
+ *
+ * Since: 0.7.
  */
 void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 					       guint8 *channel_candidates,
 					       gsize channel_candidates_count,
-					       guint bandwidth,
+					       guint bandwidth, guint timeout_ms,
 					       GError **error)
 {
 	struct fw_iso_resource_waiter w;
@@ -241,7 +244,7 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
 	g_return_if_fail(error != NULL && *error == NULL);
 
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", 100);
+	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", timeout_ms);
 
 	hinoko_fw_iso_resource_auto_allocate_async(self, channel_candidates,
 						   channel_candidates_count,
@@ -253,13 +256,16 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 /**
  * hinoko_fw_iso_resource_auto_deallocate_sync:
  * @self: A [class@FwIsoResourceAuto]
+ * @timeout_ms: The timeout to wait for allocated event by milli second unit.
  * @error: A [struct@GLib.Error]. Error can be generated with domain of
  *	   Hinoko.FwIsoResourceError, and Hinoko.FwIsoResourceAutoError.
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * [signal@FwIsoResource::deallocated] signal is emit to notify the result, channel, and bandwidth.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
+void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self, guint timeout_ms,
 						 GError **error)
 {
 	struct fw_iso_resource_waiter w;
@@ -267,7 +273,7 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
 	g_return_if_fail(error != NULL && *error == NULL);
 
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "deallocated", 100);
+	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "deallocated", timeout_ms);
 
 	hinoko_fw_iso_resource_auto_deallocate_async(self, error);
 

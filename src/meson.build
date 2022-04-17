@@ -14,6 +14,7 @@ sources = [
   'cycle_timer.c',
   'fw_iso_resource.c',
   'fw_iso_resource_auto.c',
+  'fw_iso_resource_once.c',
 ]
 
 headers = [
@@ -25,6 +26,7 @@ headers = [
   'cycle_timer.h',
   'fw_iso_resource.h',
   'fw_iso_resource_auto.h',
+  'fw_iso_resource_once.h',
   'hinoko_enum_types.h'
 ]
 

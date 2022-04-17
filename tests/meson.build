@@ -6,6 +6,7 @@ tests = [
   'fw-iso-tx',
   'fw-iso-resource',
   'fw-iso-resource-auto',
+  'fw-iso-resource-once',
 ]
 
 envs = environment()

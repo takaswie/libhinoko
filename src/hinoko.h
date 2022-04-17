@@ -22,5 +22,6 @@
 
 #include <fw_iso_resource.h>
 #include <fw_iso_resource_auto.h>
+#include <fw_iso_resource_once.h>
 
 #endif

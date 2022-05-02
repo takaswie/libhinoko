@@ -73,7 +73,7 @@ src = res.create_source()
 src.attach(ctx)
 
 def print_props(res):
-    for prop in ('allocated', 'channel', 'bandwidth'):
+    for prop in ('is-allocated', 'channel', 'bandwidth'):
         print('  {}: {}'.format(prop, res.get_property(prop)))
 
 for i in range(2):

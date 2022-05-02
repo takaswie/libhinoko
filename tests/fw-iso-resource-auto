@@ -11,7 +11,7 @@ from gi.repository import Hinoko
 
 target = Hinoko.FwIsoResourceAuto()
 props = (
-    'allocated',
+    'is-allocated',
     'channel',
     'bandwidth',
 )

@@ -240,7 +240,7 @@ void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self)
 }
 
 void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
-				struct fw_cdev_event_iso_interrupt *event,
+				const struct fw_cdev_event_iso_interrupt *event,
 				GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;

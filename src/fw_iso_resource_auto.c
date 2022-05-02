@@ -148,7 +148,7 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
@@ -194,7 +194,7 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 	struct fw_cdev_deallocate dealloc = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
@@ -240,7 +240,7 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 	struct fw_iso_resource_waiter w;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", timeout_ms);
 
@@ -269,7 +269,7 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self, 
 	struct fw_iso_resource_waiter w;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "deallocated", timeout_ms);
 

@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-#include "internal.h"
+#include "fw_iso_ctx_private.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <unistd.h>
 #include <sys/mman.h>
-#include <errno.h>
 
 /**
  * HinokoFwIsoCtx

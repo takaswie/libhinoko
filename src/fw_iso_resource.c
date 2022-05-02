@@ -305,20 +305,20 @@ static void handle_fw_iso_resource_event(HinokoFwIsoResource *self,
 		g_clear_error(&error);
 }
 
-static gboolean check_src(GSource *gsrc)
+static gboolean check_src(GSource *source)
 {
-	FwIsoResourceSource *src = (FwIsoResourceSource *)gsrc;
+	FwIsoResourceSource *src = (FwIsoResourceSource *)source;
 	GIOCondition condition;
 
 	// Don't go to dispatch if nothing available. As an error, return
 	// TRUE for POLLERR to call .dispatch for internal destruction.
-	condition = g_source_query_unix_fd(gsrc, src->tag);
+	condition = g_source_query_unix_fd(source, src->tag);
 	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
-static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
+static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data)
 {
-	FwIsoResourceSource *src = (FwIsoResourceSource *)gsrc;
+	FwIsoResourceSource *src = (FwIsoResourceSource *)source;
 	HinokoFwIsoResource *self = src->self;
 	HinokoFwIsoResourcePrivate *priv =
 			hinoko_fw_iso_resource_get_instance_private(self);
@@ -329,7 +329,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	if (priv->fd < 0)
 		return G_SOURCE_REMOVE;
 
-	condition = g_source_query_unix_fd(gsrc, src->tag);
+	condition = g_source_query_unix_fd(source, src->tag);
 	if (condition & G_IO_ERR)
 		return G_SOURCE_REMOVE;
 
@@ -355,9 +355,9 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	return G_SOURCE_CONTINUE;
 }
 
-static void finalize_src(GSource *gsrc)
+static void finalize_src(GSource *source)
 {
-	FwIsoResourceSource *src = (FwIsoResourceSource *)gsrc;
+	FwIsoResourceSource *src = (FwIsoResourceSource *)source;
 
 	g_free(src->buf);
 	g_object_unref(src->self);
@@ -366,14 +366,14 @@ static void finalize_src(GSource *gsrc)
 /**
  * hinoko_fw_iso_resource_create_source:
  * @self: A [class@FwIsoResource].
- * @gsrc: (out): A [struct@GLib.Source]
+ * @source: (out): A [struct@GLib.Source]
  * @error: A [struct@GLib.Error].
  *
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
  * resource.
  */
 void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
-					  GSource **gsrc, GError **error)
+					  GSource **source, GError **error)
 {
 	static GSourceFuncs funcs = {
 		.check		= check_src,
@@ -389,18 +389,18 @@ void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
-	*gsrc = g_source_new(&funcs, sizeof(FwIsoResourceSource));
+	*source = g_source_new(&funcs, sizeof(FwIsoResourceSource));
 
-	g_source_set_name(*gsrc, "HinokoFwIsoResource");
-	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
-	g_source_set_can_recurse(*gsrc, TRUE);
+	g_source_set_name(*source, "HinokoFwIsoResource");
+	g_source_set_priority(*source, G_PRIORITY_HIGH_IDLE);
+	g_source_set_can_recurse(*source, TRUE);
 
-	src = (FwIsoResourceSource *)(*gsrc);
+	src = (FwIsoResourceSource *)(*source);
 
 	src->buf = g_malloc0(page_size);
 
 	src->len = (gsize)page_size;
-	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
+	src->tag = g_source_add_unix_fd(*source, priv->fd, G_IO_IN);
 	src->self = g_object_ref(self);
 }
 

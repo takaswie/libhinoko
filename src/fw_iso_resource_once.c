@@ -59,7 +59,7 @@ void hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
 	int i;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	g_return_if_fail(channel_candidates != NULL);
 	g_return_if_fail(channel_candidates_count > 0);
@@ -94,7 +94,7 @@ void hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self,
 	struct fw_cdev_allocate_iso_resource res = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	g_return_if_fail(channel < 64);
 	g_return_if_fail(bandwidth > 0);
@@ -130,7 +130,7 @@ void hinoko_fw_iso_resource_once_allocate_sync(HinokoFwIsoResourceOnce *self,
 	struct fw_iso_resource_waiter w;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", timeout_ms);
 
@@ -160,7 +160,7 @@ void hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *self, 
 	struct fw_iso_resource_waiter w;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "deallocated", timeout_ms);
 

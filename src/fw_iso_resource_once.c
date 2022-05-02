@@ -10,7 +10,12 @@
  * resource allocation/deallocation by file descriptor owned internally. The allocated resource
  * is left even if this object is destroyed, thus application is responsible for deallocation.
  */
-G_DEFINE_TYPE(HinokoFwIsoResourceOnce, hinoko_fw_iso_resource_once, HINOKO_TYPE_FW_ISO_RESOURCE)
+typedef struct {
+	int fd;
+} HinokoFwIsoResourceOncePrivate;
+
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceOnce, hinoko_fw_iso_resource_once, HINOKO_TYPE_FW_ISO_RESOURCE,
+			G_ADD_PRIVATE(HinokoFwIsoResourceOnce))
 
 static void hinoko_fw_iso_resource_once_class_init(HinokoFwIsoResourceOnceClass *klass)
 {

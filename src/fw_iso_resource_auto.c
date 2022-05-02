@@ -17,8 +17,9 @@ typedef struct {
 	GMutex mutex;
 	guint handle;
 } HinokoFwIsoResourceAutoPrivate;
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto,
-			   HINOKO_TYPE_FW_ISO_RESOURCE)
+
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, HINOKO_TYPE_FW_ISO_RESOURCE,
+			G_ADD_PRIVATE(HinokoFwIsoResourceAuto))
 
 /**
  * hinoko_fw_iso_resource_auto_error_quark:

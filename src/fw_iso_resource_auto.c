@@ -111,6 +111,37 @@ static void hinoko_fw_iso_resource_auto_init(HinokoFwIsoResourceAuto *self)
 	g_mutex_init(&priv->mutex);
 }
 
+void fw_iso_resource_auto_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
+				       guint channel, guint bandwidth, const GError *error)
+{
+	HinokoFwIsoResourceAuto *self;
+	HinokoFwIsoResourceAutoPrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(inst));
+	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
+	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
+
+	if (!strcmp(signal_name, ALLOCATED_SIGNAL_NAME)) {
+		if (error == NULL) {
+			g_mutex_lock(&priv->mutex);
+			priv->channel = channel;
+			priv->bandwidth = bandwidth;
+			priv->is_allocated = TRUE;
+			g_mutex_unlock(&priv->mutex);
+		}
+	} else {
+		if (error == NULL) {
+			g_mutex_lock(&priv->mutex);
+			priv->channel = 0;
+			priv->bandwidth -= bandwidth;
+			priv->is_allocated = FALSE;
+			g_mutex_unlock(&priv->mutex);
+		}
+	}
+
+	g_signal_emit_by_name(self, signal_name, channel, bandwidth, error);
+}
+
 /**
  * hinoko_fw_iso_resource_auto_new:
  *
@@ -242,7 +273,8 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", timeout_ms);
+	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, ALLOCATED_SIGNAL_NAME,
+				    timeout_ms);
 
 	hinoko_fw_iso_resource_auto_allocate_async(self, channel_candidates,
 						   channel_candidates_count,
@@ -271,35 +303,10 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self, 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "deallocated", timeout_ms);
+	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, DEALLOCATED_SIGNAL_NAME,
+				    timeout_ms);
 
 	hinoko_fw_iso_resource_auto_deallocate_async(self, error);
 
 	fw_iso_resource_waiter_wait(HINOKO_FW_ISO_RESOURCE(self), &w, error);
-}
-
-void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self, guint channel,
-					      guint bandwidth, const char *signal_name,
-					      const GError *error)
-{
-	HinokoFwIsoResourceAutoPrivate *priv =
-			hinoko_fw_iso_resource_auto_get_instance_private(self);
-
-	if (!strcmp(signal_name, "allocated")) {
-		if (error == NULL) {
-			g_mutex_lock(&priv->mutex);
-			priv->channel = channel;
-			priv->bandwidth = bandwidth;
-			priv->is_allocated = TRUE;
-			g_mutex_unlock(&priv->mutex);
-		}
-	} else if (!strcmp(signal_name, "deallocated")) {
-		if (error == NULL) {
-			g_mutex_lock(&priv->mutex);
-			priv->channel = 0;
-			priv->bandwidth -= bandwidth;
-			priv->is_allocated = FALSE;
-			g_mutex_unlock(&priv->mutex);
-		}
-	}
 }

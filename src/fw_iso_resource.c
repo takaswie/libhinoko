@@ -135,6 +135,30 @@ static void hinoko_fw_iso_resource_init(HinokoFwIsoResource *self)
 	priv->fd = -1;
 }
 
+gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError **error)
+{
+	g_return_val_if_fail(fd != NULL, FALSE);
+	g_return_val_if_fail(path != NULL && strlen(path) > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	if (*fd >= 0) {
+		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_OPENED);
+		return FALSE;
+	}
+
+	open_flag |= O_RDONLY;
+	*fd = open(path, open_flag);
+	if (*fd < 0) {
+		GFileError code = g_file_error_from_errno(errno);
+		if (code != G_FILE_ERROR_FAILED)
+			generate_file_error(error, code, "open(%s)", path);
+		else
+			generate_syscall_error(error, errno, "open(%s)", path);
+		return FALSE;
+	}
+
+	return TRUE;
+}
 /**
  * hinoko_fw_iso_resource_open:
  * @self: A [class@FwIsoResource].
@@ -147,30 +171,18 @@ static void hinoko_fw_iso_resource_init(HinokoFwIsoResource *self)
  * Open Linux FireWire character device to delegate any request for isochronous
  * resource management to Linux FireWire subsystem.
  */
-void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
-				 gint open_flag, GError **error)
+void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
+				 GError **error)
 {
 	HinokoFwIsoResourcePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(path != NULL && strlen(path) > 0);
 	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
-	if (priv->fd >= 0) {
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_OPENED);
-		return;
-	}
-
-	open_flag |= O_RDONLY;
-	priv->fd = open(path, open_flag);
-	if (priv->fd < 0) {
-		GFileError code = g_file_error_from_errno(errno);
-		if (code != G_FILE_ERROR_FAILED)
-			generate_file_error(error, code, "open(%s)", path);
-		else
-			generate_syscall_error(error, errno, "open(%s)", path);
-	}
+	(void)fw_iso_resource_open(&priv->fd, path, open_flag, error);
 }
 
 static void handle_event_signal(HinokoFwIsoResource *self, guint channel, guint bandwidth,

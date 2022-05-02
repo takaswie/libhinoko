@@ -17,9 +17,18 @@ typedef struct {
 G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceOnce, hinoko_fw_iso_resource_once, HINOKO_TYPE_FW_ISO_RESOURCE,
 			G_ADD_PRIVATE(HinokoFwIsoResourceOnce))
 
+static gboolean fw_iso_resource_once_open(HinokoFwIsoResource *inst, const gchar *path,
+					  gint open_flag, GError **error);
+
+static gboolean fw_iso_resource_once_create_source(HinokoFwIsoResource *inst, GSource **source,
+						   GError **error);
+
 static void hinoko_fw_iso_resource_once_class_init(HinokoFwIsoResourceOnceClass *klass)
 {
-	return;
+	HinokoFwIsoResourceClass *parent_class = HINOKO_FW_ISO_RESOURCE_CLASS(klass);
+
+	parent_class->open = fw_iso_resource_once_open;
+	parent_class->create_source = fw_iso_resource_once_create_source;
 }
 
 static void hinoko_fw_iso_resource_once_init(HinokoFwIsoResourceOnce *self)
@@ -27,10 +36,37 @@ static void hinoko_fw_iso_resource_once_init(HinokoFwIsoResourceOnce *self)
 	return;
 }
 
+static gboolean fw_iso_resource_once_open(HinokoFwIsoResource *inst, const gchar *path,
+					  gint open_flag, GError **error)
+{
+	HinokoFwIsoResourceOnce *self;
+	HinokoFwIsoResourceOncePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(inst), FALSE);
+	self = HINOKO_FW_ISO_RESOURCE_ONCE(inst);
+	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
+
+	return fw_iso_resource_open(&priv->fd, path, open_flag, error);
+}
+
 void fw_iso_resource_once_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
 				       guint channel, guint bandwidth, const GError *error)
 {
 	g_signal_emit_by_name(inst, signal_name, channel, bandwidth, error);
+}
+
+static gboolean fw_iso_resource_once_create_source(HinokoFwIsoResource *inst, GSource **source,
+						   GError **error)
+{
+	HinokoFwIsoResourceOnce *self;
+	HinokoFwIsoResourceOncePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(inst), FALSE);
+	self = HINOKO_FW_ISO_RESOURCE_ONCE(inst);
+	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
+
+	return fw_iso_resource_create_source(priv->fd, inst, fw_iso_resource_once_handle_event,
+					     source, error);
 }
 
 /**

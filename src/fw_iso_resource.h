@@ -18,6 +18,11 @@ GQuark hinoko_fw_iso_resource_error_quark();
 struct _HinokoFwIsoResourceClass {
 	GObjectClass parent_class;
 
+	gboolean (*open)(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
+			 GError **error);
+
+	gboolean (*create_source)(HinokoFwIsoResource *self, GSource **source, GError **error);
+
 	/**
 	 * HinokoFwIsoResourceClass::allocated:
 	 * @self: A [class@FwIsoResource].

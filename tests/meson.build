@@ -4,7 +4,6 @@ tests = [
   'fw-iso-rx-single',
   'fw-iso-rx-multiple',
   'fw-iso-tx',
-  'fw-iso-resource',
   'fw-iso-resource-auto',
   'fw-iso-resource-once',
 ]

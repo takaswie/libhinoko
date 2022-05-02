@@ -20,8 +20,11 @@ typedef struct {
 	guint handle;
 } HinokoFwIsoResourceAutoPrivate;
 
-G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, HINOKO_TYPE_FW_ISO_RESOURCE,
-			G_ADD_PRIVATE(HinokoFwIsoResourceAuto))
+static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface);
+
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, G_TYPE_OBJECT,
+			G_ADD_PRIVATE(HinokoFwIsoResourceAuto)
+                        G_IMPLEMENT_INTERFACE(HINOKO_TYPE_FW_ISO_RESOURCE, fw_iso_resource_iface_init))
 
 /**
  * hinoko_fw_iso_resource_auto_error_quark:
@@ -90,22 +93,12 @@ static void fw_iso_resource_auto_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinoko_fw_iso_resource_auto_parent_class)->finalize(obj);
 }
 
-static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar *path,
-					  gint open_flag, GError **error);
-
-static gboolean fw_iso_resource_auto_create_source(HinokoFwIsoResource *inst, GSource **source,
-						   GError **error);
-
 static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	HinokoFwIsoResourceClass *parent_class = HINOKO_FW_ISO_RESOURCE_CLASS(klass);
 
 	gobject_class->get_property = fw_iso_resource_auto_get_property;
 	gobject_class->finalize = fw_iso_resource_auto_finalize;
-
-	parent_class->open = fw_iso_resource_auto_open;
-	parent_class->create_source = fw_iso_resource_auto_create_source;
 
 	fw_iso_resource_auto_props[FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED] =
 		g_param_spec_boolean("is-allocated", "is-allocated",
@@ -196,6 +189,13 @@ static gboolean fw_iso_resource_auto_create_source(HinokoFwIsoResource *inst, GS
 					     source, error);
 }
 
+static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface)
+{
+	iface->open = fw_iso_resource_auto_open;
+	iface->create_source = fw_iso_resource_auto_create_source;
+
+}
+
 /**
  * hinoko_fw_iso_resource_auto_new:
  *
@@ -254,11 +254,12 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	}
 	res.bandwidth = bandwidth;
 
-	hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
-				     FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res,
-				     error);
-	if (*error == NULL)
+	if (ioctl(priv->fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res) < 0) {
+		generate_syscall_error(error, errno, "ioctl(%s)",
+				       "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE");
+	} else {
 		priv->handle = res.handle;
+	}
 end:
 	g_mutex_unlock(&priv->mutex);
 }
@@ -292,9 +293,10 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 
 	dealloc.handle = priv->handle;
 
-	hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
-				     FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE,
-				     &dealloc, error);
+	if (ioctl(priv->fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE, &dealloc) < 0) {
+		generate_syscall_error(error, errno, "ioctl(%s)",
+				       "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE");
+	}
 end:
 	g_mutex_unlock(&priv->mutex);
 }

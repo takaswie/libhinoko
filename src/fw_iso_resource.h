@@ -24,7 +24,7 @@ struct _HinokoFwIsoResourceInterface {
 
 	/**
 	 * HinokoFwIsoResourceClass::allocated:
-	 * @self: A [class@FwIsoResource].
+	 * @self: A [iface@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
@@ -39,7 +39,7 @@ struct _HinokoFwIsoResourceInterface {
 
 	/**
 	 * HinokoFwIsoResourceClass::deallocated:
-	 * @self: A [class@FwIsoResource].
+	 * @self: A [iface@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated

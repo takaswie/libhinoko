@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2022/04/18
+2022/05/02
 Takashi Sakamoto
 
 Introduction
@@ -77,7 +77,7 @@ You can see documentation files under ``(directory-to-install)/share/doc/hinoko/
 Loss of backward compatibility between v0.6/v0.7 releases
 =========================================================
 
-The status of project is still under development. Below public functions are removed since v0.7
+The status of project is still under development. Below public functions are removed at v0.7
 release without backward compatibility:
 
 - ``Hinoko.FwIsoResource.allocate_once_async``
@@ -97,6 +97,9 @@ wait for event:
 
 - ``Hinoko.FwIsoResourceAuto.allocate_sync``
 - ``Hinoko.FwIsoResourceAuto.deallocate_sync``
+
+Furthermore, ``Hinoko.FwIsoResource`` becomes GObject interface. ``Hinoko.FwIsoResourceAuto`` and
+``Hinoko.FwIsoResourceOnce`` implements the interface.
 
 Loss of backward compatibility between v0.5/v0.6 releases
 =========================================================

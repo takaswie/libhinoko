@@ -266,8 +266,8 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 	}
 }
 
-static void handle_iso_resource_event(HinokoFwIsoResource *self,
-				      struct fw_cdev_event_iso_resource *ev)
+static void handle_fw_iso_resource_event(HinokoFwIsoResource *self,
+					 const struct fw_cdev_event_iso_resource *ev)
 {
 	guint channel;
 	guint bandwidth;
@@ -326,7 +326,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 			hinoko_fw_iso_resource_get_instance_private(self);
 	GIOCondition condition;
 	ssize_t len;
-	guint8 *buf;
+	const union fw_cdev_event *ev;
 
 	if (priv->fd < 0)
 		return G_SOURCE_REMOVE;
@@ -343,25 +343,15 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		return G_SOURCE_REMOVE;
 	}
 
-	buf = src->buf;
-	while (len > 0) {
-		union fw_cdev_event *ev = (union fw_cdev_event *)buf;
-		size_t size = 0;
-
-		switch (ev->common.type) {
-		case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
-		case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
-			handle_iso_resource_event(self, &ev->iso_resource);
-			size = sizeof(ev->iso_resource);
-			break;
-		default:
-			break;
-		}
-
-		len -= size;
-		buf += size;
+	ev = (const union fw_cdev_event *)src->buf;
+	switch (ev->common.type) {
+	case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
+	case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
+		handle_fw_iso_resource_event(self, &ev->iso_resource);
+		break;
+	default:
+		break;
 	}
-
 
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;

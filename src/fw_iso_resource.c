@@ -359,6 +359,41 @@ static void finalize_src(GSource *source)
 	g_object_unref(src->self);
 }
 
+gboolean fw_iso_resource_create_source(int fd, HinokoFwIsoResource *inst,
+				       void (*handle_event)(HinokoFwIsoResource *self,
+							    const char *signal_name, guint channel,
+							    guint bandwidth, const GError *error),
+				       GSource **source, GError **error)
+{
+	static GSourceFuncs funcs = {
+		.check		= check_src,
+		.dispatch	= dispatch_src,
+		.finalize	= finalize_src,
+	};
+	long page_size = sysconf(_SC_PAGESIZE);
+	FwIsoResourceSource *src;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(inst), FALSE);
+	g_return_val_if_fail(source != NULL, FALSE);
+	g_return_val_if_fail(error != NULL && *error == NULL, FALSE);
+
+	*source = g_source_new(&funcs, sizeof(FwIsoResourceSource));
+
+	g_source_set_name(*source, "HinokoFwIsoResource");
+
+	src = (FwIsoResourceSource *)(*source);
+
+	src->buf = g_malloc0(page_size);
+
+	src->len = (gsize)page_size;
+	src->tag = g_source_add_unix_fd(*source, fd, G_IO_IN);
+	src->fd = fd;
+	src->self = g_object_ref(inst);
+	src->handle_event = handle_event;
+
+	return TRUE;
+}
+
 /**
  * hinoko_fw_iso_resource_create_source:
  * @self: A [class@FwIsoResource].
@@ -368,44 +403,28 @@ static void finalize_src(GSource *source)
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
  * resource.
  */
-void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
-					  GSource **source, GError **error)
+void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource **source,
+					  GError **error)
 {
-	static GSourceFuncs funcs = {
-		.check		= check_src,
-		.dispatch	= dispatch_src,
-		.finalize	= finalize_src,
-	};
-	long page_size = sysconf(_SC_PAGESIZE);
 	HinokoFwIsoResourcePrivate *priv;
-	FwIsoResourceSource *src;
+
+	void (*handle_event)(HinokoFwIsoResource *self, const char *signal_name, guint channel,
+			     guint bandwidth, const GError *error);
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
+	g_return_if_fail(source != NULL);
 	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
-	*source = g_source_new(&funcs, sizeof(FwIsoResourceSource));
-
-	g_source_set_name(*source, "HinokoFwIsoResource");
-	g_source_set_priority(*source, G_PRIORITY_HIGH_IDLE);
-	g_source_set_can_recurse(*source, TRUE);
-
-	src = (FwIsoResourceSource *)(*source);
-
-	src->buf = g_malloc0(page_size);
-
-	src->len = (gsize)page_size;
-	src->tag = g_source_add_unix_fd(*source, priv->fd, G_IO_IN);
-	src->fd = priv->fd;
-	src->self = g_object_ref(self);
-
 	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self))
-		src->handle_event = fw_iso_resource_auto_handle_event;
+		handle_event = fw_iso_resource_auto_handle_event;
 	else if (HINOKO_IS_FW_ISO_RESOURCE_ONCE(self))
-		src->handle_event = fw_iso_resource_once_handle_event;
+		handle_event = fw_iso_resource_once_handle_event;
 	else
-		src->handle_event = fw_iso_resource_handle_event;
+		handle_event = fw_iso_resource_handle_event;
+
+	(void)fw_iso_resource_create_source(priv->fd, self, handle_event, source, error);
 }
 
 /**

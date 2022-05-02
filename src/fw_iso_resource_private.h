@@ -11,6 +11,13 @@
 #define DEALLOCATED_SIGNAL_NAME		"deallocated"
 
 gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError **error);
+
+gboolean fw_iso_resource_create_source(int fd, HinokoFwIsoResource *inst,
+				       void (*handle_event)(HinokoFwIsoResource *self,
+							    const char *signal_name, guint channel,
+							    guint bandwidth, const GError *error),
+				       GSource **source, GError **error);
+
 void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 				  unsigned long request, void *argp,
 				  GError **error);

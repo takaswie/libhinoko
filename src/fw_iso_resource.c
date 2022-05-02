@@ -153,7 +153,7 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
 	HinokoFwIsoResourcePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 
@@ -385,7 +385,7 @@ void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 	FwIsoResourceSource *src;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_resource_get_instance_private(self);
 

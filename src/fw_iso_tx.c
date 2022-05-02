@@ -101,7 +101,7 @@ void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
 			       guint header_size, GError **error)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
 				   HINOKO_FW_ISO_CTX_MODE_TX, scode, channel,
@@ -140,7 +140,7 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 	HinokoFwIsoTxPrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
@@ -181,7 +181,7 @@ void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self)
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match, GError **error)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, 0, 0, error);
 
@@ -240,7 +240,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 			 (header == NULL && header_length == 0));
 	g_return_if_fail((payload != NULL && payload_length > 0) ||
 			 (payload == NULL && payload_length == 0));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 

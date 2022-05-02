@@ -10,7 +10,7 @@
  * updates. The maintenance of allocated isochronous resource is done by Linux FireWire subsystem.
  */
 typedef struct {
-	gboolean allocated;
+	gboolean is_allocated;
 	guint channel;
 	guint bandwidth;
 
@@ -41,7 +41,7 @@ static const char *const err_msgs[] = {
 	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR, code, err_msgs[code])
 
 enum fw_iso_resource_auto_prop_type {
-	FW_ISO_RESOURCE_AUTO_PROP_ALLOCATED = 1,
+	FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED = 1,
 	FW_ISO_RESOURCE_AUTO_PROP_CHANNEL,
 	FW_ISO_RESOURCE_AUTO_PROP_BANDWIDTH,
 	FW_ISO_RESOURCE_AUTO_PROP_COUNT,
@@ -58,8 +58,8 @@ static void fw_iso_resource_auto_get_property(GObject *obj, guint id,
 	g_mutex_lock(&priv->mutex);
 
 	switch (id) {
-	case FW_ISO_RESOURCE_AUTO_PROP_ALLOCATED:
-		g_value_set_boolean(val, priv->allocated);
+	case FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED:
+		g_value_set_boolean(val, priv->is_allocated);
 		break;
 	case FW_ISO_RESOURCE_AUTO_PROP_CHANNEL:
 		g_value_set_uint(val, priv->channel);
@@ -81,8 +81,8 @@ static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass 
 
 	gobject_class->get_property = fw_iso_resource_auto_get_property;
 
-	fw_iso_resource_auto_props[FW_ISO_RESOURCE_AUTO_PROP_ALLOCATED] =
-		g_param_spec_boolean("allocated", "allocated",
+	fw_iso_resource_auto_props[FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED] =
+		g_param_spec_boolean("is-allocated", "is-allocated",
 				     "Whether to allocated or not.",
 				     FALSE, G_PARAM_READABLE);
 
@@ -158,7 +158,7 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 
 	g_mutex_lock(&priv->mutex);
 
-	if (priv->allocated) {
+	if (priv->is_allocated) {
 		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED);
 		goto end;
 	}
@@ -200,7 +200,7 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 
 	g_mutex_lock(&priv->mutex);
 
-	if (!priv->allocated) {
+	if (!priv->is_allocated) {
 		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED);
 		goto end;
 	}
@@ -290,7 +290,7 @@ void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self, gui
 			g_mutex_lock(&priv->mutex);
 			priv->channel = channel;
 			priv->bandwidth = bandwidth;
-			priv->allocated = TRUE;
+			priv->is_allocated = TRUE;
 			g_mutex_unlock(&priv->mutex);
 		}
 	} else if (!strcmp(signal_name, "deallocated")) {
@@ -298,7 +298,7 @@ void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self, gui
 			g_mutex_lock(&priv->mutex);
 			priv->channel = 0;
 			priv->bandwidth -= bandwidth;
-			priv->allocated = FALSE;
+			priv->is_allocated = FALSE;
 			g_mutex_unlock(&priv->mutex);
 		}
 	}

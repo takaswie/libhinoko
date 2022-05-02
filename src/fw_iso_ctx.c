@@ -672,7 +672,7 @@ static gboolean check_src(GSource *gsrc)
 	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
-static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
+static void handle_irq_event(const struct fw_cdev_event_iso_interrupt *ev,
 			     GError **error)
 {
 	if (HINOKO_IS_FW_ISO_RX_SINGLE((gpointer)ev->closure)) {
@@ -693,7 +693,7 @@ static void handle_irq_event(struct fw_cdev_event_iso_interrupt *ev,
 	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), error);
 }
 
-static void handle_irq_mc_event(struct fw_cdev_event_iso_interrupt_mc *ev,
+static void handle_irq_mc_event(const struct fw_cdev_event_iso_interrupt_mc *ev,
 				GError **error)
 {
 	if (HINOKO_IS_FW_ISO_RX_MULTIPLE((gpointer)ev->closure)) {
@@ -719,7 +719,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	GIOCondition condition;
 	GError *error;
 	int len;
-	guint8 *buf;
+	const union fw_cdev_event *event;
 
 	if (priv->fd < 0)
 		return G_SOURCE_REMOVE;
@@ -739,33 +739,21 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		return G_SOURCE_CONTINUE;
 	}
 
-	buf = src->buf;
-	while (len > 0) {
-		union fw_cdev_event *ev = (union fw_cdev_event *)buf;
-		size_t size = 0;
-
-		switch (ev->common.type) {
-		case FW_CDEV_EVENT_ISO_INTERRUPT:
-			error = NULL;
-			handle_irq_event(&ev->iso_interrupt, &error);
-			if (error != NULL)
-				goto error;
-			size = sizeof(ev->iso_interrupt) +
-			       ev->iso_interrupt.header_length;
-			break;
-		case FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL:
-			error = NULL;
-			handle_irq_mc_event(&ev->iso_interrupt_mc, &error);
-			if (error != NULL)
-				goto error;
-			size = sizeof(ev->iso_interrupt_mc);
-			break;
-		default:
-			break;
-		}
-
-		len -= size;
-		buf += size;
+	error = NULL;
+	event = (const union fw_cdev_event *)src->buf;
+	switch (event->common.type) {
+	case FW_CDEV_EVENT_ISO_INTERRUPT:
+		handle_irq_event(&event->iso_interrupt, &error);
+		if (error != NULL)
+			goto error;
+		break;
+	case FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL:
+		handle_irq_mc_event(&event->iso_interrupt_mc, &error);
+		if (error != NULL)
+			goto error;
+		break;
+	default:
+		break;
 	}
 
 	// Just be sure to continue to process this source.

@@ -275,7 +275,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 }
 
 void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
-				   struct fw_cdev_event_iso_interrupt *event,
+				   const struct fw_cdev_event_iso_interrupt *event,
 				   GError **error)
 {
 	guint sec = (event->cycle & 0x0000e000) >> 13;

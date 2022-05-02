@@ -60,6 +60,7 @@ typedef struct {
 	gpointer tag;
 	gsize len;
 	guint8 *buf;
+	int fd;
 } FwIsoResourceSource;
 
 enum fw_iso_resource_sig_type {
@@ -319,21 +320,18 @@ static gboolean check_src(GSource *source)
 static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data)
 {
 	FwIsoResourceSource *src = (FwIsoResourceSource *)source;
-	HinokoFwIsoResource *self = src->self;
-	HinokoFwIsoResourcePrivate *priv =
-			hinoko_fw_iso_resource_get_instance_private(self);
 	GIOCondition condition;
 	ssize_t len;
 	const union fw_cdev_event *ev;
 
-	if (priv->fd < 0)
+	if (src->fd < 0)
 		return G_SOURCE_REMOVE;
 
 	condition = g_source_query_unix_fd(source, src->tag);
 	if (condition & G_IO_ERR)
 		return G_SOURCE_REMOVE;
 
-	len = read(priv->fd, src->buf, src->len);
+	len = read(src->fd, src->buf, src->len);
 	if (len <= 0) {
 		if (errno == EAGAIN)
 			return G_SOURCE_CONTINUE;
@@ -345,7 +343,7 @@ static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data
 	switch (ev->common.type) {
 	case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
 	case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
-		handle_fw_iso_resource_event(self, &ev->iso_resource);
+		handle_fw_iso_resource_event(src->self, &ev->iso_resource);
 		break;
 	default:
 		break;
@@ -401,6 +399,7 @@ void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 
 	src->len = (gsize)page_size;
 	src->tag = g_source_add_unix_fd(*source, priv->fd, G_IO_IN);
+	src->fd = priv->fd;
 	src->self = g_object_ref(self);
 }
 

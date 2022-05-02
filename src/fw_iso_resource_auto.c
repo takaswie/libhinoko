@@ -10,6 +10,8 @@
  * updates. The maintenance of allocated isochronous resource is done by Linux FireWire subsystem.
  */
 typedef struct {
+	int fd;
+
 	gboolean is_allocated;
 	guint channel;
 	guint bandwidth;
@@ -76,11 +78,21 @@ static void fw_iso_resource_auto_get_property(GObject *obj, guint id,
 	g_mutex_unlock(&priv->mutex);
 }
 
+static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar *path,
+					  gint open_flag, GError **error);
+
+static gboolean fw_iso_resource_auto_create_source(HinokoFwIsoResource *inst, GSource **source,
+						   GError **error);
+
 static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	HinokoFwIsoResourceClass *parent_class = HINOKO_FW_ISO_RESOURCE_CLASS(klass);
 
 	gobject_class->get_property = fw_iso_resource_auto_get_property;
+
+	parent_class->open = fw_iso_resource_auto_open;
+	parent_class->create_source = fw_iso_resource_auto_create_source;
 
 	fw_iso_resource_auto_props[FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED] =
 		g_param_spec_boolean("is-allocated", "is-allocated",
@@ -112,6 +124,19 @@ static void hinoko_fw_iso_resource_auto_init(HinokoFwIsoResourceAuto *self)
 	g_mutex_init(&priv->mutex);
 }
 
+static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar *path,
+					  gint open_flag, GError **error)
+{
+	HinokoFwIsoResourceAuto *self;
+	HinokoFwIsoResourceAutoPrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(inst), FALSE);
+	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
+	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
+
+	return fw_iso_resource_open(&priv->fd, path, open_flag, error);
+}
+
 void fw_iso_resource_auto_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
 				       guint channel, guint bandwidth, const GError *error)
 {
@@ -141,6 +166,20 @@ void fw_iso_resource_auto_handle_event(HinokoFwIsoResource *inst, const char *si
 	}
 
 	g_signal_emit_by_name(self, signal_name, channel, bandwidth, error);
+}
+
+static gboolean fw_iso_resource_auto_create_source(HinokoFwIsoResource *inst, GSource **source,
+						   GError **error)
+{
+	HinokoFwIsoResourceAuto *self;
+	HinokoFwIsoResourceAutoPrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(inst), FALSE);
+	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
+	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
+
+	return fw_iso_resource_create_source(priv->fd, inst, fw_iso_resource_auto_handle_event,
+					     source, error);
 }
 
 /**

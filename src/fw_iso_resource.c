@@ -77,10 +77,33 @@ static void fw_iso_resource_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinoko_fw_iso_resource_parent_class)->finalize(obj);
 }
 
+static gboolean fw_iso_resource_open_real(HinokoFwIsoResource *self, const gchar *path,
+					  gint open_flag, GError **error)
+{
+	HinokoFwIsoResourcePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
+	priv = hinoko_fw_iso_resource_get_instance_private(self);
+
+	return fw_iso_resource_open(&priv->fd, path, open_flag, error);
+}
+
 static void fw_iso_resource_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
 					 guint channel, guint bandwidth, const GError *error)
 {
 	g_signal_emit_by_name(inst, signal_name, channel, bandwidth, error);
+}
+
+static gboolean fw_iso_resource_create_source_real(HinokoFwIsoResource *self, GSource **source,
+						   GError **error)
+{
+	HinokoFwIsoResourcePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
+	priv = hinoko_fw_iso_resource_get_instance_private(self);
+
+	return fw_iso_resource_create_source(priv->fd, self, fw_iso_resource_handle_event, source,
+					     error);
 }
 
 static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
@@ -88,6 +111,9 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_resource_finalize;
+
+	klass->open = fw_iso_resource_open_real;
+	klass->create_source = fw_iso_resource_create_source_real;
 
 	/**
 	 * HinokoFwIsoResource::allocated:

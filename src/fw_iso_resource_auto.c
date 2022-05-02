@@ -78,6 +78,18 @@ static void fw_iso_resource_auto_get_property(GObject *obj, guint id,
 	g_mutex_unlock(&priv->mutex);
 }
 
+static void fw_iso_resource_auto_finalize(GObject *obj)
+{
+	HinokoFwIsoResourceAuto *self = HINOKO_FW_ISO_RESOURCE_AUTO(obj);
+	HinokoFwIsoResourceAutoPrivate *priv =
+		hinoko_fw_iso_resource_auto_get_instance_private(self);
+
+	if (priv->fd >= 0)
+		close(priv->fd);
+
+	G_OBJECT_CLASS(hinoko_fw_iso_resource_auto_parent_class)->finalize(obj);
+}
+
 static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar *path,
 					  gint open_flag, GError **error);
 
@@ -90,6 +102,7 @@ static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass 
 	HinokoFwIsoResourceClass *parent_class = HINOKO_FW_ISO_RESOURCE_CLASS(klass);
 
 	gobject_class->get_property = fw_iso_resource_auto_get_property;
+	gobject_class->finalize = fw_iso_resource_auto_finalize;
 
 	parent_class->open = fw_iso_resource_auto_open;
 	parent_class->create_source = fw_iso_resource_auto_create_source;
@@ -121,6 +134,7 @@ static void hinoko_fw_iso_resource_auto_init(HinokoFwIsoResourceAuto *self)
 	HinokoFwIsoResourceAutoPrivate *priv =
 			hinoko_fw_iso_resource_auto_get_instance_private(self);
 
+	priv->fd = -1;
 	g_mutex_init(&priv->mutex);
 }
 

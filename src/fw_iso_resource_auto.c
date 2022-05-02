@@ -329,14 +329,14 @@ void hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self,
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, ALLOCATED_SIGNAL_NAME,
+	fw_iso_resource_waiter_init(&w, HINOKO_FW_ISO_RESOURCE(self), ALLOCATED_SIGNAL_NAME,
 				    timeout_ms);
 
 	hinoko_fw_iso_resource_auto_allocate_async(self, channel_candidates,
 						   channel_candidates_count,
 						   bandwidth, error);
 
-	fw_iso_resource_waiter_wait(HINOKO_FW_ISO_RESOURCE(self), &w, error);
+	fw_iso_resource_waiter_wait(&w, HINOKO_FW_ISO_RESOURCE(self), error);
 }
 
 /**
@@ -359,10 +359,10 @@ void hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self, 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self));
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, DEALLOCATED_SIGNAL_NAME,
+	fw_iso_resource_waiter_init(&w, HINOKO_FW_ISO_RESOURCE(self), DEALLOCATED_SIGNAL_NAME,
 				    timeout_ms);
 
 	hinoko_fw_iso_resource_auto_deallocate_async(self, error);
 
-	fw_iso_resource_waiter_wait(HINOKO_FW_ISO_RESOURCE(self), &w, error);
+	fw_iso_resource_waiter_wait(&w, HINOKO_FW_ISO_RESOURCE(self), error);
 }

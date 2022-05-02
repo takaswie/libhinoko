@@ -33,10 +33,10 @@ struct fw_iso_resource_waiter {
 	gulong handler_id;
 };
 
-void fw_iso_resource_waiter_init(HinokoFwIsoResource *self, struct fw_iso_resource_waiter *w,
+void fw_iso_resource_waiter_init(struct fw_iso_resource_waiter *w, HinokoFwIsoResource *self,
 				 const char *signal_name, guint timeout_ms);
 
-void fw_iso_resource_waiter_wait(HinokoFwIsoResource *self, struct fw_iso_resource_waiter *w,
+void fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoResource *self,
 				 GError **error);
 
 #endif

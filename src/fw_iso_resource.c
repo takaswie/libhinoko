@@ -94,8 +94,8 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 * @self: A [class@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @error: (transfer none) (nullable): A [struct@GLib.Error]. Error can be generated with
-	 *	   domain of Hinoko.FwIsoResourceError and its EVENT code.
+	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
+	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Emitted when allocation of isochronous resource finishes.
 	 */
@@ -114,8 +114,8 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 * @self: A [class@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
-	 * @error: (transfer none) (nullable): A [struct@GLib.Error]. Error can be generated with
-	 *	   domain of Hinoko.FwIsoResourceError and its EVENT code.
+	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
+	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Emitted when deallocation of isochronous resource finishes.
 	 */

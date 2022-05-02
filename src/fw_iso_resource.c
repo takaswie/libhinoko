@@ -103,7 +103,7 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, allocated),
 			     NULL, NULL,
-			     hinoko_sigs_marshal_VOID__UINT_UINT_OBJECT,
+			     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
 			     G_TYPE_NONE,
 			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
 
@@ -123,7 +123,7 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, deallocated),
 			     NULL, NULL,
-			     hinoko_sigs_marshal_VOID__UINT_UINT_OBJECT,
+			     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
 			     G_TYPE_NONE,
 			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
 }

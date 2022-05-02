@@ -209,7 +209,7 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	// Linux firewire stack supports three types of isochronous context
 	// described in 1394 OHCI specification.
@@ -324,7 +324,7 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(bytes_per_chunk > 0);
 	g_return_if_fail(chunks_per_buffer > 0);
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
@@ -408,7 +408,7 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(cycle_timer != NULL);
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {
@@ -437,7 +437,7 @@ void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
 	struct fw_cdev_set_iso_channels set = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 	g_return_if_fail(priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
@@ -483,7 +483,7 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(skip == TRUE || skip == FALSE);
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	g_return_if_fail(tags == 0 ||
 			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 ||
@@ -791,7 +791,7 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(gsrc != NULL);
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 	if (priv->fd < 0) {
@@ -844,7 +844,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, g
 	gint cycle;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (priv->fd < 0) {

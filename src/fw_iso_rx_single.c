@@ -111,7 +111,7 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 	HinokoFwIsoRxSinglePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
@@ -153,7 +153,7 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					GError **error)
 {
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
 				     maximum_bytes_per_payload,
@@ -214,7 +214,7 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cyc
 	HinokoFwIsoRxSinglePrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
@@ -294,7 +294,7 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	guint frame_size;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(error != NULL && *error == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 

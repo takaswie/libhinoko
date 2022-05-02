@@ -65,7 +65,7 @@ typedef enum /*< flags >*/
  * @HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT:	No event to the request arrives within timeout.
  * @HINOKO_FW_ISO_RESOURCE_ERROR_EVENT:		Event for the request arrives but includes error code.
  *
- * A set of error code for [class@FwIsoResource].
+ * A set of error code for [iface@FwIsoResource].
  */
 typedef enum {
 	HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,

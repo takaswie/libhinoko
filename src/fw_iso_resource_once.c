@@ -17,6 +17,18 @@ typedef struct {
 G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceOnce, hinoko_fw_iso_resource_once, HINOKO_TYPE_FW_ISO_RESOURCE,
 			G_ADD_PRIVATE(HinokoFwIsoResourceOnce))
 
+static void fw_iso_resource_once_finalize(GObject *obj)
+{
+	HinokoFwIsoResourceOnce *self = HINOKO_FW_ISO_RESOURCE_ONCE(obj);
+	HinokoFwIsoResourceOncePrivate *priv =
+		hinoko_fw_iso_resource_once_get_instance_private(self);
+
+	if (priv->fd >= 0)
+		close(priv->fd);
+
+	G_OBJECT_CLASS(hinoko_fw_iso_resource_once_parent_class)->finalize(obj);
+}
+
 static gboolean fw_iso_resource_once_open(HinokoFwIsoResource *inst, const gchar *path,
 					  gint open_flag, GError **error);
 
@@ -25,7 +37,10 @@ static gboolean fw_iso_resource_once_create_source(HinokoFwIsoResource *inst, GS
 
 static void hinoko_fw_iso_resource_once_class_init(HinokoFwIsoResourceOnceClass *klass)
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 	HinokoFwIsoResourceClass *parent_class = HINOKO_FW_ISO_RESOURCE_CLASS(klass);
+
+	gobject_class->finalize = fw_iso_resource_once_finalize;
 
 	parent_class->open = fw_iso_resource_once_open;
 	parent_class->create_source = fw_iso_resource_once_create_source;
@@ -33,7 +48,10 @@ static void hinoko_fw_iso_resource_once_class_init(HinokoFwIsoResourceOnceClass 
 
 static void hinoko_fw_iso_resource_once_init(HinokoFwIsoResourceOnce *self)
 {
-	return;
+	HinokoFwIsoResourceOncePrivate *priv =
+		hinoko_fw_iso_resource_once_get_instance_private(self);
+
+	priv->fd = -1;
 }
 
 static gboolean fw_iso_resource_once_open(HinokoFwIsoResource *inst, const gchar *path,

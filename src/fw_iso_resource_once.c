@@ -22,6 +22,12 @@ static void hinoko_fw_iso_resource_once_init(HinokoFwIsoResourceOnce *self)
 	return;
 }
 
+void fw_iso_resource_once_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
+				       guint channel, guint bandwidth, const GError *error)
+{
+	g_signal_emit_by_name(inst, signal_name, channel, bandwidth, error);
+}
+
 /**
  * hinoko_fw_iso_resource_once_new:
  *
@@ -132,7 +138,8 @@ void hinoko_fw_iso_resource_once_allocate_sync(HinokoFwIsoResourceOnce *self,
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(self));
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "allocated", timeout_ms);
+	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, ALLOCATED_SIGNAL_NAME,
+				    timeout_ms);
 
 	hinoko_fw_iso_resource_once_allocate_async(self, channel_candidates,
 						   channel_candidates_count, bandwidth, error);
@@ -162,7 +169,8 @@ void hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *self, 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(self));
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, "deallocated", timeout_ms);
+	fw_iso_resource_waiter_init(HINOKO_FW_ISO_RESOURCE(self), &w, DEALLOCATED_SIGNAL_NAME,
+				    timeout_ms);
 
 	hinoko_fw_iso_resource_once_deallocate_async(self, channel, bandwidth, error);
 

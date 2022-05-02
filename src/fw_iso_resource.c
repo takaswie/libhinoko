@@ -61,14 +61,9 @@ typedef struct {
 	gsize len;
 	guint8 *buf;
 	int fd;
+	void (*handle_event)(HinokoFwIsoResource *self, const char *signal_name, guint channel,
+			     guint bandwidth, const GError *error);
 } FwIsoResourceSource;
-
-enum fw_iso_resource_sig_type {
-	FW_ISO_RESOURCE_SIG_ALLOCATED = 0,
-	FW_ISO_RESOURCE_SIG_DEALLOCATED,
-	FW_ISO_RESOURCE_SIG_COUNT,
-};
-static guint fw_iso_resource_sigs[FW_ISO_RESOURCE_SIG_COUNT] = { 0 };
 
 static void fw_iso_resource_finalize(GObject *obj)
 {
@@ -80,6 +75,12 @@ static void fw_iso_resource_finalize(GObject *obj)
 		close(priv->fd);
 
 	G_OBJECT_CLASS(hinoko_fw_iso_resource_parent_class)->finalize(obj);
+}
+
+static void fw_iso_resource_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
+					 guint channel, guint bandwidth, const GError *error)
+{
+	g_signal_emit_by_name(inst, signal_name, channel, bandwidth, error);
 }
 
 static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
@@ -98,15 +99,14 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 *
 	 * Emitted when allocation of isochronous resource finishes.
 	 */
-	fw_iso_resource_sigs[FW_ISO_RESOURCE_SIG_ALLOCATED] =
-		g_signal_new("allocated",
-			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, allocated),
-			     NULL, NULL,
-			     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
-			     G_TYPE_NONE,
-			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
+	g_signal_new(ALLOCATED_SIGNAL_NAME,
+		     G_OBJECT_CLASS_TYPE(klass),
+		     G_SIGNAL_RUN_LAST,
+		     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, allocated),
+		     NULL, NULL,
+		     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
+		     G_TYPE_NONE,
+		     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
 
 	/**
 	 * HinokoFwIsoResource::deallocated:
@@ -118,15 +118,14 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 	 *
 	 * Emitted when deallocation of isochronous resource finishes.
 	 */
-	fw_iso_resource_sigs[FW_ISO_RESOURCE_SIG_DEALLOCATED] =
-		g_signal_new("deallocated",
-			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, deallocated),
-			     NULL, NULL,
-			     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
-			     G_TYPE_NONE,
-			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
+	g_signal_new(DEALLOCATED_SIGNAL_NAME,
+		     G_OBJECT_CLASS_TYPE(klass),
+		     G_SIGNAL_RUN_LAST,
+		     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, deallocated),
+		     NULL, NULL,
+		     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
+		     G_TYPE_NONE,
+		     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
 }
 
 static void hinoko_fw_iso_resource_init(HinokoFwIsoResource *self)
@@ -265,12 +264,12 @@ void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 	}
 }
 
-static void handle_fw_iso_resource_event(HinokoFwIsoResource *self,
-					 const struct fw_cdev_event_iso_resource *ev)
+static void handle_iso_resource_event(FwIsoResourceSource *src,
+				      const struct fw_cdev_event_iso_resource *ev)
 {
 	guint channel;
 	guint bandwidth;
-	enum fw_iso_resource_sig_type signal_type;
+	const char *signal_name;
 	GError *error = NULL;
 
 	if (ev->channel >= 0) {
@@ -283,24 +282,11 @@ static void handle_fw_iso_resource_event(HinokoFwIsoResource *self,
 	}
 
 	if (ev->type == FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED)
-		signal_type = FW_ISO_RESOURCE_SIG_ALLOCATED;
+		signal_name = ALLOCATED_SIGNAL_NAME;
 	else
-		signal_type = FW_ISO_RESOURCE_SIG_DEALLOCATED;
+		signal_name = DEALLOCATED_SIGNAL_NAME;
 
-	// To change state machine for auto mode.
-	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self)) {
-		const char *signal_name;
-
-		if (signal_type == FW_ISO_RESOURCE_SIG_ALLOCATED)
-			signal_name = "allocated";
-		else
-			signal_name = "deallocated";
-
-		hinoko_fw_iso_resource_auto_handle_event(HINOKO_FW_ISO_RESOURCE_AUTO(self),
-							 channel, bandwidth, signal_name, error);
-	}
-
-	g_signal_emit(self, fw_iso_resource_sigs[signal_type], 0, channel, bandwidth, error);
+	src->handle_event(src->self, signal_name, channel, bandwidth, error);
 
 	if (error != NULL)
 		g_clear_error(&error);
@@ -343,7 +329,7 @@ static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data
 	switch (ev->common.type) {
 	case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
 	case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
-		handle_fw_iso_resource_event(src->self, &ev->iso_resource);
+		handle_iso_resource_event(src, &ev->iso_resource);
 		break;
 	default:
 		break;
@@ -401,6 +387,13 @@ void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
 	src->tag = g_source_add_unix_fd(*source, priv->fd, G_IO_IN);
 	src->fd = priv->fd;
 	src->self = g_object_ref(self);
+
+	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self))
+		src->handle_event = fw_iso_resource_auto_handle_event;
+	else if (HINOKO_IS_FW_ISO_RESOURCE_ONCE(self))
+		src->handle_event = fw_iso_resource_once_handle_event;
+	else
+		src->handle_event = fw_iso_resource_handle_event;
 }
 
 /**

@@ -7,13 +7,18 @@
 #include <unistd.h>
 #include <errno.h>
 
+#define ALLOCATED_SIGNAL_NAME		"allocated"
+#define DEALLOCATED_SIGNAL_NAME		"deallocated"
+
 void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 				  unsigned long request, void *argp,
 				  GError **error);
 
-void hinoko_fw_iso_resource_auto_handle_event(HinokoFwIsoResourceAuto *self, guint channel,
-					      guint bandwidth, const char *signal_name,
-					      const GError *error);
+void fw_iso_resource_auto_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
+				       guint channel, guint bandwidth, const GError *error);
+
+void fw_iso_resource_once_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
+				       guint channel, guint bandwidth, const GError *error);
 
 struct fw_iso_resource_waiter {
 	GMutex mutex;

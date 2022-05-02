@@ -10,6 +10,7 @@
 #define ALLOCATED_SIGNAL_NAME		"allocated"
 #define DEALLOCATED_SIGNAL_NAME		"deallocated"
 
+gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError **error);
 void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
 				  unsigned long request, void *argp,
 				  GError **error);

@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-#include "internal.h"
-
-#include <errno.h>
+#include "fw_iso_resource_private.h"
 
 /**
  * HinokoFwIsoResourceAuto:

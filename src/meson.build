@@ -31,7 +31,8 @@ headers = [
 ]
 
 privates = [
-  'internal.h',
+  'fw_iso_ctx_private.h',
+  'fw_iso_resource_private.h',
 ]
 
 inc_dir = meson.project_name()

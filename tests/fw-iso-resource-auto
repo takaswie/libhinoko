@@ -17,13 +17,21 @@ props = (
 )
 methods = (
     'new',
+    'open',
+    'create_source',
     'allocate_async',
     'deallocate_async',
     'allocate_sync',
     'deallocate_sync',
 )
-vmethods = ()
-signals = ()
+vmethods = (
+    #'do_allocated',
+    #'do_deallocated',
+)
+signals = (
+    #'allocated',
+    #'deallocated',
+)
 
 if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)

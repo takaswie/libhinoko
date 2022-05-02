@@ -49,12 +49,8 @@ HINOKO_0_3_0 {
 
 HINOKO_0_4_0 {
   global:
-    "hinoko_fw_iso_resource_get_type";
-    "hinoko_fw_iso_resource_open";
-    "hinoko_fw_iso_resource_create_source";
     "hinoko_fw_iso_resource_calculate_bandwidth";
 
-    "hinoko_fw_iso_resource_auto_get_type";
     "hinoko_fw_iso_resource_auto_new";
     "hinoko_fw_iso_resource_auto_allocate_async";
     "hinoko_fw_iso_resource_auto_deallocate_async";
@@ -85,6 +81,11 @@ HINOKO_0_6_0 {
 
 HINOKO_0_7_0 {
   global:
+    "hinoko_fw_iso_resource_get_type";
+    "hinoko_fw_iso_resource_open";
+    "hinoko_fw_iso_resource_create_source";
+
+    "hinoko_fw_iso_resource_auto_get_type";
     "hinoko_fw_iso_resource_auto_allocate_sync";
     "hinoko_fw_iso_resource_auto_deallocate_sync";
 

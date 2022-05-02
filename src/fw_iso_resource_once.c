@@ -14,8 +14,11 @@ typedef struct {
 	int fd;
 } HinokoFwIsoResourceOncePrivate;
 
-G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceOnce, hinoko_fw_iso_resource_once, HINOKO_TYPE_FW_ISO_RESOURCE,
-			G_ADD_PRIVATE(HinokoFwIsoResourceOnce))
+static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface);
+
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceOnce, hinoko_fw_iso_resource_once, G_TYPE_OBJECT,
+			G_ADD_PRIVATE(HinokoFwIsoResourceOnce)
+                        G_IMPLEMENT_INTERFACE(HINOKO_TYPE_FW_ISO_RESOURCE, fw_iso_resource_iface_init))
 
 static void fw_iso_resource_once_finalize(GObject *obj)
 {
@@ -29,21 +32,11 @@ static void fw_iso_resource_once_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinoko_fw_iso_resource_once_parent_class)->finalize(obj);
 }
 
-static gboolean fw_iso_resource_once_open(HinokoFwIsoResource *inst, const gchar *path,
-					  gint open_flag, GError **error);
-
-static gboolean fw_iso_resource_once_create_source(HinokoFwIsoResource *inst, GSource **source,
-						   GError **error);
-
 static void hinoko_fw_iso_resource_once_class_init(HinokoFwIsoResourceOnceClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	HinokoFwIsoResourceClass *parent_class = HINOKO_FW_ISO_RESOURCE_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_resource_once_finalize;
-
-	parent_class->open = fw_iso_resource_once_open;
-	parent_class->create_source = fw_iso_resource_once_create_source;
 }
 
 static void hinoko_fw_iso_resource_once_init(HinokoFwIsoResourceOnce *self)
@@ -87,6 +80,13 @@ static gboolean fw_iso_resource_once_create_source(HinokoFwIsoResource *inst, GS
 					     source, error);
 }
 
+static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface)
+{
+	iface->open = fw_iso_resource_once_open;
+	iface->create_source = fw_iso_resource_once_create_source;
+
+}
+
 /**
  * hinoko_fw_iso_resource_once_new:
  *
@@ -120,6 +120,8 @@ void hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
 						gsize channel_candidates_count,
 						guint bandwidth, GError **error)
 {
+	HinokoFwIsoResourceOncePrivate *priv;
+
 	struct fw_cdev_allocate_iso_resource res = {0};
 	int i;
 
@@ -130,14 +132,18 @@ void hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
 	g_return_if_fail(channel_candidates_count > 0);
 	g_return_if_fail(bandwidth > 0);
 
+	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
+
 	for (i = 0; i < channel_candidates_count; ++i) {
 		if (channel_candidates[i] < 64)
 			res.channels |= 1ull << channel_candidates[i];
 	}
 	res.bandwidth = bandwidth;
 
-	hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
-				     FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res, error);
+	if (ioctl(priv->fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
+		generate_syscall_error(error, errno, "ioctl(%s)",
+				       "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE");
+	}
 }
 
 /**
@@ -156,6 +162,8 @@ void hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
 void hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self, guint channel,
 						  guint bandwidth, GError **error)
 {
+	HinokoFwIsoResourceOncePrivate *priv;
+
 	struct fw_cdev_allocate_iso_resource res = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(self));
@@ -164,11 +172,15 @@ void hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self,
 	g_return_if_fail(channel < 64);
 	g_return_if_fail(bandwidth > 0);
 
+	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
+
 	res.channels = 1ull << channel;
 	res.bandwidth = bandwidth;
 
-	hinoko_fw_iso_resource_ioctl(HINOKO_FW_ISO_RESOURCE(self),
-				     FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res, error);
+	if (ioctl(priv->fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
+		generate_syscall_error(error, errno, "ioctl(%s)",
+				       "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE");
+	}
 }
 
 /**

@@ -9,14 +9,14 @@ G_BEGIN_DECLS
 #define HINOKO_TYPE_FW_ISO_RESOURCE_AUTO	(hinoko_fw_iso_resource_auto_get_type())
 
 G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, HINOKO,
-			 FW_ISO_RESOURCE_AUTO, HinokoFwIsoResource);
+			 FW_ISO_RESOURCE_AUTO, GObject);
 
 #define HINOKO_FW_ISO_RESOURCE_AUTO_ERROR	hinoko_fw_iso_resource_auto_error_quark()
 
 GQuark hinoko_fw_iso_resource_auto_error_quark();
 
 struct _HinokoFwIsoResourceAutoClass {
-	HinokoFwIsoResourceClass parent_class;
+	GObjectClass parent_class;
 };
 
 HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new();

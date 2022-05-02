@@ -9,10 +9,10 @@ G_BEGIN_DECLS
 #define HINOKO_TYPE_FW_ISO_RESOURCE_ONCE	(hinoko_fw_iso_resource_once_get_type())
 
 G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoResourceOnce, hinoko_fw_iso_resource_once, HINOKO,
-			 FW_ISO_RESOURCE_ONCE, HinokoFwIsoResource);
+			 FW_ISO_RESOURCE_ONCE, GObject);
 
 struct _HinokoFwIsoResourceOnceClass {
-	HinokoFwIsoResourceClass parent_class;
+	GObjectClass parent_class;
 };
 
 HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new();

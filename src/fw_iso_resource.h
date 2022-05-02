@@ -8,15 +8,14 @@ G_BEGIN_DECLS
 
 #define HINOKO_TYPE_FW_ISO_RESOURCE	(hinoko_fw_iso_resource_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoResource, hinoko_fw_iso_resource, HINOKO, FW_ISO_RESOURCE,
-			 GObject);
+G_DECLARE_INTERFACE(HinokoFwIsoResource, hinoko_fw_iso_resource, HINOKO, FW_ISO_RESOURCE, GObject);
 
 #define HINOKO_FW_ISO_RESOURCE_ERROR		hinoko_fw_iso_resource_error_quark()
 
 GQuark hinoko_fw_iso_resource_error_quark();
 
-struct _HinokoFwIsoResourceClass {
-	GObjectClass parent_class;
+struct _HinokoFwIsoResourceInterface {
+	GTypeInterface parent_iface;
 
 	gboolean (*open)(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
 			 GError **error);
@@ -32,6 +31,8 @@ struct _HinokoFwIsoResourceClass {
 	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Class closure for the [signal@FwIsoResource::allocated] signal.
+	 *
+	 * Since: 0.7.
 	 */
 	void (*allocated)(HinokoFwIsoResource *self, guint channel,
 			  guint bandwidth, const GError *error);
@@ -45,6 +46,8 @@ struct _HinokoFwIsoResourceClass {
 	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Class closure for the [signal@FwIsoResource::deallocated] signal.
+	 *
+	 * Since: 0.7.
 	 */
 	void (*deallocated)(HinokoFwIsoResource *self, guint channel,
 			    guint bandwidth, const GError *error);

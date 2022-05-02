@@ -4,20 +4,18 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
 
 /**
  * HinokoFwIsoResource:
- * An abstract object to listen events of isochronous resource allocation/deallocation.
+ * An interface object to listen events of isochronous resource allocation and deallocation.
  *
- * The [class@FwIsoResource] is an abstract object to listen events of isochronous resource
- * allocation/deallocation by file descriptor owned internally. This object is designed to be used
- * for any derived object.
+ * The [iface@FwIsoResource] should be implemented in GObject-derived object to listen events of
+ * isochronous resource allocation and deallocation.
+ *
+ * Since: 0.7.
  */
-typedef struct {
-	int fd;
-} HinokoFwIsoResourcePrivate;
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_OBJECT)
+
+G_DEFINE_INTERFACE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_OBJECT)
 
 /**
  * hinoko_fw_iso_resource_error_quark:
@@ -46,11 +44,6 @@ static const char *const err_msgs[] = {
 		    HINOKO_FW_ISO_RESOURCE_ERROR_EVENT,			\
 		    "%d %s", errno, strerror(errno))
 
-#define generate_syscall_error(error, errno, format, arg)		\
-	g_set_error(error, HINOKO_FW_ISO_RESOURCE_ERROR,		\
-		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
-		    format " %d(%s)", arg, errno, strerror(errno))
-
 #define generate_file_error(error, code, format, arg) \
 	g_set_error(error, G_FILE_ERROR, code, format, arg)
 
@@ -65,70 +58,24 @@ typedef struct {
 			     guint bandwidth, const GError *error);
 } FwIsoResourceSource;
 
-static void fw_iso_resource_finalize(GObject *obj)
+static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *iface)
 {
-	HinokoFwIsoResource *self = HINOKO_FW_ISO_RESOURCE(obj);
-	HinokoFwIsoResourcePrivate *priv =
-			hinoko_fw_iso_resource_get_instance_private(self);
-
-	if (priv->fd >= 0)
-		close(priv->fd);
-
-	G_OBJECT_CLASS(hinoko_fw_iso_resource_parent_class)->finalize(obj);
-}
-
-static gboolean fw_iso_resource_open_real(HinokoFwIsoResource *self, const gchar *path,
-					  gint open_flag, GError **error)
-{
-	HinokoFwIsoResourcePrivate *priv;
-
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
-	priv = hinoko_fw_iso_resource_get_instance_private(self);
-
-	return fw_iso_resource_open(&priv->fd, path, open_flag, error);
-}
-
-static void fw_iso_resource_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
-					 guint channel, guint bandwidth, const GError *error)
-{
-	g_signal_emit_by_name(inst, signal_name, channel, bandwidth, error);
-}
-
-static gboolean fw_iso_resource_create_source_real(HinokoFwIsoResource *self, GSource **source,
-						   GError **error)
-{
-	HinokoFwIsoResourcePrivate *priv;
-
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
-	priv = hinoko_fw_iso_resource_get_instance_private(self);
-
-	return fw_iso_resource_create_source(priv->fd, self, fw_iso_resource_handle_event, source,
-					     error);
-}
-
-static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-
-	gobject_class->finalize = fw_iso_resource_finalize;
-
-	klass->open = fw_iso_resource_open_real;
-	klass->create_source = fw_iso_resource_create_source_real;
-
 	/**
 	 * HinokoFwIsoResource::allocated:
-	 * @self: A [class@FwIsoResource].
+	 * @self: A [iface@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
 	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Emitted when allocation of isochronous resource finishes.
+	 *
+	 * Since: 0.7.
 	 */
 	g_signal_new(ALLOCATED_SIGNAL_NAME,
-		     G_OBJECT_CLASS_TYPE(klass),
+		     G_TYPE_FROM_INTERFACE(iface),
 		     G_SIGNAL_RUN_LAST,
-		     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, allocated),
+		     G_STRUCT_OFFSET(HinokoFwIsoResourceInterface, allocated),
 		     NULL, NULL,
 		     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
 		     G_TYPE_NONE,
@@ -136,29 +83,24 @@ static void hinoko_fw_iso_resource_class_init(HinokoFwIsoResourceClass *klass)
 
 	/**
 	 * HinokoFwIsoResource::deallocated:
-	 * @self: A [class@FwIsoResource].
+	 * @self: A [iface@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
 	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
 	 * Emitted when deallocation of isochronous resource finishes.
+	 *
+	 * Since: 0.7.
 	 */
 	g_signal_new(DEALLOCATED_SIGNAL_NAME,
-		     G_OBJECT_CLASS_TYPE(klass),
+		     G_TYPE_FROM_INTERFACE(iface),
 		     G_SIGNAL_RUN_LAST,
-		     G_STRUCT_OFFSET(HinokoFwIsoResourceClass, deallocated),
+		     G_STRUCT_OFFSET(HinokoFwIsoResourceInterface, deallocated),
 		     NULL, NULL,
 		     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
 		     G_TYPE_NONE,
 		     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_ERROR);
-}
-
-static void hinoko_fw_iso_resource_init(HinokoFwIsoResource *self)
-{
-	HinokoFwIsoResourcePrivate *priv =
-			hinoko_fw_iso_resource_get_instance_private(self);
-	priv->fd = -1;
 }
 
 gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError **error)
@@ -187,7 +129,7 @@ gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError
 }
 /**
  * hinoko_fw_iso_resource_open:
- * @self: A [class@FwIsoResource].
+ * @self: A [iface@FwIsoResource].
  * @path: A path of any Linux FireWire character device.
  * @open_flag: The flag of open(2) system call. O_RDONLY is forced to fulfil
  *	       internally.
@@ -196,19 +138,17 @@ gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError
  *
  * Open Linux FireWire character device to delegate any request for isochronous
  * resource management to Linux FireWire subsystem.
+ *
+ * Since: 0.7.
  */
 void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
 				 GError **error)
 {
-	HinokoFwIsoResourcePrivate *priv;
-
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	priv = hinoko_fw_iso_resource_get_instance_private(self);
-
-	(void)fw_iso_resource_open(&priv->fd, path, open_flag, error);
+	(void)HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->open(self, path, open_flag, error);
 }
 
 static void handle_event_signal(HinokoFwIsoResource *self, guint channel, guint bandwidth,
@@ -257,49 +197,6 @@ void fw_iso_resource_waiter_wait(HinokoFwIsoResource *self, struct fw_iso_resour
 		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
 	else if (w->error != NULL)
 		*error = w->error;	// Delegate ownership.
-}
-
-// For internal use.
-void hinoko_fw_iso_resource_ioctl(HinokoFwIsoResource *self,
-				  unsigned long request, void *argp,
-				  GError **error)
-{
-	HinokoFwIsoResourcePrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(request == FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE ||
-			 request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE ||
-			 request == FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE ||
-			 request == FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE);
-
-	priv = hinoko_fw_iso_resource_get_instance_private(self);
-	if (priv->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
-		return;
-	}
-
-	if (ioctl(priv->fd, request, argp) < 0) {
-		const char *arg;
-
-		switch (request) {
-		case FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE:
-			arg = "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE";
-			break;
-		case FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE:
-			arg = "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE";
-			break;
-		case FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE:
-			arg = "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE";
-			break;
-		case FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE:
-			arg = "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE";
-			break;
-		default:
-			arg = "Unknown";
-			break;
-		}
-		generate_syscall_error(error, errno, "ioctl(%s)", arg);
-	}
 }
 
 static void handle_iso_resource_event(FwIsoResourceSource *src,
@@ -422,35 +319,23 @@ gboolean fw_iso_resource_create_source(int fd, HinokoFwIsoResource *inst,
 
 /**
  * hinoko_fw_iso_resource_create_source:
- * @self: A [class@FwIsoResource].
+ * @self: A [iface@FwIsoResource].
  * @source: (out): A [struct@GLib.Source]
  * @error: A [struct@GLib.Error].
  *
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
  * resource.
+ *
+ * Since: 0.7.
  */
 void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource **source,
 					  GError **error)
 {
-	HinokoFwIsoResourcePrivate *priv;
-
-	void (*handle_event)(HinokoFwIsoResource *self, const char *signal_name, guint channel,
-			     guint bandwidth, const GError *error);
-
 	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
 	g_return_if_fail(source != NULL);
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	priv = hinoko_fw_iso_resource_get_instance_private(self);
-
-	if (HINOKO_IS_FW_ISO_RESOURCE_AUTO(self))
-		handle_event = fw_iso_resource_auto_handle_event;
-	else if (HINOKO_IS_FW_ISO_RESOURCE_ONCE(self))
-		handle_event = fw_iso_resource_once_handle_event;
-	else
-		handle_event = fw_iso_resource_handle_event;
-
-	(void)fw_iso_resource_create_source(priv->fd, self, handle_event, source, error);
+	(void)HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->create_source(self, source, error);
 }
 
 /**

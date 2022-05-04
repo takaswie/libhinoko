@@ -79,6 +79,47 @@ static void hinoko_fw_iso_rx_single_init(HinokoFwIsoRxSingle *self)
 	return;
 }
 
+gboolean fw_iso_rx_single_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+				       GError **error)
+{
+	HinokoFwIsoRxSingle *self;
+	HinokoFwIsoRxSinglePrivate *priv;
+
+	const struct fw_cdev_event_iso_interrupt *ev;
+	guint sec;
+	guint cycle;
+	guint count;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(inst), FALSE);
+	g_return_val_if_fail(event->common.type == FW_CDEV_EVENT_ISO_INTERRUPT, FALSE);
+
+	self = HINOKO_FW_ISO_RX_SINGLE(inst);
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	ev = &event->iso_interrupt;
+	sec = (ev->cycle & 0x0000e000) >> 13;
+	cycle = ev->cycle & 0x00001fff;
+	count = ev->header_length / priv->header_size;
+
+	// TODO; handling error?
+	priv->ev = ev;
+	g_signal_emit(self, fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_IRQ], 0,
+		      sec, cycle, ev->header, ev->header_length, count);
+	priv->ev = NULL;
+
+	priv->chunk_cursor += count;
+	if (priv->chunk_cursor >= G_MAXINT) {
+		guint chunks_per_buffer;
+
+		g_object_get(G_OBJECT(self),
+			     "chunks-per-buffer", &chunks_per_buffer, NULL);
+
+		priv->chunk_cursor %= chunks_per_buffer;
+	}
+
+	return TRUE;
+}
+
 /**
  * hinoko_fw_iso_rx_single_new:
  *
@@ -234,40 +275,6 @@ void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self)
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
-}
-
-void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
-				const struct fw_cdev_event_iso_interrupt *event,
-				GError **error)
-{
-	HinokoFwIsoRxSinglePrivate *priv;
-	guint sec;
-	guint cycle;
-	guint count;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
-
-	sec = (event->cycle & 0x0000e000) >> 13;
-	cycle = event->cycle & 0x00001fff;
-	count = event->header_length / priv->header_size;
-
-	// TODO; handling error?
-	priv->ev = event;
-	g_signal_emit(self,
-		fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_IRQ],
-		0, sec, cycle, event->header, event->header_length, count);
-	priv->ev = NULL;
-
-	priv->chunk_cursor += count;
-	if (priv->chunk_cursor >= G_MAXINT) {
-		guint chunks_per_buffer;
-
-		g_object_get(G_OBJECT(self),
-			     "chunks-per-buffer", &chunks_per_buffer, NULL);
-
-		priv->chunk_cursor %= chunks_per_buffer;
-	}
 }
 
 /**

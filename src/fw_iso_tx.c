@@ -71,6 +71,26 @@ static void hinoko_fw_iso_tx_init(HinokoFwIsoTx *self)
 	return;
 }
 
+gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+				GError **error)
+{
+	const struct fw_cdev_event_iso_interrupt *ev;
+
+	g_return_val_if_fail(HINOKO_FW_ISO_TX(inst), FALSE);
+	g_return_val_if_fail(event->common.type == FW_CDEV_EVENT_ISO_INTERRUPT, FALSE);
+
+	ev = &event->iso_interrupt;
+
+	guint sec = (ev->cycle & 0x0000e000) >> 13;
+	guint cycle = ev->cycle & 0x00001fff;
+	unsigned int pkt_count = ev->header_length / 4;
+
+	g_signal_emit(inst, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ], 0, sec, cycle, ev->header,
+		      ev->header_length, pkt_count);
+
+	return TRUE;
+}
+
 /**
  * hinoko_fw_iso_tx_new:
  *
@@ -269,16 +289,4 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 
 		priv->offset = frame_size;
 	}
-}
-
-void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
-				   const struct fw_cdev_event_iso_interrupt *event,
-				   GError **error)
-{
-	guint sec = (event->cycle & 0x0000e000) >> 13;
-	guint cycle = event->cycle & 0x00001fff;
-	unsigned int pkt_count = event->header_length / 4;
-
-	g_signal_emit(self, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ], 0, sec, cycle, event->header,
-		      event->header_length, pkt_count);
 }

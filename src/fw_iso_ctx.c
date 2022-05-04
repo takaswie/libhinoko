@@ -656,14 +656,14 @@ static void fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 	priv->curr_offset = 0;
 }
 
-static gboolean check_src(GSource *gsrc)
+static gboolean check_src(GSource *source)
 {
-	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
+	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
 	GIOCondition condition;
 
 	// Don't go to dispatch if nothing available. As an error, return
 	// TRUE for POLLERR to call .dispatch for internal destruction.
-	condition = g_source_query_unix_fd(gsrc, src->tag);
+	condition = g_source_query_unix_fd(source, src->tag);
 	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
@@ -705,15 +705,15 @@ static void handle_irq_mc_event(const struct fw_cdev_event_iso_interrupt_mc *ev,
 	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), error);
 }
 
-static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
+static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data)
 {
-	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
+	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
 	GIOCondition condition;
 	GError *error;
 	int len;
 	const union fw_cdev_event *event;
 
-	condition = g_source_query_unix_fd(gsrc, src->tag);
+	condition = g_source_query_unix_fd(source, src->tag);
 	if (condition & G_IO_ERR)
 		return G_SOURCE_REMOVE;
 
@@ -754,9 +754,9 @@ error:
 	return G_SOURCE_REMOVE;
 }
 
-static void finalize_src(GSource *gsrc)
+static void finalize_src(GSource *source)
 {
-	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
+	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
 
 	g_free(src->buf);
 	g_object_unref(src->self);
@@ -765,14 +765,13 @@ static void finalize_src(GSource *gsrc)
 /**
  * hinoko_fw_iso_ctx_create_source:
  * @self: A [class@FwIsoCtx].
- * @gsrc: (out): A [struct@GLib.Source].
+ * @source: (out): A [struct@GLib.Source].
  * @error: A [struct@GLib.Error].
  *
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
  * context.
  */
-void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
-				     GError **error)
+void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GError **error)
 {
 	static GSourceFuncs funcs = {
 		.check		= check_src,
@@ -783,7 +782,7 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	FwIsoCtxSource *src;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(gsrc != NULL);
+	g_return_if_fail(source != NULL);
 	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
@@ -792,13 +791,13 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 		return;
 	}
 
-	*gsrc = g_source_new(&funcs, sizeof(FwIsoCtxSource));
+	*source = g_source_new(&funcs, sizeof(FwIsoCtxSource));
 
-	g_source_set_name(*gsrc, "HinokoFwIsoCtx");
-	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
-	g_source_set_can_recurse(*gsrc, TRUE);
+	g_source_set_name(*source, "HinokoFwIsoCtx");
+	g_source_set_priority(*source, G_PRIORITY_HIGH_IDLE);
+	g_source_set_can_recurse(*source, TRUE);
 
-	src = (FwIsoCtxSource *)(*gsrc);
+	src = (FwIsoCtxSource *)(*source);
 
 	if (priv->mode != HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
 		// MEMO: Linux FireWire subsystem queues isochronous event
@@ -812,7 +811,7 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	}
 	src->buf = g_malloc0(src->len);
 
-	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
+	src->tag = g_source_add_unix_fd(*source, priv->fd, G_IO_IN);
 	src->fd = priv->fd;
 	src->self = g_object_ref(self);
 }

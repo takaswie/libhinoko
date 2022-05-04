@@ -162,12 +162,12 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 	/**
 	 * HinokoFwIsoCtx::stopped:
 	 * @self: A [class@FwIsoCtx].
-	 * @error: (transfer none) (nullable): A [struct@GLib.Error].
+	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error].
 	 *
 	 * Emitted when isochronous context is stopped.
 	 */
 	fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED] =
-		g_signal_new("stopped",
+		g_signal_new(STOPPED_SIGNAL_NEME,
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
 			G_STRUCT_OFFSET(HinokoFwIsoCtxClass, stopped),
@@ -638,11 +638,10 @@ static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **error)
 	priv->registered_chunk_count = 0;
 }
 
-static void fw_iso_ctx_stop(HinokoFwIsoCtx *self, GError *error)
+static void fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 {
 	struct fw_cdev_stop_iso arg = {0};
-	HinokoFwIsoCtxPrivate *priv =
-				hinoko_fw_iso_ctx_get_instance_private(self);
+	HinokoFwIsoCtxPrivate *priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
 	if (!priv->running)
 		return;
@@ -654,9 +653,6 @@ static void fw_iso_ctx_stop(HinokoFwIsoCtx *self, GError *error)
 	priv->registered_chunk_count = 0;
 	priv->data_length = 0;
 	priv->curr_offset = 0;
-
-	g_signal_emit(self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0,
-		      error, NULL);
 }
 
 static gboolean check_src(GSource *gsrc)
@@ -757,7 +753,9 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
 error:
-	fw_iso_ctx_stop(self, error);
+	hinoko_fw_iso_ctx_stop(self);
+	g_signal_emit(self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0, error);
+	g_clear_error(&error);
 	return G_SOURCE_REMOVE;
 }
 
@@ -907,9 +905,18 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, g
  */
 void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 {
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	HinokoFwIsoCtxPrivate *priv;
+	gboolean running;
 
-	fw_iso_ctx_stop(self, NULL);
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+
+	running = priv->running;
+
+	fw_iso_ctx_stop(self);
+
+	if (priv->running != running)
+		g_signal_emit(self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0, NULL);
 }
 
 /**

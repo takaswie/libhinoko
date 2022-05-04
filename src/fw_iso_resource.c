@@ -39,7 +39,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
 	 */
 	g_signal_new(ALLOCATED_SIGNAL_NAME,
 		     G_TYPE_FROM_INTERFACE(iface),
-		     G_SIGNAL_RUN_LAST,
+		     G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		     G_STRUCT_OFFSET(HinokoFwIsoResourceInterface, allocated),
 		     NULL, NULL,
 		     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,
@@ -60,7 +60,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
 	 */
 	g_signal_new(DEALLOCATED_SIGNAL_NAME,
 		     G_TYPE_FROM_INTERFACE(iface),
-		     G_SIGNAL_RUN_LAST,
+		     G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		     G_STRUCT_OFFSET(HinokoFwIsoResourceInterface, deallocated),
 		     NULL, NULL,
 		     hinoko_sigs_marshal_VOID__UINT_UINT_BOXED,

@@ -76,6 +76,7 @@ typedef struct {
 	unsigned int len;
 	void *buf;
 	HinokoFwIsoCtx *self;
+	int fd;
 } FwIsoCtxSource;
 
 enum fw_iso_ctx_prop_type {
@@ -707,22 +708,16 @@ static void handle_irq_mc_event(const struct fw_cdev_event_iso_interrupt_mc *ev,
 static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)gsrc;
-	HinokoFwIsoCtx *self = src->self;
-	HinokoFwIsoCtxPrivate *priv =
-				hinoko_fw_iso_ctx_get_instance_private(self);
 	GIOCondition condition;
 	GError *error;
 	int len;
 	const union fw_cdev_event *event;
 
-	if (priv->fd < 0)
-		return G_SOURCE_REMOVE;
-
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR)
 		return G_SOURCE_REMOVE;
 
-	len = read(priv->fd, src->buf, src->len);
+	len = read(src->fd, src->buf, src->len);
 	if (len < 0) {
 		if (errno != EAGAIN) {
 			generate_file_error(&error, g_file_error_from_errno(errno),
@@ -753,8 +748,8 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
 error:
-	hinoko_fw_iso_ctx_stop(self);
-	g_signal_emit(self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0, error);
+	hinoko_fw_iso_ctx_stop(src->self);
+	g_signal_emit(src->self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0, error);
 	g_clear_error(&error);
 	return G_SOURCE_REMOVE;
 }
@@ -818,6 +813,7 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
 	src->buf = g_malloc0(src->len);
 
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
+	src->fd = priv->fd;
 	src->self = g_object_ref(self);
 }
 

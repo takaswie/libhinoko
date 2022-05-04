@@ -32,8 +32,7 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 				       HinokoCycleTimer *const *cycle_timer,
 				       GError **error);
 
-void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **gsrc,
-				     GError **error);
+void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GError **error);
 
 void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **error);
 

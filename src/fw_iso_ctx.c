@@ -77,6 +77,8 @@ typedef struct {
 	void *buf;
 	HinokoFwIsoCtx *self;
 	int fd;
+	gboolean (*handle_event)(HinokoFwIsoCtx *self, const union fw_cdev_event *event,
+				 GError **error);
 } FwIsoCtxSource;
 
 enum fw_iso_ctx_prop_type {
@@ -183,6 +185,12 @@ static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)
 				hinoko_fw_iso_ctx_get_instance_private(self);
 
 	priv->fd = -1;
+}
+
+gboolean fw_iso_ctx_handle_event_real(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+				      GError **error)
+{
+	return TRUE;
 }
 
 /**
@@ -666,41 +674,11 @@ static gboolean check_src(GSource *source)
 	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
-static void handle_irq_event(HinokoFwIsoCtx *self, const union fw_cdev_event *event,
-			     GError **error)
-{
-	if (HINOKO_IS_FW_ISO_RX_SINGLE(self))
-		(void)fw_iso_rx_single_handle_event(self, event, error);
-	else if (HINOKO_IS_FW_ISO_TX(self))
-		(void)fw_iso_tx_handle_event(self, event, error);
-	else
-		return;
-
-	if (*error != NULL)
-		return;
-
-	fw_iso_ctx_queue_chunks(self, error);
-}
-
-static void handle_irq_mc_event(HinokoFwIsoCtx *self, const union fw_cdev_event *event,
-				GError **error)
-{
-	if (HINOKO_IS_FW_ISO_RX_MULTIPLE(self))
-		(void)fw_iso_rx_multiple_handle_event(self, event, error);
-	else
-		return;
-
-	if (*error != NULL)
-		return;
-
-	fw_iso_ctx_queue_chunks(self, error);
-}
-
 static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
 	GIOCondition condition;
-	GError *error;
+	GError *error = NULL;
 	int len;
 	const union fw_cdev_event *event;
 
@@ -719,22 +697,13 @@ static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data
 		return G_SOURCE_CONTINUE;
 	}
 
-	error = NULL;
 	event = (const union fw_cdev_event *)src->buf;
-	switch (event->common.type) {
-	case FW_CDEV_EVENT_ISO_INTERRUPT:
-		handle_irq_event(src->self, event, &error);
-		if (error != NULL)
-			goto error;
-		break;
-	case FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL:
-		handle_irq_mc_event(src->self, event, &error);
-		if (error != NULL)
-			goto error;
-		break;
-	default:
-		break;
-	}
+	if (!src->handle_event(src->self, event, &error))
+		goto error;
+
+	fw_iso_ctx_queue_chunks(src->self, &error);
+	if (error != NULL)
+		goto error;
 
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
@@ -805,6 +774,15 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GEr
 	src->tag = g_source_add_unix_fd(*source, priv->fd, G_IO_IN);
 	src->fd = priv->fd;
 	src->self = g_object_ref(self);
+
+	if (HINOKO_IS_FW_ISO_RX_SINGLE(self))
+		src->handle_event = fw_iso_rx_single_handle_event;
+	else if (HINOKO_IS_FW_ISO_RX_MULTIPLE(self))
+		src->handle_event = fw_iso_rx_multiple_handle_event;
+	else if (HINOKO_IS_FW_ISO_TX(self))
+		src->handle_event = fw_iso_tx_handle_event;
+	else
+		src->handle_event = fw_iso_ctx_handle_event_real;
 }
 
 /**

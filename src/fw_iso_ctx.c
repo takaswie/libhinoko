@@ -270,7 +270,6 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 	create.type = mode;
 	create.channel = channel;
 	create.speed = scode;
-	create.closure = (__u64)self;
 	create.header_size = header_size;
 
 	if (ioctl(priv->fd, FW_CDEV_IOC_CREATE_ISO_CONTEXT, &create) < 0) {
@@ -667,42 +666,34 @@ static gboolean check_src(GSource *source)
 	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
-static void handle_irq_event(const struct fw_cdev_event_iso_interrupt *ev,
+static void handle_irq_event(HinokoFwIsoCtx *self, const union fw_cdev_event *event,
 			     GError **error)
 {
-	if (HINOKO_IS_FW_ISO_RX_SINGLE((gpointer)ev->closure)) {
-		HinokoFwIsoRxSingle *ctx = HINOKO_FW_ISO_RX_SINGLE((gpointer)ev->closure);
-
-		hinoko_fw_iso_rx_single_handle_event(ctx, ev, error);
-	} else if (HINOKO_IS_FW_ISO_TX((gpointer)ev->closure)) {
-		HinokoFwIsoTx *ctx = HINOKO_FW_ISO_TX((gpointer)ev->closure);
-
-		hinoko_fw_iso_tx_handle_event(ctx, ev, error);
-	} else {
+	if (HINOKO_IS_FW_ISO_RX_SINGLE(self))
+		(void)fw_iso_rx_single_handle_event(self, event, error);
+	else if (HINOKO_IS_FW_ISO_TX(self))
+		(void)fw_iso_tx_handle_event(self, event, error);
+	else
 		return;
-	}
 
 	if (*error != NULL)
 		return;
 
-	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), error);
+	fw_iso_ctx_queue_chunks(self, error);
 }
 
-static void handle_irq_mc_event(const struct fw_cdev_event_iso_interrupt_mc *ev,
+static void handle_irq_mc_event(HinokoFwIsoCtx *self, const union fw_cdev_event *event,
 				GError **error)
 {
-	if (HINOKO_IS_FW_ISO_RX_MULTIPLE((gpointer)ev->closure)) {
-		HinokoFwIsoRxMultiple *ctx = HINOKO_FW_ISO_RX_MULTIPLE((gpointer)ev->closure);
-
-		hinoko_fw_iso_rx_multiple_handle_event(ctx, ev, error);
-	} else {
+	if (HINOKO_IS_FW_ISO_RX_MULTIPLE(self))
+		(void)fw_iso_rx_multiple_handle_event(self, event, error);
+	else
 		return;
-	}
 
 	if (*error != NULL)
 		return;
 
-	fw_iso_ctx_queue_chunks(HINOKO_FW_ISO_CTX((gpointer)ev->closure), error);
+	fw_iso_ctx_queue_chunks(self, error);
 }
 
 static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data)
@@ -732,12 +723,12 @@ static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data
 	event = (const union fw_cdev_event *)src->buf;
 	switch (event->common.type) {
 	case FW_CDEV_EVENT_ISO_INTERRUPT:
-		handle_irq_event(&event->iso_interrupt, &error);
+		handle_irq_event(src->self, event, &error);
 		if (error != NULL)
 			goto error;
 		break;
 	case FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL:
-		handle_irq_mc_event(&event->iso_interrupt_mc, &error);
+		handle_irq_mc_event(src->self, event, &error);
 		if (error != NULL)
 			goto error;
 		break;

@@ -120,6 +120,118 @@ static void hinoko_fw_iso_rx_multiple_init(HinokoFwIsoRxMultiple *self)
 	return;
 }
 
+static gboolean fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self, GError **error)
+{
+	HinokoFwIsoRxMultiplePrivate *priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	gboolean schedule_irq = FALSE;
+
+	if (priv->chunks_per_irq > 0) {
+		if (++priv->accumulated_chunk_count % priv->chunks_per_irq == 0)
+			schedule_irq = TRUE;
+		if (priv->accumulated_chunk_count >= G_MAXINT)
+			priv->accumulated_chunk_count %= priv->chunks_per_irq;
+	}
+
+	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
+					 schedule_irq, error);
+
+	return TRUE;
+}
+
+gboolean fw_iso_rx_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+					 GError **error)
+{
+	HinokoFwIsoRxMultiple *self;
+	HinokoFwIsoRxMultiplePrivate *priv;
+
+	const struct fw_cdev_event_iso_interrupt_mc *ev;
+	unsigned int bytes_per_chunk;
+	unsigned int chunks_per_buffer;
+	unsigned int bytes_per_buffer;
+	unsigned int accum_end;
+	unsigned int accum_length;
+	unsigned int chunk_pos;
+	unsigned int chunk_end;
+	struct ctx_payload *ctx_payload;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst), FALSE);
+	g_return_val_if_fail(event->common.type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL, FALSE);
+
+	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	ev = &event->iso_interrupt_mc;
+
+	g_object_get(G_OBJECT(self),
+		     "bytes-per-chunk", &bytes_per_chunk,
+		     "chunks-per-buffer", &chunks_per_buffer, NULL);
+
+	bytes_per_buffer = bytes_per_chunk * chunks_per_buffer;
+
+	accum_end = ev->completed;
+	if (accum_end < priv->prev_offset)
+		accum_end += bytes_per_buffer;
+
+	accum_length = 0;
+	ctx_payload = priv->ctx_payloads;
+	priv->ctx_payload_count = 0;
+	while (TRUE) {
+		unsigned int avail = accum_end - priv->prev_offset - accum_length;
+		guint offset;
+		const guint8 *frames;
+		const guint32 *buf;
+		guint32 iso_header;
+		guint frame_size;
+		unsigned int length;
+
+		if (avail < 4)
+			break;
+
+		offset = (priv->prev_offset + accum_length) % bytes_per_buffer;
+		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset,
+					      4, &frames, &frame_size);
+
+		buf = (const guint32 *)frames;
+		iso_header = GUINT32_FROM_LE(buf[0]);
+		length = (iso_header & 0xffff0000) >> 16;
+
+		// In buffer-fill mode, payload is sandwitched by heading
+		// isochronous header and trailing timestamp.
+		length += 8;
+
+		if (avail < length)
+			break;
+
+		g_debug("%3d: %6d %4d %6d",
+			priv->ctx_payload_count, offset, length,
+			ev->completed);
+
+		ctx_payload->offset = offset;
+		ctx_payload->length = length;
+		++ctx_payload;
+		++priv->ctx_payload_count;
+
+		// For next position.
+		accum_length += length;
+	}
+
+	g_signal_emit(self,
+		fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ],
+		0, priv->ctx_payload_count);
+
+	chunk_pos = priv->prev_offset / bytes_per_chunk;
+	chunk_end = (priv->prev_offset + accum_length) / bytes_per_chunk;
+	for (; chunk_pos < chunk_end; ++chunk_pos) {
+		if (!fw_iso_rx_multiple_register_chunk(self, error))
+			return FALSE;
+	}
+
+	priv->prev_offset += accum_length;
+	priv->prev_offset %= bytes_per_buffer;
+
+	return TRUE;
+}
+
 /**
  * hinoko_fw_iso_rx_multiple_new:
  *
@@ -288,23 +400,6 @@ void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self)
 	priv->concat_frames = NULL;
 }
 
-static void fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self,
-					      GError **error)
-{
-	HinokoFwIsoRxMultiplePrivate *priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
-	gboolean schedule_irq = FALSE;
-
-	if (priv->chunks_per_irq > 0) {
-		if (++priv->accumulated_chunk_count % priv->chunks_per_irq == 0)
-			schedule_irq = TRUE;
-		if (priv->accumulated_chunk_count >= G_MAXINT)
-			priv->accumulated_chunk_count %= priv->chunks_per_irq;
-	}
-
-	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
-					 schedule_irq, error);
-}
-
 /**
  * hinoko_fw_iso_rx_multiple_start:
  * @self: A [class@FwIsoRxMultiple].
@@ -342,8 +437,7 @@ void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 	priv->accumulated_chunk_count = 0;
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
-		fw_iso_rx_multiple_register_chunk(self, error);
-		if (*error != NULL)
+		if (!fw_iso_rx_multiple_register_chunk(self, error))
 			return;
 	}
 
@@ -362,92 +456,6 @@ void hinoko_fw_iso_rx_multiple_stop(HinokoFwIsoRxMultiple *self)
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
 
 	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
-}
-
-void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
-				const struct fw_cdev_event_iso_interrupt_mc *event,
-				GError **error)
-{
-	HinokoFwIsoRxMultiplePrivate *priv;
-	unsigned int bytes_per_chunk;
-	unsigned int chunks_per_buffer;
-	unsigned int bytes_per_buffer;
-	unsigned int accum_end;
-	unsigned int accum_length;
-	unsigned int chunk_pos;
-	unsigned int chunk_end;
-	struct ctx_payload *ctx_payload;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
-
-	g_object_get(G_OBJECT(self),
-		     "bytes-per-chunk", &bytes_per_chunk,
-		     "chunks-per-buffer", &chunks_per_buffer, NULL);
-
-	bytes_per_buffer = bytes_per_chunk * chunks_per_buffer;
-
-	accum_end = event->completed;
-	if (accum_end < priv->prev_offset)
-		accum_end += bytes_per_buffer;
-
-	accum_length = 0;
-	ctx_payload = priv->ctx_payloads;
-	priv->ctx_payload_count = 0;
-	while (TRUE) {
-		unsigned int avail = accum_end - priv->prev_offset - accum_length;
-		guint offset;
-		const guint8 *frames;
-		const guint32 *buf;
-		guint32 iso_header;
-		guint frame_size;
-		unsigned int length;
-
-		if (avail < 4)
-			break;
-
-		offset = (priv->prev_offset + accum_length) % bytes_per_buffer;
-		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset,
-					      4, &frames, &frame_size);
-
-		buf = (const guint32 *)frames;
-		iso_header = GUINT32_FROM_LE(buf[0]);
-		length = (iso_header & 0xffff0000) >> 16;
-
-		// In buffer-fill mode, payload is sandwitched by heading
-		// isochronous header and trailing timestamp.
-		length += 8;
-
-		if (avail < length)
-			break;
-
-		g_debug("%3d: %6d %4d %6d",
-			priv->ctx_payload_count, offset, length,
-			event->completed);
-
-		ctx_payload->offset = offset;
-		ctx_payload->length = length;
-		++ctx_payload;
-		++priv->ctx_payload_count;
-
-		// For next position.
-		accum_length += length;
-	}
-
-	g_signal_emit(self,
-		fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ],
-		0, priv->ctx_payload_count);
-
-	chunk_pos = priv->prev_offset / bytes_per_chunk;
-	chunk_end = (priv->prev_offset + accum_length) / bytes_per_chunk;
-	for (; chunk_pos < chunk_end; ++chunk_pos) {
-		fw_iso_rx_multiple_register_chunk(self, error);
-		if (*error != NULL)
-			return;
-	}
-
-	priv->prev_offset += accum_length;
-	priv->prev_offset %= bytes_per_buffer;
 }
 
 /**

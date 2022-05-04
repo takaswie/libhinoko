@@ -32,16 +32,13 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 				   guint length, const guint8 **frames,
 				   guint *frame_size);
 
-void hinoko_fw_iso_rx_single_handle_event(HinokoFwIsoRxSingle *self,
-				const struct fw_cdev_event_iso_interrupt *event,
-				GError **error);
+gboolean fw_iso_rx_single_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+				       GError **error);
 
-void hinoko_fw_iso_rx_multiple_handle_event(HinokoFwIsoRxMultiple *self,
-				const struct fw_cdev_event_iso_interrupt_mc *event,
-				GError **error);
+gboolean fw_iso_rx_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+					 GError **error);
 
-void hinoko_fw_iso_tx_handle_event(HinokoFwIsoTx *self,
-				   const struct fw_cdev_event_iso_interrupt *event,
-				   GError **error);
+gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+				GError **error);
 
 #endif

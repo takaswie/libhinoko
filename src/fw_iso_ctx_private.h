@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#define STOPPED_SIGNAL_NEME		"stopped"
+
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,
 				guint channel, guint header_size,

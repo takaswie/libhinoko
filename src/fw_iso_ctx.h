@@ -20,7 +20,7 @@ struct _HinokoFwIsoCtxClass {
 	/**
 	 * HinokoFwIsoCtxClass::stopped:
 	 * @self: A [class@FwIsoCtx].
-	 * @error: (transfer none) (nullable): A [struct@GLib.Error].
+	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error].
 	 *
 	 * Class closure for the [signal@FwIsoCtx::stopped] signal.
 	 */

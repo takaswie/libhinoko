@@ -241,16 +241,7 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 
 	hinoko_fw_iso_ctx_stop(self);
 
-	if (priv->addr != NULL) {
-		munmap(priv->addr,
-		       priv->bytes_per_chunk * priv->chunks_per_buffer);
-	}
-
-	if (priv->data != NULL)
-		free(priv->data);
-
-	priv->addr = NULL;
-	priv->data = NULL;
+	fw_iso_ctx_state_unmap_buffer(priv);
 }
 
 /**

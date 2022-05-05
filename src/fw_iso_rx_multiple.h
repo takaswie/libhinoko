@@ -9,10 +9,10 @@ G_BEGIN_DECLS
 #define HINOKO_TYPE_FW_ISO_RX_MULTIPLE	(hinoko_fw_iso_rx_multiple_get_type())
 
 G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple, HINOKO,
-			 FW_ISO_RX_MULTIPLE, HinokoFwIsoCtx);
+			 FW_ISO_RX_MULTIPLE, GObject);
 
 struct _HinokoFwIsoRxMultipleClass {
-	HinokoFwIsoCtxClass parent_class;
+	GObjectClass parent_class;
 
 	/**
 	 * HinokoFwIsoRxMultipleClass::interrupted:

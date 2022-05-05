@@ -105,7 +105,7 @@ typedef enum {
  * @HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED:	No chunk registered before starting.
  * @HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL:	No isochronous channel is available.
  *
- * A set of error code for [class@FwIsoCtx].
+ * A set of error code for [iface@FwIsoCtx].
  */
 typedef enum {
 	HINOKO_FW_ISO_CTX_ERROR_FAILED,

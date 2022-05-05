@@ -9,10 +9,10 @@ G_BEGIN_DECLS
 #define HINOKO_TYPE_FW_ISO_RX_SINGLE	(hinoko_fw_iso_rx_single_get_type())
 
 G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single, HINOKO, FW_ISO_RX_SINGLE,
-			 HinokoFwIsoCtx);
+			 GObject);
 
 struct _HinokoFwIsoRxSingleClass {
-	HinokoFwIsoCtxClass parent_class;
+	GObjectClass parent_class;
 
 	/**
 	 * HinokoFwIsoRxSingleClass::interrupted:

@@ -1,6 +1,5 @@
 tests = [
   'hinoko-enum',
-  'fw-iso-ctx',
   'fw-iso-rx-single',
   'fw-iso-rx-multiple',
   'fw-iso-tx',

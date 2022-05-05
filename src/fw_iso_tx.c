@@ -14,9 +14,11 @@ typedef struct {
 	guint offset;
 } HinokoFwIsoTxPrivate;
 
-static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class);
+static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface);
 
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx, HINOKO_TYPE_FW_ISO_CTX)
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoTx, hinoko_fw_iso_tx, G_TYPE_OBJECT,
+			G_ADD_PRIVATE(HinokoFwIsoTx)
+			G_IMPLEMENT_INTERFACE(HINOKO_TYPE_FW_ISO_CTX, fw_iso_ctx_iface_init))
 
 enum fw_iso_tx_sig_type {
 	FW_ISO_TX_SIG_TYPE_IRQ = 1,
@@ -44,13 +46,11 @@ static void fw_iso_tx_finalize(GObject *obj)
 static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	HinokoFwIsoCtxClass *parent_class = HINOKO_FW_ISO_CTX_CLASS(klass);
 
 	gobject_class->get_property = fw_iso_tx_get_property;
 	gobject_class->finalize = fw_iso_tx_finalize;
 
 	fw_iso_ctx_class_override_properties(gobject_class);
-	fw_iso_ctx_class_init(parent_class);
 
 	/**
 	 * HinokoFwIsoTx::interrupted:
@@ -173,12 +173,12 @@ gboolean fw_iso_tx_create_source(HinokoFwIsoCtx *inst, GSource **source, GError 
 					      error);
 }
 
-static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class)
+static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
-	parent_class->stop = fw_iso_tx_stop;
-	parent_class->get_cycle_timer = fw_iso_tx_get_cycle_timer;
-	parent_class->flush_completions = fw_iso_tx_flush_completions;
-	parent_class->create_source = fw_iso_tx_create_source;
+	iface->stop = fw_iso_tx_stop;
+	iface->get_cycle_timer = fw_iso_tx_get_cycle_timer;
+	iface->flush_completions = fw_iso_tx_flush_completions;
+	iface->create_source = fw_iso_tx_create_source;
 }
 
 /**

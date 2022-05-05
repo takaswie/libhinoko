@@ -16,12 +16,22 @@
 		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
-gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError **error);
+struct fw_iso_resource_state {
+	int fd;
+};
 
-gboolean fw_iso_resource_create_source(int fd, HinokoFwIsoResource *inst,
-				       void (*handle_event)(HinokoFwIsoResource *self,
-							    const union fw_cdev_event *event),
-				       GSource **source, GError **error);
+void fw_iso_resource_state_init(struct fw_iso_resource_state *state);
+
+void fw_iso_resource_state_release(struct fw_iso_resource_state *state);
+
+gboolean fw_iso_resource_state_open(struct fw_iso_resource_state *state, const gchar *path,
+				    gint open_flag, GError **error);
+
+gboolean fw_iso_resource_state_create_source(struct fw_iso_resource_state *state,
+					     HinokoFwIsoResource *inst,
+					     void (*handle_event)(HinokoFwIsoResource *self,
+								  const union fw_cdev_event *event),
+					     GSource **source, GError **error);
 
 struct fw_iso_resource_waiter {
 	GMutex mutex;

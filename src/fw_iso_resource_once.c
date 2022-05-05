@@ -11,7 +11,7 @@
  * is left even if this object is destroyed, thus application is responsible for deallocation.
  */
 typedef struct {
-	int fd;
+	struct fw_iso_resource_state state;
 } HinokoFwIsoResourceOncePrivate;
 
 static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface);
@@ -26,8 +26,7 @@ static void fw_iso_resource_once_finalize(GObject *obj)
 	HinokoFwIsoResourceOncePrivate *priv =
 		hinoko_fw_iso_resource_once_get_instance_private(self);
 
-	if (priv->fd >= 0)
-		close(priv->fd);
+	fw_iso_resource_state_release(&priv->state);
 
 	G_OBJECT_CLASS(hinoko_fw_iso_resource_once_parent_class)->finalize(obj);
 }
@@ -44,7 +43,7 @@ static void hinoko_fw_iso_resource_once_init(HinokoFwIsoResourceOnce *self)
 	HinokoFwIsoResourceOncePrivate *priv =
 		hinoko_fw_iso_resource_once_get_instance_private(self);
 
-	priv->fd = -1;
+	fw_iso_resource_state_init(&priv->state);
 }
 
 static gboolean fw_iso_resource_once_open(HinokoFwIsoResource *inst, const gchar *path,
@@ -57,7 +56,7 @@ static gboolean fw_iso_resource_once_open(HinokoFwIsoResource *inst, const gchar
 	self = HINOKO_FW_ISO_RESOURCE_ONCE(inst);
 	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
 
-	return fw_iso_resource_open(&priv->fd, path, open_flag, error);
+	return fw_iso_resource_state_open(&priv->state, path, open_flag, error);
 }
 
 static void handle_iso_resource_event(HinokoFwIsoResourceOnce *self,
@@ -103,8 +102,9 @@ static gboolean fw_iso_resource_once_create_source(HinokoFwIsoResource *inst, GS
 	self = HINOKO_FW_ISO_RESOURCE_ONCE(inst);
 	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
 
-	return fw_iso_resource_create_source(priv->fd, inst, fw_iso_resource_once_handle_event,
-					     source, error);
+	return fw_iso_resource_state_create_source(&priv->state, inst,
+						   fw_iso_resource_once_handle_event, source,
+						   error);
 }
 
 static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface)
@@ -167,7 +167,7 @@ void hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
 	}
 	res.bandwidth = bandwidth;
 
-	if (ioctl(priv->fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
 		generate_syscall_error(error, errno, "ioctl(%s)",
 				       "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE");
 	}
@@ -204,7 +204,7 @@ void hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self,
 	res.channels = 1ull << channel;
 	res.bandwidth = bandwidth;
 
-	if (ioctl(priv->fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
 		generate_syscall_error(error, errno, "ioctl(%s)",
 				       "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE");
 	}

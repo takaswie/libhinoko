@@ -57,6 +57,7 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 					 const guint8 *header, guint header_length,
 					 guint payload_length, gboolean schedule_interrupt,
 					 GError **error);
+gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **error);
 
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,

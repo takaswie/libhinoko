@@ -283,3 +283,94 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 
 	return TRUE;
 }
+
+/**
+ * fw_iso_ctx_state_queue_chunks:
+ * @state: A [struct@FwIsoCtxState].
+ * @error: A [struct@GLib.Error].
+ *
+ * Queue registered chunks to 1394 OHCI controller.
+ */
+gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **error)
+{
+	guint data_offset = 0;
+	int chunk_count = 0;
+	unsigned int bytes_per_buffer;
+	guint buf_offset;
+
+	bytes_per_buffer = state->bytes_per_chunk * state->chunks_per_buffer;
+	buf_offset = state->curr_offset;
+
+	while (data_offset < state->data_length) {
+		struct fw_cdev_queue_iso arg = {0};
+		guint buf_length = 0;
+		guint data_length = 0;
+
+		while (buf_offset + buf_length < bytes_per_buffer &&
+		       data_offset + data_length < state->data_length) {
+			struct fw_cdev_iso_packet *datum;
+			guint payload_length;
+			guint header_length;
+			guint datum_length;
+
+			datum = (struct fw_cdev_iso_packet *)
+				(state->data + data_offset + data_length);
+			payload_length = datum->control & 0x0000ffff;
+			header_length = (datum->control & 0xff000000) >> 24;
+
+			if (buf_offset + buf_length + payload_length >
+							bytes_per_buffer) {
+				buf_offset = 0;
+				break;
+			}
+
+			datum_length = sizeof(*datum);
+			if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+				datum_length += header_length;
+
+			g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d: %d",
+				chunk_count,
+				data_offset + data_length,
+				data_offset + data_length + datum_length,
+				state->alloc_data_length,
+				buf_offset + buf_length,
+				buf_offset + buf_length + payload_length,
+				bytes_per_buffer,
+				!!(datum->control & FW_CDEV_ISO_INTERRUPT));
+
+			buf_length += payload_length;
+			data_length += datum_length;
+			++chunk_count;
+		}
+
+		arg.packets = (__u64)(state->data + data_offset);
+		arg.size = data_length;
+		arg.data = (__u64)(state->addr + buf_offset);
+		arg.handle = state->handle;
+		if (ioctl(state->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0) {
+			generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_QUEUE_ISO");
+			return FALSE;
+		}
+
+		g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d",
+			chunk_count,
+			data_offset, data_offset + data_length,
+			state->alloc_data_length,
+			buf_offset, buf_offset + buf_length,
+			bytes_per_buffer);
+
+		buf_offset += buf_length;
+		buf_offset %= bytes_per_buffer;
+
+		data_offset += data_length;
+	}
+
+	g_warn_if_fail(chunk_count == state->registered_chunk_count);
+
+	state->curr_offset = buf_offset;
+
+	state->data_length = 0;
+	state->registered_chunk_count = 0;
+
+	return TRUE;
+}

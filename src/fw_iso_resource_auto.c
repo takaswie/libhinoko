@@ -144,35 +144,61 @@ static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar
 	return fw_iso_resource_open(&priv->fd, path, open_flag, error);
 }
 
-void fw_iso_resource_auto_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
-				       guint channel, guint bandwidth, const GError *error)
+static void handle_iso_resource_event(HinokoFwIsoResourceAuto *self,
+				      const struct fw_cdev_event_iso_resource *ev)
 {
-	HinokoFwIsoResourceAuto *self;
-	HinokoFwIsoResourceAutoPrivate *priv;
+	const char *signal_name;
+	guint channel;
+	guint bandwidth;
+	GError *error;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(inst));
-	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
-	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
+	parse_iso_resource_event(ev, &channel, &bandwidth, &signal_name, &error);
 
-	if (!strcmp(signal_name, ALLOCATED_SIGNAL_NAME)) {
-		if (error == NULL) {
-			g_mutex_lock(&priv->mutex);
+	if (error == NULL) {
+		HinokoFwIsoResourceAutoPrivate *priv =
+			hinoko_fw_iso_resource_auto_get_instance_private(self);
+
+		g_mutex_lock(&priv->mutex);
+
+		switch (ev->type) {
+		case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
 			priv->channel = channel;
 			priv->bandwidth = bandwidth;
 			priv->is_allocated = TRUE;
-			g_mutex_unlock(&priv->mutex);
-		}
-	} else {
-		if (error == NULL) {
-			g_mutex_lock(&priv->mutex);
+			break;
+		case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
 			priv->channel = 0;
 			priv->bandwidth -= bandwidth;
 			priv->is_allocated = FALSE;
-			g_mutex_unlock(&priv->mutex);
+			break;
+		default:
+			break;
 		}
+
+		g_mutex_unlock(&priv->mutex);
 	}
 
 	g_signal_emit_by_name(self, signal_name, channel, bandwidth, error);
+
+	if (error != NULL)
+		g_clear_error(&error);
+}
+
+void fw_iso_resource_auto_handle_event(HinokoFwIsoResource *inst, const union fw_cdev_event *event)
+{
+	HinokoFwIsoResourceAuto *self;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(inst));
+	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
+
+	switch (event->common.type) {
+	case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
+	case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
+		handle_iso_resource_event(self, &event->iso_resource);
+		break;
+	default:
+		break;
+	}
 }
 
 static gboolean fw_iso_resource_auto_create_source(HinokoFwIsoResource *inst, GSource **source,

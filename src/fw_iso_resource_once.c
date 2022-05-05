@@ -60,10 +60,37 @@ static gboolean fw_iso_resource_once_open(HinokoFwIsoResource *inst, const gchar
 	return fw_iso_resource_open(&priv->fd, path, open_flag, error);
 }
 
-void fw_iso_resource_once_handle_event(HinokoFwIsoResource *inst, const char *signal_name,
-				       guint channel, guint bandwidth, const GError *error)
+static void handle_iso_resource_event(HinokoFwIsoResourceOnce *self,
+				      const struct fw_cdev_event_iso_resource *ev)
 {
-	g_signal_emit_by_name(inst, signal_name, channel, bandwidth, error);
+	const char *signal_name;
+	guint channel;
+	guint bandwidth;
+	GError *error;
+
+	parse_iso_resource_event(ev, &channel, &bandwidth, &signal_name, &error);
+
+	g_signal_emit_by_name(self, signal_name, channel, bandwidth, error);
+
+	if (error != NULL)
+		g_clear_error(&error);
+}
+
+void fw_iso_resource_once_handle_event(HinokoFwIsoResource *inst, const union fw_cdev_event *event)
+{
+	HinokoFwIsoResourceOnce *self;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(inst));
+	self = HINOKO_FW_ISO_RESOURCE_ONCE(inst);
+
+	switch (event->common.type) {
+	case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
+	case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
+		handle_iso_resource_event(self, &event->iso_resource);
+		break;
+	default:
+		break;
+	}
 }
 
 static gboolean fw_iso_resource_once_create_source(HinokoFwIsoResource *inst, GSource **source,

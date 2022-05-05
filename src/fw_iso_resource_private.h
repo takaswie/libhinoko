@@ -20,8 +20,7 @@ gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError
 
 gboolean fw_iso_resource_create_source(int fd, HinokoFwIsoResource *inst,
 				       void (*handle_event)(HinokoFwIsoResource *self,
-							    const char *signal_name, guint channel,
-							    guint bandwidth, const GError *error),
+							    const union fw_cdev_event *event),
 				       GSource **source, GError **error);
 
 struct fw_iso_resource_waiter {
@@ -38,5 +37,8 @@ void fw_iso_resource_waiter_init(struct fw_iso_resource_waiter *w, HinokoFwIsoRe
 
 void fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoResource *self,
 				 GError **error);
+
+void parse_iso_resource_event(const struct fw_cdev_event_iso_resource *ev, guint *channel,
+			      guint *bandwidth, const char **signal_name, GError **error);
 
 #endif

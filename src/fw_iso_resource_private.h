@@ -18,6 +18,7 @@
 
 struct fw_iso_resource_state {
 	int fd;
+	struct fw_cdev_event_bus_reset bus_state;
 };
 
 void fw_iso_resource_state_init(struct fw_iso_resource_state *state);
@@ -32,6 +33,8 @@ gboolean fw_iso_resource_state_create_source(struct fw_iso_resource_state *state
 					     void (*handle_event)(HinokoFwIsoResource *self,
 								  const union fw_cdev_event *event),
 					     GSource **source, GError **error);
+
+gboolean fw_iso_resource_state_cache_bus_state(struct fw_iso_resource_state *state, GError **error);
 
 struct fw_iso_resource_waiter {
 	GMutex mutex;

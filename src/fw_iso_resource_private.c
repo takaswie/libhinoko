@@ -35,20 +35,32 @@ typedef struct {
 	void (*handle_event)(HinokoFwIsoResource *self, const union fw_cdev_event *event);
 } FwIsoResourceSource;
 
-gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError **error)
+void fw_iso_resource_state_init(struct fw_iso_resource_state *state)
 {
-	g_return_val_if_fail(fd != NULL, FALSE);
+	state->fd = -1;
+}
+
+void fw_iso_resource_state_release(struct fw_iso_resource_state *state)
+{
+	if (state->fd < 0)
+		close(state->fd);
+	state->fd = -1;
+}
+
+gboolean fw_iso_resource_state_open(struct fw_iso_resource_state *state, const gchar *path,
+				    gint open_flag, GError **error)
+{
 	g_return_val_if_fail(path != NULL && strlen(path) > 0, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
-	if (*fd >= 0) {
+	if (state->fd >= 0) {
 		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_OPENED);
 		return FALSE;
 	}
 
 	open_flag |= O_RDONLY;
-	*fd = open(path, open_flag);
-	if (*fd < 0) {
+	state->fd = open(path, open_flag);
+	if (state->fd < 0) {
 		GFileError code = g_file_error_from_errno(errno);
 		if (code != G_FILE_ERROR_FAILED)
 			generate_file_error(error, code, "open(%s)", path);
@@ -115,10 +127,11 @@ static void finalize_src(GSource *source)
 	g_object_unref(src->self);
 }
 
-gboolean fw_iso_resource_create_source(int fd, HinokoFwIsoResource *inst,
-				       void (*handle_event)(HinokoFwIsoResource *self,
-							    const union fw_cdev_event *event),
-				       GSource **source, GError **error)
+gboolean fw_iso_resource_state_create_source(struct fw_iso_resource_state *state,
+					     HinokoFwIsoResource *inst,
+					     void (*handle_event)(HinokoFwIsoResource *self,
+								  const union fw_cdev_event *event),
+					     GSource **source, GError **error)
 {
 	static GSourceFuncs funcs = {
 		.check		= check_src,
@@ -141,8 +154,8 @@ gboolean fw_iso_resource_create_source(int fd, HinokoFwIsoResource *inst,
 	src->buf = g_malloc0(page_size);
 
 	src->len = (gsize)page_size;
-	src->tag = g_source_add_unix_fd(*source, fd, G_IO_IN);
-	src->fd = fd;
+	src->tag = g_source_add_unix_fd(*source, state->fd, G_IO_IN);
+	src->fd = state->fd;
 	src->self = g_object_ref(inst);
 	src->handle_event = handle_event;
 

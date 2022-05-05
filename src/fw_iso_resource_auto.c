@@ -10,7 +10,7 @@
  * updates. The maintenance of allocated isochronous resource is done by Linux FireWire subsystem.
  */
 typedef struct {
-	int fd;
+	struct fw_iso_resource_state state;
 
 	gboolean is_allocated;
 	guint channel;
@@ -87,8 +87,7 @@ static void fw_iso_resource_auto_finalize(GObject *obj)
 	HinokoFwIsoResourceAutoPrivate *priv =
 		hinoko_fw_iso_resource_auto_get_instance_private(self);
 
-	if (priv->fd >= 0)
-		close(priv->fd);
+	fw_iso_resource_state_release(&priv->state);
 
 	G_OBJECT_CLASS(hinoko_fw_iso_resource_auto_parent_class)->finalize(obj);
 }
@@ -127,7 +126,7 @@ static void hinoko_fw_iso_resource_auto_init(HinokoFwIsoResourceAuto *self)
 	HinokoFwIsoResourceAutoPrivate *priv =
 			hinoko_fw_iso_resource_auto_get_instance_private(self);
 
-	priv->fd = -1;
+	fw_iso_resource_state_init(&priv->state);
 	g_mutex_init(&priv->mutex);
 }
 
@@ -141,7 +140,7 @@ static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar
 	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
-	return fw_iso_resource_open(&priv->fd, path, open_flag, error);
+	return fw_iso_resource_state_open(&priv->state, path, open_flag, error);
 }
 
 static void handle_iso_resource_event(HinokoFwIsoResourceAuto *self,
@@ -211,8 +210,9 @@ static gboolean fw_iso_resource_auto_create_source(HinokoFwIsoResource *inst, GS
 	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
-	return fw_iso_resource_create_source(priv->fd, inst, fw_iso_resource_auto_handle_event,
-					     source, error);
+	return fw_iso_resource_state_create_source(&priv->state, inst,
+						   fw_iso_resource_auto_handle_event, source,
+						   error);
 }
 
 static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface)
@@ -280,7 +280,7 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	}
 	res.bandwidth = bandwidth;
 
-	if (ioctl(priv->fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res) < 0) {
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res) < 0) {
 		generate_syscall_error(error, errno, "ioctl(%s)",
 				       "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE");
 	} else {
@@ -319,7 +319,7 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 
 	dealloc.handle = priv->handle;
 
-	if (ioctl(priv->fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE, &dealloc) < 0) {
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE, &dealloc) < 0) {
 		generate_syscall_error(error, errno, "ioctl(%s)",
 				       "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE");
 	}

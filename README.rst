@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2022/05/02
+2022/05/04
 Takashi Sakamoto
 
 Introduction
@@ -77,29 +77,62 @@ You can see documentation files under ``(directory-to-install)/share/doc/hinoko/
 Loss of backward compatibility between v0.6/v0.7 releases
 =========================================================
 
-The status of project is still under development. Below public functions are removed at v0.7
-release without backward compatibility:
+At v0.6, internal inheritance was heavily used to share functions, signals and properties. At v0.7,
+the inheritance is obsoleted by utilizing GObject Interface, therefore below base classes becomes
+simple interface.
 
-- ``Hinoko.FwIsoResource.allocate_once_async``
-- ``Hinoko.FwIsoResource.allocate_once_sync``
-- ``Hinoko.FwIsoResource.deallocate_once_async``
-- ``Hinoko.FwIsoResource.deallocate_once_sync``
+- ``Hinoko.FwIsoCtx``
+- ``Hinoko.FwResource``
 
-``Hinoko.FwIsoResourceOnce`` is newly added and some alternative functions are available:
+The former is implemented by below classes inherits GObject directly:
+
+- ``Hinoko.FwIsoRxSingle``
+- ``Hinoko.FwIsoRxMultiple``
+- ``Hinoko.FwIsoTx``
+
+The latter is implemented by below classes inherits GObject directly:
+
+- ``Hinoko.FwIsoResourceAuto``
+- ``Hinoko.FwIsoResourceOnce``
+
+The ``Hinoko.FwIsoResourceOnce`` is newly added for allocation of isochronous resource bound
+to current generation of bus topology, and some functions are available:
 
 - ``Hinoko.FwIsoResourceOnce.allocate_async``
 - ``Hinoko.FwIsoResourceOnce.allocate_sync``
 - ``Hinoko.FwIsoResourceOnce.deallocate_async``
 - ``Hinoko.FwIsoResourceOnce.deallocate_sync``
 
-Additionally, below puclic functions are changed to have an argument for the value of timeout to
+These functions obsolete below functions. They are removed:
+
+- ``Hinoko.FwIsoResource.allocate_once_async``
+- ``Hinoko.FwIsoResource.allocate_once_sync``
+- ``Hinoko.FwIsoResource.deallocate_once_async``
+- ``Hinoko.FwIsoResource.deallocate_once_sync``
+
+Below functions are removed as well:
+
+- ``Hinoko.FwIsoRxSingle.stop``
+- ``Hinoko.FwIsoRxSingle.unmap_buffer``
+- ``Hinoko.FwIsoRxSingle.release``
+- ``Hinoko.FwIsoRxMultiple.stop``
+- ``Hinoko.FwIsoRxMultiple.unmap_buffer``
+- ``Hinoko.FwIsoRxMultiple.release``
+- ``Hinoko.FwIsoTx.stop``
+- ``Hinoko.FwIsoTx.unmap_buffer``
+- ``Hinoko.FwIsoTx.release``
+
+Alternatively, below functions are available:
+
+- ``Hinoko.FwIsoCtx.stop``
+- ``Hinoko.FwIsoCtx.unmap_buffer``
+- ``Hinoko.FwIsoCtx.release``
+
+Furthermore, below puclic functions are changed to have an argument for the value of timeout to
 wait for event:
 
 - ``Hinoko.FwIsoResourceAuto.allocate_sync``
 - ``Hinoko.FwIsoResourceAuto.deallocate_sync``
-
-Furthermore, ``Hinoko.FwIsoResource`` becomes GObject interface. ``Hinoko.FwIsoResourceAuto`` and
-``Hinoko.FwIsoResourceOnce`` implements the interface.
 
 Loss of backward compatibility between v0.5/v0.6 releases
 =========================================================

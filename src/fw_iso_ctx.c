@@ -342,23 +342,6 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 					      payload_length, schedule_interrupt, error);
 }
 
-static void fw_iso_ctx_stop(HinokoFwIsoCtx *self)
-{
-	struct fw_cdev_stop_iso arg = {0};
-	HinokoFwIsoCtxPrivate *priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	if (!priv->running)
-		return;
-
-	arg.handle = priv->handle;
-	ioctl(priv->fd, FW_CDEV_IOC_STOP_ISO, &arg);
-
-	priv->running = FALSE;
-	priv->registered_chunk_count = 0;
-	priv->data_length = 0;
-	priv->curr_offset = 0;
-}
-
 static gboolean check_src(GSource *source)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
@@ -523,7 +506,7 @@ void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 
 	running = priv->running;
 
-	fw_iso_ctx_stop(self);
+	fw_iso_ctx_state_stop(priv);
 
 	if (priv->running != running)
 		g_signal_emit(self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0, NULL);

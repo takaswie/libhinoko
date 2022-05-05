@@ -374,3 +374,77 @@ gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **
 
 	return TRUE;
 }
+
+/**
+ * fw_iso_ctx_state_start:
+ * @state: A [struct@FwIsoCtxState].
+ * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable): The isochronous cycle
+ *		 to start packet processing. The first element should be the second part of
+ *		 isochronous cycle, up to 3. The second element should be the cycle part of
+ *		 isochronous cycle, up to 7999.
+ * @sync: The value of sync field in isochronous header for packet processing, up to 15.
+ * @tags: The value of tag field in isochronous header for packet processing.
+ * @error: A [struct@GLib.Error].
+ *
+ * Start isochronous context.
+ */
+gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *cycle_match,
+				guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error)
+{
+	struct fw_cdev_start_iso arg = {0};
+	gint cycle;
+
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	if (state->fd < 0) {
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return FALSE;
+	}
+
+	if (state->addr == NULL) {
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
+		return FALSE;
+	}
+
+	if (cycle_match == NULL) {
+		cycle = -1;
+	} else {
+		g_return_val_if_fail(cycle_match[0] < 4, FALSE);
+		g_return_val_if_fail(cycle_match[1] < 8000, FALSE);
+
+		cycle = (cycle_match[0] << 13) | cycle_match[1];
+	}
+
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+		g_return_val_if_fail(sync == 0, FALSE);
+		g_return_val_if_fail(tags == 0, FALSE);
+	} else {
+		g_return_val_if_fail(sync < 16, FALSE);
+		g_return_val_if_fail(tags <= (HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 |
+					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 |
+					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 |
+					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3), FALSE);
+	}
+
+	// Not prepared.
+	if (state->data_length == 0) {
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED);
+		return FALSE;
+	}
+
+	if (!fw_iso_ctx_state_queue_chunks(state, error))
+		return FALSE;
+
+	arg.sync = sync;
+	arg.cycle = cycle;
+	arg.tags = tags;
+	arg.handle = state->handle;
+	if (ioctl(state->fd, FW_CDEV_IOC_START_ISO, &arg) < 0) {
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_START_ISO");
+		return FALSE;
+	}
+
+	state->running = TRUE;
+
+	return TRUE;
+}

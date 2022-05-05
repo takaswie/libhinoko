@@ -69,6 +69,11 @@ gboolean fw_iso_resource_state_open(struct fw_iso_resource_state *state, const g
 		return FALSE;
 	}
 
+	if (!fw_iso_resource_state_cache_bus_state(state, error)) {
+		fw_iso_resource_state_release(state);
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -109,6 +114,7 @@ static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data
 	switch (ev->common.type) {
 	case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
 	case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
+	case FW_CDEV_EVENT_BUS_RESET:
 		src->handle_event(src->self, ev);
 		break;
 	default:
@@ -158,6 +164,26 @@ gboolean fw_iso_resource_state_create_source(struct fw_iso_resource_state *state
 	src->fd = state->fd;
 	src->self = g_object_ref(inst);
 	src->handle_event = handle_event;
+
+	if (!fw_iso_resource_state_cache_bus_state(state, error)) {
+		g_source_unref(*source);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+gboolean fw_iso_resource_state_cache_bus_state(struct fw_iso_resource_state *state, GError **error)
+{
+	struct fw_cdev_get_info get_info = {0};
+
+	get_info.version = 5;
+	get_info.bus_reset = (__u64)&state->bus_state;
+
+	if (ioctl(state->fd, FW_CDEV_IOC_GET_INFO, &get_info) < 0) {
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
+		return FALSE;
+	}
 
 	return TRUE;
 }

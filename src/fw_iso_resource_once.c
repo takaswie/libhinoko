@@ -75,6 +75,15 @@ static void handle_iso_resource_event(HinokoFwIsoResourceOnce *self,
 		g_clear_error(&error);
 }
 
+static void handle_bus_reset_event(HinokoFwIsoResourceOnce *self,
+				   const struct fw_cdev_event_bus_reset *ev)
+{
+	HinokoFwIsoResourceOncePrivate *priv =
+		hinoko_fw_iso_resource_once_get_instance_private(self);
+
+	memcpy(&priv->state.bus_state, ev, sizeof(*ev));
+}
+
 void fw_iso_resource_once_handle_event(HinokoFwIsoResource *inst, const union fw_cdev_event *event)
 {
 	HinokoFwIsoResourceOnce *self;
@@ -86,6 +95,9 @@ void fw_iso_resource_once_handle_event(HinokoFwIsoResource *inst, const union fw
 	case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
 	case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
 		handle_iso_resource_event(self, &event->iso_resource);
+		break;
+	case FW_CDEV_EVENT_BUS_RESET:
+		handle_bus_reset_event(self, &event->bus_reset);
 		break;
 	default:
 		break;

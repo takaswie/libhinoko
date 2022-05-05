@@ -342,93 +342,6 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 					      payload_length, schedule_interrupt, error);
 }
 
-static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **error)
-{
-	HinokoFwIsoCtxPrivate *priv;
-	guint data_offset = 0;
-	int chunk_count = 0;
-	unsigned int bytes_per_buffer;
-	guint buf_offset;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	bytes_per_buffer = priv->bytes_per_chunk * priv->chunks_per_buffer;
-	buf_offset = priv->curr_offset;
-
-	while (data_offset < priv->data_length) {
-		struct fw_cdev_queue_iso arg = {0};
-		guint buf_length = 0;
-		guint data_length = 0;
-
-		while (buf_offset + buf_length < bytes_per_buffer &&
-		       data_offset + data_length < priv->data_length) {
-			struct fw_cdev_iso_packet *datum;
-			guint payload_length;
-			guint header_length;
-			guint datum_length;
-
-			datum = (struct fw_cdev_iso_packet *)
-				(priv->data + data_offset + data_length);
-			payload_length = datum->control & 0x0000ffff;
-			header_length = (datum->control & 0xff000000) >> 24;
-
-			if (buf_offset + buf_length + payload_length >
-							bytes_per_buffer) {
-				buf_offset = 0;
-				break;
-			}
-
-			datum_length = sizeof(*datum);
-			if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
-				datum_length += header_length;
-
-			g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d: %d",
-				chunk_count,
-				data_offset + data_length,
-				data_offset + data_length + datum_length,
-				priv->alloc_data_length,
-				buf_offset + buf_length,
-				buf_offset + buf_length + payload_length,
-				bytes_per_buffer,
-				!!(datum->control & FW_CDEV_ISO_INTERRUPT));
-
-			buf_length += payload_length;
-			data_length += datum_length;
-			++chunk_count;
-		}
-
-		arg.packets = (__u64)(priv->data + data_offset);
-		arg.size = data_length;
-		arg.data = (__u64)(priv->addr + buf_offset);
-		arg.handle = priv->handle;
-		if (ioctl(priv->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0) {
-			generate_syscall_error(error, errno,
-					       "ioctl(%s)", "FW_CDEV_IOC_QUEUE_ISO");
-			return;
-		}
-
-		g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d",
-			chunk_count,
-			data_offset, data_offset + data_length,
-			priv->alloc_data_length,
-			buf_offset, buf_offset + buf_length,
-			bytes_per_buffer);
-
-		buf_offset += buf_length;
-		buf_offset %= bytes_per_buffer;
-
-		data_offset += data_length;
-	}
-
-	g_warn_if_fail(chunk_count == priv->registered_chunk_count);
-
-	priv->curr_offset = buf_offset;
-
-	priv->data_length = 0;
-	priv->registered_chunk_count = 0;
-}
-
 static void fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 {
 	struct fw_cdev_stop_iso arg = {0};
@@ -460,6 +373,7 @@ static gboolean check_src(GSource *source)
 static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
+	HinokoFwIsoCtxPrivate *priv;
 	GIOCondition condition;
 	GError *error = NULL;
 	int len;
@@ -484,8 +398,8 @@ static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data
 	if (!src->handle_event(src->self, event, &error))
 		goto error;
 
-	fw_iso_ctx_queue_chunks(src->self, &error);
-	if (error != NULL)
+	priv = hinoko_fw_iso_ctx_get_instance_private(src->self);
+	if (!fw_iso_ctx_state_queue_chunks(priv, &error))
 		goto error;
 
 	// Just be sure to continue to process this source.
@@ -628,8 +542,7 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, g
 		return;
 	}
 
-	fw_iso_ctx_queue_chunks(self, error);
-	if (*error != NULL)
+	if (!fw_iso_ctx_state_queue_chunks(priv, error))
 		return;
 
 	arg.sync = sync;

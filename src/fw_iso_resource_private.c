@@ -17,13 +17,13 @@ static const char *const err_msgs[] = {
 #define generate_local_error(error, code) \
 	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_ERROR, code, err_msgs[code])
 
+#define generate_file_error(error, code, format, arg) \
+	g_set_error(error, G_FILE_ERROR, code, format, arg)
+
 #define generate_event_error(error, errno)			\
 	g_set_error(error, HINOKO_FW_ISO_RESOURCE_ERROR,	\
 		    HINOKO_FW_ISO_RESOURCE_ERROR_EVENT,		\
 		    "%d %s", errno, strerror(errno))
-
-#define generate_file_error(error, code, format, arg) \
-	g_set_error(error, G_FILE_ERROR, code, format, arg)
 
 typedef struct {
 	GSource src;
@@ -32,8 +32,7 @@ typedef struct {
 	gsize len;
 	guint8 *buf;
 	int fd;
-	void (*handle_event)(HinokoFwIsoResource *self, const char *signal_name, guint channel,
-			     guint bandwidth, const GError *error);
+	void (*handle_event)(HinokoFwIsoResource *self, const union fw_cdev_event *event);
 } FwIsoResourceSource;
 
 gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError **error)
@@ -59,34 +58,6 @@ gboolean fw_iso_resource_open(int *fd, const gchar *path, gint open_flag, GError
 	}
 
 	return TRUE;
-}
-
-static void handle_iso_resource_event(FwIsoResourceSource *src,
-				      const struct fw_cdev_event_iso_resource *ev)
-{
-	guint channel;
-	guint bandwidth;
-	const char *signal_name;
-	GError *error = NULL;
-
-	if (ev->channel >= 0) {
-		channel = ev->channel;
-		bandwidth = ev->bandwidth;
-	} else {
-		channel = 0;
-		bandwidth = 0;
-		generate_event_error(&error, -ev->channel);
-	}
-
-	if (ev->type == FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED)
-		signal_name = ALLOCATED_SIGNAL_NAME;
-	else
-		signal_name = DEALLOCATED_SIGNAL_NAME;
-
-	src->handle_event(src->self, signal_name, channel, bandwidth, error);
-
-	if (error != NULL)
-		g_clear_error(&error);
 }
 
 static gboolean check_src(GSource *source)
@@ -126,7 +97,7 @@ static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data
 	switch (ev->common.type) {
 	case FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED:
 	case FW_CDEV_EVENT_ISO_RESOURCE_DEALLOCATED:
-		handle_iso_resource_event(src, &ev->iso_resource);
+		src->handle_event(src->self, ev);
 		break;
 	default:
 		break;
@@ -146,8 +117,7 @@ static void finalize_src(GSource *source)
 
 gboolean fw_iso_resource_create_source(int fd, HinokoFwIsoResource *inst,
 				       void (*handle_event)(HinokoFwIsoResource *self,
-							    const char *signal_name, guint channel,
-							    guint bandwidth, const GError *error),
+							    const union fw_cdev_event *event),
 				       GSource **source, GError **error)
 {
 	static GSourceFuncs funcs = {
@@ -223,4 +193,24 @@ void fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoRe
 		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
 	else if (w->error != NULL)
 		*error = w->error;	// Delegate ownership.
+}
+
+void parse_iso_resource_event(const struct fw_cdev_event_iso_resource *ev, guint *channel,
+			      guint *bandwidth, const char **signal_name, GError **error)
+{
+	*error = NULL;
+
+	if (ev->channel >= 0) {
+		*channel = ev->channel;
+		*bandwidth = ev->bandwidth;
+	} else {
+		*channel = 0;
+		*bandwidth = 0;
+		generate_event_error(error, -ev->channel);
+	}
+
+	if (ev->type == FW_CDEV_EVENT_ISO_RESOURCE_ALLOCATED)
+		*signal_name = ALLOCATED_SIGNAL_NAME;
+	else
+		*signal_name = DEALLOCATED_SIGNAL_NAME;
 }

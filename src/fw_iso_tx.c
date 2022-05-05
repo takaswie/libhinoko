@@ -75,7 +75,9 @@ static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 
 static void hinoko_fw_iso_tx_init(HinokoFwIsoTx *self)
 {
-	return;
+	HinokoFwIsoTxPrivate *priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	fw_iso_ctx_state_init(&priv->state);
 }
 
 static void fw_iso_tx_stop(HinokoFwIsoCtx *inst)

@@ -7,6 +7,17 @@
 #include <sys/mman.h>
 
 /**
+ * fw_iso_ctx_state_init:
+ * @state: A [struct@FwIsoCtxState].
+ *
+ * Initialize structure for state of isochronous context.
+ */
+void fw_iso_ctx_state_init(struct fw_iso_ctx_state *state)
+{
+	state->fd = -1;
+}
+
+/**
  * fw_iso_ctx_state_allocate:
  * @state: A [struct@FwIsoCtxState].
  * @path: A path to any Linux FireWire character device.

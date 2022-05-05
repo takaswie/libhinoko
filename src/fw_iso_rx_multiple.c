@@ -125,7 +125,9 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 
 static void hinoko_fw_iso_rx_multiple_init(HinokoFwIsoRxMultiple *self)
 {
-	return;
+	HinokoFwIsoRxMultiplePrivate *priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	fw_iso_ctx_state_init(&priv->state);
 }
 
 static void fw_iso_rx_multiple_stop(HinokoFwIsoCtx *inst)

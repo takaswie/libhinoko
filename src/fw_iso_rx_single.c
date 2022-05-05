@@ -84,7 +84,9 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 
 static void hinoko_fw_iso_rx_single_init(HinokoFwIsoRxSingle *self)
 {
-	return;
+	HinokoFwIsoRxSinglePrivate *priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	fw_iso_ctx_state_init(&priv->state);
 }
 
 static void fw_iso_rx_single_stop(HinokoFwIsoCtx *inst)

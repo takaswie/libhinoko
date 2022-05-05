@@ -58,7 +58,7 @@ void fw_iso_resource_state_init(struct fw_iso_resource_state *state)
 
 void fw_iso_resource_state_release(struct fw_iso_resource_state *state)
 {
-	if (state->fd < 0)
+	if (state->fd >= 0)
 		close(state->fd);
 	state->fd = -1;
 }

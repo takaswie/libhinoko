@@ -24,6 +24,17 @@ static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class);
 
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single, HINOKO_TYPE_FW_ISO_CTX)
 
+enum fw_iso_rx_single_sig_type {
+	FW_ISO_RX_SINGLE_SIG_TYPE_IRQ = 1,
+	FW_ISO_RX_SINGLE_SIG_TYPE_COUNT,
+};
+static guint fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_COUNT] = { 0 };
+
+static void fw_iso_rx_single_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
+{
+	return;
+}
+
 static void fw_iso_rx_single_finalize(GObject *obj)
 {
 	HinokoFwIsoRxSingle *self = HINOKO_FW_ISO_RX_SINGLE(obj);
@@ -33,17 +44,12 @@ static void fw_iso_rx_single_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinoko_fw_iso_rx_single_parent_class)->finalize(obj);
 }
 
-enum fw_iso_rx_single_sig_type {
-	FW_ISO_RX_SINGLE_SIG_TYPE_IRQ = 1,
-	FW_ISO_RX_SINGLE_SIG_TYPE_COUNT,
-};
-static guint fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_COUNT] = { 0 };
-
 static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 	HinokoFwIsoCtxClass *parent_class = HINOKO_FW_ISO_CTX_CLASS(klass);
 
+	gobject_class->get_property = fw_iso_rx_single_get_property;
 	gobject_class->finalize = fw_iso_rx_single_finalize;
 
 	fw_iso_ctx_class_init(parent_class);

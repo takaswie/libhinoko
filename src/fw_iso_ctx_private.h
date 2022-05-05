@@ -41,7 +41,23 @@ struct fw_iso_ctx_state {
 	gboolean running;
 };
 
+enum fw_iso_ctx_prop_type {
+	FW_ISO_CTX_PROP_TYPE_BYTES_PER_CHUNK = 1,
+	FW_ISO_CTX_PROP_TYPE_CHUNKS_PER_BUFFER,
+	FW_ISO_CTX_PROP_TYPE_REGISTERED_CHUNK_COUNT,
+	FW_ISO_CTX_PROP_TYPE_COUNT,
+};
+
+#define BYTES_PER_CHUNK_PROP_NAME		"bytes-per-chunk"
+#define CHUNKS_PER_BUFFER_PROP_NAME		"chunks-per-buffer"
+#define REGISTERED_CHUNK_COUNT_PROP_NAME	"registered-chunk-count"
+
 #define STOPPED_SIGNAL_NEME		"stopped"
+
+void fw_iso_ctx_class_override_properties(GObjectClass *gobject_class);
+
+void fw_iso_ctx_state_get_property(const struct fw_iso_ctx_state *state, GObject *obj, guint id,
+				   GValue *val, GParamSpec *spec);
 
 void fw_iso_ctx_state_init(struct fw_iso_ctx_state *state);
 

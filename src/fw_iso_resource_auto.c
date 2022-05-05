@@ -283,6 +283,10 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
+	if (priv->state.fd < 0) {
+		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return;
+	}
 
 	g_return_if_fail(channel_candidates != NULL);
 	g_return_if_fail(channel_candidates_count > 0);
@@ -328,6 +332,10 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
+	if (priv->state.fd < 0) {
+		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return;
+	}
 
 	g_mutex_lock(&priv->mutex);
 

@@ -196,6 +196,10 @@ void hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
 	g_return_if_fail(bandwidth > 0);
 
 	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
+	if (priv->state.fd < 0) {
+		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return;
+	}
 
 	for (i = 0; i < channel_candidates_count; ++i) {
 		if (channel_candidates[i] < 64)
@@ -234,6 +238,10 @@ void hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self,
 	g_return_if_fail(bandwidth > 0);
 
 	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
+	if (priv->state.fd < 0) {
+		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return;
+	}
 
 	res.channels = 1ull << channel;
 	res.bandwidth = bandwidth;

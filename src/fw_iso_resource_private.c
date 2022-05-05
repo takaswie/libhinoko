@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-static const char *const err_msgs[] = {
+const char *const fw_iso_resource_err_msgs[HINOKO_FW_ISO_RESOURCE_ERROR_EVENT + 1] = {
 	[HINOKO_FW_ISO_RESOURCE_ERROR_OPENED] =
 		"The instance is already associated to any firewire character device",
 	[HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED] =
@@ -13,9 +13,6 @@ static const char *const err_msgs[] = {
 	[HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT] =
 		"No event to the request arrives within timeout.",
 };
-
-#define generate_local_error(error, code) \
-	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_ERROR, code, err_msgs[code])
 
 #define generate_file_error(error, code, format, arg) \
 	g_set_error(error, G_FILE_ERROR, code, format, arg)
@@ -73,7 +70,7 @@ gboolean fw_iso_resource_state_open(struct fw_iso_resource_state *state, const g
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	if (state->fd >= 0) {
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_OPENED);
+		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_OPENED);
 		return FALSE;
 	}
 
@@ -170,6 +167,11 @@ gboolean fw_iso_resource_state_create_source(struct fw_iso_resource_state *state
 	g_return_val_if_fail(source != NULL, FALSE);
 	g_return_val_if_fail(error != NULL && *error == NULL, FALSE);
 
+	if (state->fd < 0) {
+		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return FALSE;
+	}
+
 	*source = g_source_new(&funcs, sizeof(FwIsoResourceSource));
 
 	g_source_set_name(*source, "HinokoFwIsoResource");
@@ -248,7 +250,7 @@ void fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoRe
 	g_mutex_unlock(&w->mutex);
 
 	if (w->handled == FALSE)
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
+		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
 	else if (w->error != NULL)
 		*error = w->error;	// Delegate ownership.
 }

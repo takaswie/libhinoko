@@ -45,6 +45,7 @@ struct fw_iso_ctx_state {
 gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *path,
 				   HinokoFwIsoCtxMode mode, HinokoFwScode scode, guint channel,
 				   guint header_size, GError **error);
+void fw_iso_ctx_state_release(struct fw_iso_ctx_state *state);
 
 #define STOPPED_SIGNAL_NEME		"stopped"
 

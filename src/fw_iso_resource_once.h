@@ -17,23 +17,23 @@ struct _HinokoFwIsoResourceOnceClass {
 
 HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new();
 
-void hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
-						guint8 *channel_candidates,
-						gsize channel_candidates_count,
-						guint bandwidth, GError **error);
+gboolean hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
+						    guint8 *channel_candidates,
+						    gsize channel_candidates_count,
+						    guint bandwidth, GError **error);
 
-void hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self, guint channel,
-						  guint bandwidth, GError **error);
+gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self, guint channel,
+						      guint bandwidth, GError **error);
 
-void hinoko_fw_iso_resource_once_allocate_sync(HinokoFwIsoResourceOnce *self,
-					       guint8 *channel_candidates,
-					       gsize channel_candidates_count,
-					       guint bandwidth, guint timeout_ms,
-					       GError **error);
+gboolean hinoko_fw_iso_resource_once_allocate_sync(HinokoFwIsoResourceOnce *self,
+						   guint8 *channel_candidates,
+					           gsize channel_candidates_count,
+					           guint bandwidth, guint timeout_ms,
+					           GError **error);
 
-void hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *self, guint channel,
-						 guint bandwidth, guint timeout_ms,
-						 GError **error);
+gboolean hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *self, guint channel,
+						     guint bandwidth, guint timeout_ms,
+						     GError **error);
 
 G_END_DECLS
 

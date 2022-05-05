@@ -12,9 +12,8 @@
  * subsystem specific request commands. This object is designed for internal
  * use, therefore a few method and properties are available for applications.
  */
-typedef struct fw_iso_ctx_state HinokoFwIsoCtxPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
 
 /**
  * hinoko_fw_iso_ctx_error_quark:
@@ -57,25 +56,7 @@ static guint fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_COUNT] = { 0 };
 
 static void fw_iso_ctx_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
 {
-	HinokoFwIsoCtx *self = HINOKO_FW_ISO_CTX(obj);
-	const HinokoFwIsoCtxPrivate *priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	fw_iso_ctx_state_get_property(priv, obj, id, val, spec);
-}
-
-static void fw_iso_ctx_set_property(GObject *obj, guint id, const GValue *val,
-				    GParamSpec *spec)
-{
-	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
-}
-
-static void fw_iso_ctx_finalize(GObject *obj)
-{
-	HinokoFwIsoCtx *self = HINOKO_FW_ISO_CTX(obj);
-
-	hinoko_fw_iso_ctx_release(self);
-
-	G_OBJECT_CLASS(hinoko_fw_iso_ctx_parent_class)->finalize(obj);
+	return;
 }
 
 static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
@@ -83,8 +64,6 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->get_property = fw_iso_ctx_get_property;
-	gobject_class->set_property = fw_iso_ctx_set_property;
-	gobject_class->finalize = fw_iso_ctx_finalize;
 
 	g_object_class_install_property(gobject_class, FW_ISO_CTX_PROP_TYPE_BYTES_PER_CHUNK,
 		g_param_spec_uint(BYTES_PER_CHUNK_PROP_NAME, "bytes-per-chunk",
@@ -124,98 +103,7 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 
 static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)
 {
-	HinokoFwIsoCtxPrivate *priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	fw_iso_ctx_state_init(priv);
-}
-
-gboolean fw_iso_ctx_handle_event_real(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
-				      GError **error)
-{
-	return TRUE;
-}
-
-/**
- * hinoko_fw_iso_ctx_allocate:
- * @self: A [class@FwIsoCtx].
- * @path: A path to any Linux FireWire character device.
- * @mode: The mode of context, one of [enum@FwIsoCtxMode] enumerations.
- * @scode: The speed of context, one of [enum@FwScode] enumerations.
- * @channel: The numeric channel of context up to 64.
- * @header_size: The number of bytes for header of isochronous context.
- * @error: A [struct@GLib.Error].
- *
- * Allocate a isochronous context to 1394 OHCI controller. A local node of the
- * node corresponding to the given path is used as the controller, thus any
- * path is accepted as long as process has enough permission for the path.
- */
-void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
-				HinokoFwIsoCtxMode mode, HinokoFwScode scode,
-				guint channel, guint header_size,
-				GError **error)
-{
-	HinokoFwIsoCtxPrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	(void)fw_iso_ctx_state_allocate(priv, path, mode, scode, channel, header_size, error);
-}
-
-/**
- * hinoko_fw_iso_ctx_release:
- * @self: A [class@FwIsoCtx].
- *
- * Release allocated isochronous context from 1394 OHCI controller.
- */
-void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
-{
-	HinokoFwIsoCtxPrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	hinoko_fw_iso_ctx_unmap_buffer(self);
-
-	fw_iso_ctx_state_release(priv);
-}
-
-/**
- * hinoko_fw_iso_ctx_map_buffer:
- * @self: A [class@FwIsoCtx].
- * @bytes_per_chunk: The number of bytes per chunk in buffer going to be allocated.
- * @chunks_per_buffer: The number of chunks in buffer going to be allocated.
- * @error: A [struct@GLib.Error].
- *
- * Map intermediate buffer to share payload of isochronous context with 1394 OHCI controller.
- */
-void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
-				  guint chunks_per_buffer, GError **error)
-{
-	HinokoFwIsoCtxPrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	(void)fw_iso_ctx_state_map_buffer(priv, bytes_per_chunk, chunks_per_buffer, error);
-}
-
-/**
- * hinoko_fw_iso_ctx_unmap_buffer:
- * @self: A [class@FwIsoCtx].
- *
- * Unmap intermediate buffer shard with 1394 OHCI controller for payload of isochronous context.
- */
-void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
-{
-	HinokoFwIsoCtxPrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	hinoko_fw_iso_ctx_stop(self);
-
-	fw_iso_ctx_state_unmap_buffer(priv);
+	return;
 }
 
 /**
@@ -233,80 +121,11 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 				       HinokoCycleTimer *const *cycle_timer,
 				       GError **error)
 {
-	HinokoFwIsoCtxPrivate *priv;
-
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(cycle_timer != NULL);
 	g_return_if_fail(error == NULL || *error == NULL);
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	(void)fw_iso_ctx_state_get_cycle_timer(priv, clock_id, cycle_timer, error);
-}
-
-/**
- * hinoko_fw_iso_ctx_set_rx_channels:
- * @self: A [class@FwIsoCtx].
- * @channel_flags: Flags for channels to listen to.
- * @error: A [struct@GLib.Error].
- *
- * Indicate channels to listen to for IR context in buffer-fill mode.
- */
-void hinoko_fw_iso_ctx_set_rx_channels(HinokoFwIsoCtx *self,
-				       guint64 *channel_flags,
-				       GError **error)
-{
-	HinokoFwIsoCtxPrivate *priv;
-	struct fw_cdev_set_iso_channels set = {0};
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(error == NULL || *error == NULL);
-
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-	g_return_if_fail(priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
-
-	if (priv->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return;
-	}
-
-	set.channels = *channel_flags;
-	set.handle = priv->handle;
-	if (ioctl(priv->fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_SET_ISO_CHANNELS");
-		return;
-	}
-
-	*channel_flags = set.channels;
-}
-
-/**
- * hinoko_fw_iso_ctx_register_chunk:
- * @self: A [class@FwIsoCtx].
- * @skip: Whether to skip packet transmission or not.
- * @tags: The value of tag field for isochronous packet to handle.
- * @sy: The value of sy field for isochronous packet to handle.
- * @header: (array length=header_length) (element-type guint8): The content of header for IT
- *	    context, nothing for IR context.
- * @header_length: The number of bytes for @header.
- * @payload_length: The number of bytes for payload of isochronous context.
- * @schedule_interrupt: schedule hardware interrupt at isochronous cycle for the chunk.
- * @error: A [struct@GLib.Error].
- *
- * Register data on buffer for payload of isochronous context.
- */
-void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
-				      HinokoFwIsoCtxMatchFlag tags, guint sy,
-				      const guint8 *header, guint header_length,
-				      guint payload_length, gboolean schedule_interrupt,
-				      GError **error)
-{
-	HinokoFwIsoCtxPrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	(void)fw_iso_ctx_state_register_chunk(priv, skip, tags, sy, header, header_length,
-					      payload_length, schedule_interrupt, error);
+	HINOKO_FW_ISO_CTX_CLASS(self)->get_cycle_timer(self, clock_id, cycle_timer, error);
 }
 
 static gboolean check_src(GSource *source)
@@ -323,7 +142,6 @@ static gboolean check_src(GSource *source)
 static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data)
 {
 	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
-	HinokoFwIsoCtxPrivate *priv;
 	GIOCondition condition;
 	GError *error = NULL;
 	int len;
@@ -348,15 +166,10 @@ static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data
 	if (!src->handle_event(src->self, event, &error))
 		goto error;
 
-	priv = hinoko_fw_iso_ctx_get_instance_private(src->self);
-	if (!fw_iso_ctx_state_queue_chunks(priv, &error))
-		goto error;
-
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
 error:
 	hinoko_fw_iso_ctx_stop(src->self);
-	g_signal_emit(src->self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0, error);
 	g_clear_error(&error);
 	return G_SOURCE_REMOVE;
 }
@@ -436,52 +249,11 @@ gboolean fw_iso_ctx_state_create_source(struct fw_iso_ctx_state *state, HinokoFw
  */
 void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GError **error)
 {
-	HinokoFwIsoCtxPrivate *priv;
-
-	gboolean (*handle_event)(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
-				 GError **error);
-
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(source != NULL);
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	if (HINOKO_IS_FW_ISO_RX_SINGLE(self))
-		handle_event = fw_iso_rx_single_handle_event;
-	else if (HINOKO_IS_FW_ISO_RX_MULTIPLE(self))
-		handle_event = fw_iso_rx_multiple_handle_event;
-	else if (HINOKO_IS_FW_ISO_TX(self))
-		handle_event = fw_iso_tx_handle_event;
-	else
-		handle_event = fw_iso_ctx_handle_event_real;
-
-	fw_iso_ctx_state_create_source(priv, self, handle_event, source, error);
-}
-
-/**
- * hinoko_fw_iso_ctx_start:
- * @self: A [class@FwIsoCtx].
- * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable): The isochronous cycle
- *		 to start packet processing. The first element should be the second part of
- *		 isochronous cycle, up to 3. The second element should be the cycle part of
- *		 isochronous cycle, up to 7999.
- * @sync: The value of sync field in isochronous header for packet processing, up to 15.
- * @tags: The value of tag field in isochronous header for packet processing.
- * @error: A [struct@GLib.Error].
- *
- * Start isochronous context.
- */
-void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, guint32 sync,
-			     HinokoFwIsoCtxMatchFlag tags, GError **error)
-{
-	HinokoFwIsoCtxPrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(error == NULL || *error == NULL);
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	(void)fw_iso_ctx_state_start(priv, cycle_match, sync, tags, error);
+	(void)HINOKO_FW_ISO_CTX_CLASS(self)->create_source(self, source, error);
 }
 
 /**
@@ -489,44 +261,14 @@ void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, g
  * @self: A [class@FwIsoCtx].
  *
  * Stop isochronous context.
+ *
+ * Since: 0.7.
  */
 void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 {
-	HinokoFwIsoCtxPrivate *priv;
-	gboolean running;
-
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	running = priv->running;
-
-	fw_iso_ctx_state_stop(priv);
-
-	if (priv->running != running)
-		g_signal_emit(self, fw_iso_ctx_sigs[FW_ISO_CTX_SIG_TYPE_STOPPED], 0, NULL);
-}
-
-/**
- * hinoko_fw_iso_ctx_read_frames:
- * @self: A [class@FwIsoCtx].
- * @offset: offset from head of buffer.
- * @length: the number of bytes to read.
- * @frames: (array length=frame_size)(out)(transfer none)(nullable): The array to fill the same
- *	    data frame as @frame_size.
- * @frame_size: this value is for a case to truncate due to the end of buffer.
- *
- * Read frames to given buffer.
- */
-void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
-				   guint length, const guint8 **frames,
-				   guint *frame_size)
-{
-	HinokoFwIsoCtxPrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-
-	fw_iso_ctx_state_read_frame(priv, offset, length, frames, frame_size);
+	HINOKO_FW_ISO_CTX_CLASS(self)->stop(self);
 }
 
 /**
@@ -542,10 +284,8 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
  */
 void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **error)
 {
-	HinokoFwIsoCtxPrivate *priv;
-
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	priv = hinoko_fw_iso_ctx_get_instance_private(self);
+	g_return_if_fail(error == NULL || *error == NULL);
 
-	(void)fw_iso_ctx_state_flush_completions(priv, error);
+	(void)HINOKO_FW_ISO_CTX_CLASS(self)->flush_completions(self, error);
 }

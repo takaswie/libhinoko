@@ -44,7 +44,6 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self);
 
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match, GError **error);
-void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self);
 
 void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 				HinokoFwIsoCtxMatchFlag tags, guint sy,

@@ -32,7 +32,10 @@ static guint fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_COUNT] = { 0 };
 
 static void fw_iso_rx_single_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
 {
-	return;
+	HinokoFwIsoRxSingle *self = HINOKO_FW_ISO_RX_SINGLE(obj);
+	HinokoFwIsoRxSinglePrivate *priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	fw_iso_ctx_state_get_property(&priv->state, obj, id, val, spec);
 }
 
 static void fw_iso_rx_single_finalize(GObject *obj)
@@ -52,6 +55,7 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 	gobject_class->get_property = fw_iso_rx_single_get_property;
 	gobject_class->finalize = fw_iso_rx_single_finalize;
 
+	fw_iso_ctx_class_override_properties(gobject_class);
 	fw_iso_ctx_class_init(parent_class);
 
 	/**
@@ -168,16 +172,10 @@ gboolean fw_iso_rx_single_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev
 	priv->ev = NULL;
 
 	priv->chunk_cursor += count;
-	if (priv->chunk_cursor >= G_MAXINT) {
-		guint chunks_per_buffer;
+	if (priv->chunk_cursor >= G_MAXINT)
+		priv->chunk_cursor %= priv->state.chunks_per_buffer;
 
-		g_object_get(G_OBJECT(self),
-			     "chunks-per-buffer", &chunks_per_buffer, NULL);
-
-		priv->chunk_cursor %= chunks_per_buffer;
-	}
-
-	return TRUE;
+	return fw_iso_ctx_state_queue_chunks(&priv->state, error);
 }
 
 gboolean fw_iso_rx_single_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
@@ -237,10 +235,8 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
-	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
-				 HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0,
-				 channel, header_size, error);
-	if (*error != NULL)
+	if (!fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0,
+				       channel, header_size, error))
 		return;
 
 	priv->header_size = header_size;
@@ -254,10 +250,13 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
  */
 void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self)
 {
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	HinokoFwIsoRxSinglePrivate *priv;
 
-	hinoko_fw_iso_rx_single_unmap_buffer(self);
-	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	fw_iso_ctx_state_unmap_buffer(&priv->state);
+	fw_iso_ctx_state_release(&priv->state);
 }
 
 /*
@@ -274,12 +273,15 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					guint payloads_per_buffer,
 					GError **error)
 {
+	HinokoFwIsoRxSinglePrivate *priv;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
 	g_return_if_fail(error == NULL || *error == NULL);
 
-	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
-				     maximum_bytes_per_payload,
-				     payloads_per_buffer, error);
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	(void)fw_iso_ctx_state_map_buffer(&priv->state, maximum_bytes_per_payload,
+					  payloads_per_buffer, error);
 }
 
 /**
@@ -290,10 +292,13 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
  */
 void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 {
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	HinokoFwIsoRxSinglePrivate *priv;
 
-	hinoko_fw_iso_rx_single_stop(self);
-	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
+	fw_iso_ctx_state_unmap_buffer(&priv->state);
 }
 
 /**
@@ -311,8 +316,13 @@ void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
 void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean schedule_interrupt,
 					     GError **error)
 {
-	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), FALSE, 0, 0, NULL, 0, 0,
-					 schedule_interrupt, error);
+	HinokoFwIsoRxSinglePrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	(void)fw_iso_ctx_state_register_chunk(&priv->state, FALSE, 0, 0, NULL, 0, 0,
+					      schedule_interrupt, error);
 }
 
 /**
@@ -342,21 +352,9 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cyc
 
 	priv->chunk_cursor = 0;
 
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, sync, tags, error);
+	(void)fw_iso_ctx_state_start(&priv->state, cycle_match, sync, tags, error);
 }
 
-/**
- * hinoko_fw_iso_rx_single_stop:
- * @self: A [class@FwIsoRxSingle].
- *
- * Stop IR context.
- */
-void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self)
-{
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-
-	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
-}
 
 /**
  * hinoko_fw_iso_rx_single_get_payload:
@@ -389,9 +387,8 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	g_return_if_fail(priv->ev != NULL);
 	g_return_if_fail(index * priv->header_size <= priv->ev->header_length);
 
-	g_object_get(G_OBJECT(self),
-		     "bytes-per-chunk", &bytes_per_chunk,
-		     "chunks-per-buffer", &chunks_per_buffer, NULL);
+	bytes_per_chunk = priv->state.bytes_per_chunk;
+	chunks_per_buffer = priv->state.chunks_per_buffer;
 
 	pos = index * priv->header_size / 4;
 	iso_header = GUINT32_FROM_BE(priv->ev->header[pos]);
@@ -401,7 +398,6 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 
 	index = (priv->chunk_cursor + index) % chunks_per_buffer;
 	offset = index * bytes_per_chunk;
-	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), offset, *length,
-				      payload, &frame_size);
+	fw_iso_ctx_state_read_frame(&priv->state, offset, *length, payload, &frame_size);
 	g_return_if_fail(frame_size == *length);
 }

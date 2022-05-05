@@ -50,7 +50,6 @@ void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean
 
 void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
 				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error);
-void hinoko_fw_iso_rx_single_stop(HinokoFwIsoRxSingle *self);
 
 void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 					 const guint8 **payload, guint *length,

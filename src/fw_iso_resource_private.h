@@ -8,6 +8,8 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 
+#define GENERATION_PROP_NAME		"generation"
+
 #define ALLOCATED_SIGNAL_NAME		"allocated"
 #define DEALLOCATED_SIGNAL_NAME		"deallocated"
 
@@ -20,6 +22,16 @@ struct fw_iso_resource_state {
 	int fd;
 	struct fw_cdev_event_bus_reset bus_state;
 };
+
+enum fw_iso_resource_prop_type {
+	FW_ISO_RESOURCE_PROP_TYPE_GENERATION = 1,
+	FW_ISO_RESOURCE_PROP_TYPE_COUNT,
+};
+
+void fw_iso_resource_class_override_properties(GObjectClass *gobject_class);
+
+void fw_iso_resource_state_get_property(const struct fw_iso_resource_state *state, GObject *obj,
+					guint id, GValue *val, GParamSpec *spec);
 
 void fw_iso_resource_state_init(struct fw_iso_resource_state *state);
 

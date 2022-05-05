@@ -20,6 +20,15 @@ G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceOnce, hinoko_fw_iso_resource_once, G_
 			G_ADD_PRIVATE(HinokoFwIsoResourceOnce)
                         G_IMPLEMENT_INTERFACE(HINOKO_TYPE_FW_ISO_RESOURCE, fw_iso_resource_iface_init))
 
+static void fw_iso_resource_once_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
+{
+	HinokoFwIsoResourceOnce *self = HINOKO_FW_ISO_RESOURCE_ONCE(obj);
+	HinokoFwIsoResourceOncePrivate *priv =
+			hinoko_fw_iso_resource_once_get_instance_private(self);
+
+	fw_iso_resource_state_get_property(&priv->state, obj, id, val, spec);
+}
+
 static void fw_iso_resource_once_finalize(GObject *obj)
 {
 	HinokoFwIsoResourceOnce *self = HINOKO_FW_ISO_RESOURCE_ONCE(obj);
@@ -35,7 +44,10 @@ static void hinoko_fw_iso_resource_once_class_init(HinokoFwIsoResourceOnceClass 
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
+	gobject_class->get_property = fw_iso_resource_once_get_property;
 	gobject_class->finalize = fw_iso_resource_once_finalize;
+
+	fw_iso_resource_class_override_properties(gobject_class);
 }
 
 static void hinoko_fw_iso_resource_once_init(HinokoFwIsoResourceOnce *self)
@@ -80,8 +92,12 @@ static void handle_bus_reset_event(HinokoFwIsoResourceOnce *self,
 {
 	HinokoFwIsoResourceOncePrivate *priv =
 		hinoko_fw_iso_resource_once_get_instance_private(self);
+	gboolean need_notify = (priv->state.bus_state.generation != ev->generation);
 
 	memcpy(&priv->state.bus_state, ev, sizeof(*ev));
+
+	if (need_notify)
+		g_object_notify(G_OBJECT(self), GENERATION_PROP_NAME);
 }
 
 void fw_iso_resource_once_handle_event(HinokoFwIsoResource *inst, const union fw_cdev_event *event)
@@ -109,14 +125,22 @@ static gboolean fw_iso_resource_once_create_source(HinokoFwIsoResource *inst, GS
 {
 	HinokoFwIsoResourceOnce *self;
 	HinokoFwIsoResourceOncePrivate *priv;
+	guint generation;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE_ONCE(inst), FALSE);
 	self = HINOKO_FW_ISO_RESOURCE_ONCE(inst);
 	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
 
-	return fw_iso_resource_state_create_source(&priv->state, inst,
-						   fw_iso_resource_once_handle_event, source,
-						   error);
+	generation = priv->state.bus_state.generation;
+
+	if (!fw_iso_resource_state_create_source(&priv->state, inst,
+						 fw_iso_resource_once_handle_event, source, error))
+		return FALSE;
+
+	if (generation != priv->state.bus_state.generation)
+		g_object_notify(G_OBJECT(self), GENERATION_PROP_NAME);
+
+	return TRUE;
 }
 
 static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface)

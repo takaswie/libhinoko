@@ -21,7 +21,7 @@ th.start()
 def handle_event(res, channel, bandwidth, exception, ev_name):
     print('event:', ev_name)
     if exception is None:
-        print('  ', channel, bandwidth)
+        print('  ', channel, bandwidth, res.get_property('generation'))
     elif exception.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
         print('  ', exception)
 
@@ -43,7 +43,7 @@ for i in range(2):
             print(e)
     else:
         print('result: allocate')
-        print('  ', use_channel, use_bandwidth)
+        print('  ', use_channel, use_bandwidth, res.get_property('generation'))
 
     sleep(2)
 
@@ -54,7 +54,7 @@ for i in range(2):
             print(e)
     else:
         print('result: deallocate')
-        print('  ', use_channel, use_bandwidth)
+        print('  ', use_channel, use_bandwidth, res.get_property('generation'))
 
     sleep(2)
 
@@ -73,7 +73,7 @@ src = res.create_source()
 src.attach(ctx)
 
 def print_props(res):
-    for prop in ('is-allocated', 'channel', 'bandwidth'):
+    for prop in ('is-allocated', 'channel', 'bandwidth', 'generation'):
         print('  {}: {}'.format(prop, res.get_property(prop)))
 
 for i in range(2):

@@ -10,7 +10,9 @@ gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
 target = Hinoko.FwIsoResourceOnce()
-props = ()
+props = (
+    'generation',
+)
 methods = (
     'new',
     'open',

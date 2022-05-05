@@ -26,6 +26,18 @@ G_DEFINE_QUARK(hinoko-fw-iso-resource-error-quark, hinoko_fw_iso_resource_error)
 static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *iface)
 {
 	/**
+	 * HinokoFwIsoResource::generation:
+	 *
+	 * The numeric value of current generation for bus topology.
+	 */
+	g_object_interface_install_property(iface,
+		g_param_spec_uint(GENERATION_PROP_NAME, "generation",
+				  "The numeric value of current generation for bus topology",
+				  0, G_MAXUINT,
+				  0,
+				  G_PARAM_READABLE | G_PARAM_EXPLICIT_NOTIFY));
+
+	/**
 	 * HinokoFwIsoResource::allocated:
 	 * @self: A [iface@FwIsoResource].
 	 * @channel: The deallocated channel number.

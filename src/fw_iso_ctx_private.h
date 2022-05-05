@@ -71,6 +71,12 @@ gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GErr
 gboolean fw_iso_ctx_state_get_cycle_timer(struct fw_iso_ctx_state *state, gint clock_id,
 					  HinokoCycleTimer *const *cycle_timer, GError **error);
 
+gboolean fw_iso_ctx_state_create_source(struct fw_iso_ctx_state *state, HinokoFwIsoCtx *inst,
+					gboolean (*handle_event)(HinokoFwIsoCtx *inst,
+								 const union fw_cdev_event *event,
+								 GError **error),
+					GSource **source, GError **error);
+
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,
 				guint channel, guint header_size,

@@ -49,13 +49,6 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 				  0, G_MAXUINT, 0,
 				  G_PARAM_READABLE));
 
-	g_object_interface_install_property(iface,
-		g_param_spec_uint(REGISTERED_CHUNK_COUNT_PROP_NAME,
-				  "registered-chunk-count",
-				  "The number of chunk to be registered.",
-				  0, G_MAXUINT, 0,
-				  G_PARAM_READABLE));
-
 	/**
 	 * HinokoFwIsoCtx::stopped:
 	 * @self: A [iface@FwIsoCtx].

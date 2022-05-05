@@ -24,9 +24,6 @@ void fw_iso_ctx_class_override_properties(GObjectClass *gobject_class)
 
 	g_object_class_override_property(gobject_class, FW_ISO_CTX_PROP_TYPE_CHUNKS_PER_BUFFER,
 					 CHUNKS_PER_BUFFER_PROP_NAME);
-
-	g_object_class_override_property(gobject_class, FW_ISO_CTX_PROP_TYPE_REGISTERED_CHUNK_COUNT,
-					 REGISTERED_CHUNK_COUNT_PROP_NAME);
 }
 
 void fw_iso_ctx_state_get_property(const struct fw_iso_ctx_state *state, GObject *obj, guint id,
@@ -38,9 +35,6 @@ void fw_iso_ctx_state_get_property(const struct fw_iso_ctx_state *state, GObject
 		break;
 	case FW_ISO_CTX_PROP_TYPE_CHUNKS_PER_BUFFER:
 		g_value_set_uint(val, state->chunks_per_buffer);
-		break;
-	case FW_ISO_CTX_PROP_TYPE_REGISTERED_CHUNK_COUNT:
-		g_value_set_uint(val, state->registered_chunk_count);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);

@@ -44,13 +44,11 @@ struct fw_iso_ctx_state {
 enum fw_iso_ctx_prop_type {
 	FW_ISO_CTX_PROP_TYPE_BYTES_PER_CHUNK = 1,
 	FW_ISO_CTX_PROP_TYPE_CHUNKS_PER_BUFFER,
-	FW_ISO_CTX_PROP_TYPE_REGISTERED_CHUNK_COUNT,
 	FW_ISO_CTX_PROP_TYPE_COUNT,
 };
 
 #define BYTES_PER_CHUNK_PROP_NAME		"bytes-per-chunk"
 #define CHUNKS_PER_BUFFER_PROP_NAME		"chunks-per-buffer"
-#define REGISTERED_CHUNK_COUNT_PROP_NAME	"registered-chunk-count"
 
 #define STOPPED_SIGNAL_NEME		"stopped"
 

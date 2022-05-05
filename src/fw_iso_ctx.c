@@ -498,63 +498,13 @@ void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GEr
 void hinoko_fw_iso_ctx_start(HinokoFwIsoCtx *self, const guint16 *cycle_match, guint32 sync,
 			     HinokoFwIsoCtxMatchFlag tags, GError **error)
 {
-	struct fw_cdev_start_iso arg = {0};
 	HinokoFwIsoCtxPrivate *priv;
-	gint cycle;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	if (priv->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return;
-	}
-
-	if (priv->addr == NULL) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
-		return;
-	}
-
-	if (cycle_match == NULL) {
-		cycle = -1;
-	} else {
-		g_return_if_fail(cycle_match[0] < 4);
-		g_return_if_fail(cycle_match[1] < 8000);
-
-		cycle = (cycle_match[0] << 13) | cycle_match[1];
-	}
-
-	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
-		g_return_if_fail(sync == 0);
-		g_return_if_fail(tags == 0);
-	} else {
-		g_return_if_fail(sync < 16);
-		g_return_if_fail(tags <= (HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 |
-					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 |
-					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 |
-					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3));
-	}
-
-	// Not prepared.
-	if (priv->data_length == 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED);
-		return;
-	}
-
-	if (!fw_iso_ctx_state_queue_chunks(priv, error))
-		return;
-
-	arg.sync = sync;
-	arg.cycle = cycle;
-	arg.tags = tags;
-	arg.handle = priv->handle;
-	if (ioctl(priv->fd, FW_CDEV_IOC_START_ISO, &arg) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_START_ISO");
-		return;
-	}
-
-	priv->running = TRUE;
+	(void)fw_iso_ctx_state_start(priv, cycle_match, sync, tags, error);
 }
 
 /**

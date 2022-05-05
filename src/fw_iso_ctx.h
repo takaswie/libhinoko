@@ -17,6 +17,15 @@ GQuark hinoko_fw_iso_ctx_error_quark();
 struct _HinokoFwIsoCtxClass {
 	GObjectClass parent_class;
 
+	void (*stop)(HinokoFwIsoCtx *self);
+
+	gboolean (*get_cycle_timer)(HinokoFwIsoCtx *self, gint clock_id,
+				    HinokoCycleTimer *const *cycle_timer, GError **error);
+
+	gboolean (*flush_completions)(HinokoFwIsoCtx *self, GError **error);
+
+	gboolean (*create_source)(HinokoFwIsoCtx *self, GSource **source, GError **error);
+
 	/**
 	 * HinokoFwIsoCtxClass::stopped:
 	 * @self: A [class@FwIsoCtx].

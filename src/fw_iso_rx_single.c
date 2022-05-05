@@ -12,11 +12,16 @@
  *
  */
 typedef struct {
+	struct fw_iso_ctx_state state;
+
 	guint header_size;
 	guint chunk_cursor;
 
 	const struct fw_cdev_event_iso_interrupt *ev;
 } HinokoFwIsoRxSinglePrivate;
+
+static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class);
+
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single, HINOKO_TYPE_FW_ISO_CTX)
 
 static void fw_iso_rx_single_finalize(GObject *obj)
@@ -37,8 +42,11 @@ static guint fw_iso_rx_single_sigs[FW_ISO_RX_SINGLE_SIG_TYPE_COUNT] = { 0 };
 static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	HinokoFwIsoCtxClass *parent_class = HINOKO_FW_ISO_CTX_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_rx_single_finalize;
+
+	fw_iso_ctx_class_init(parent_class);
 
 	/**
 	 * HinokoFwIsoRxSingle::interrupted:
@@ -77,6 +85,50 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 static void hinoko_fw_iso_rx_single_init(HinokoFwIsoRxSingle *self)
 {
 	return;
+}
+
+static void fw_iso_rx_single_stop(HinokoFwIsoCtx *inst)
+{
+	HinokoFwIsoRxSingle *self;
+	HinokoFwIsoRxSinglePrivate *priv;
+	gboolean running;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(inst));
+	self = HINOKO_FW_ISO_RX_SINGLE(inst);
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	running = priv->state.running;
+
+	fw_iso_ctx_state_stop(&priv->state);
+
+	if (priv->state.running != running)
+		g_signal_emit_by_name(G_OBJECT(inst), "stopped", NULL);
+}
+
+static gboolean fw_iso_rx_single_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
+						 HinokoCycleTimer *const *cycle_timer,
+						 GError **error)
+{
+	HinokoFwIsoRxSingle *self;
+	HinokoFwIsoRxSinglePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(inst), FALSE);
+	self = HINOKO_FW_ISO_RX_SINGLE(inst);
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	return fw_iso_ctx_state_get_cycle_timer(&priv->state, clock_id, cycle_timer, error);
+}
+
+static gboolean fw_iso_rx_single_flush_completions(HinokoFwIsoCtx *inst, GError **error)
+{
+	HinokoFwIsoRxSingle *self;
+	HinokoFwIsoRxSinglePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(inst), FALSE);
+	self = HINOKO_FW_ISO_RX_SINGLE(inst);
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	return fw_iso_ctx_state_flush_completions(&priv->state, error);
 }
 
 gboolean fw_iso_rx_single_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
@@ -118,6 +170,27 @@ gboolean fw_iso_rx_single_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev
 	}
 
 	return TRUE;
+}
+
+gboolean fw_iso_rx_single_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
+{
+	HinokoFwIsoRxSingle *self;
+	HinokoFwIsoRxSinglePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(inst), FALSE);
+	self = HINOKO_FW_ISO_RX_SINGLE(inst);
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	return fw_iso_ctx_state_create_source(&priv->state, inst, fw_iso_rx_single_handle_event,
+					      source, error);
+}
+
+static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class)
+{
+	parent_class->stop = fw_iso_rx_single_stop;
+	parent_class->get_cycle_timer = fw_iso_rx_single_get_cycle_timer;
+	parent_class->flush_completions = fw_iso_rx_single_flush_completions;
+	parent_class->create_source = fw_iso_rx_single_create_source;
 }
 
 /**

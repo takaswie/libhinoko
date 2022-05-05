@@ -68,6 +68,9 @@ void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, g
 
 gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GError **error);
 
+gboolean fw_iso_ctx_state_get_cycle_timer(struct fw_iso_ctx_state *state, gint clock_id,
+					  HinokoCycleTimer *const *cycle_timer, GError **error);
+
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,
 				guint channel, guint header_size,

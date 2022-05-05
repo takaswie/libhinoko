@@ -266,14 +266,7 @@ void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	if (priv->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return;
-	}
-
-	(*cycle_timer)->clk_id = clock_id;
-	if (ioctl(priv->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_timer) < 0)
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_CYCLE_TIMER2");
+	(void)fw_iso_ctx_state_get_cycle_timer(priv, clock_id, cycle_timer, error);
 }
 
 /**

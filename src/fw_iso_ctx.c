@@ -203,10 +203,7 @@ void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
 
 	hinoko_fw_iso_ctx_unmap_buffer(self);
 
-	if (priv->fd >= 0)
-		close(priv->fd);
-
-	priv->fd = -1;
+	fw_iso_ctx_state_release(priv);
 }
 
 /**

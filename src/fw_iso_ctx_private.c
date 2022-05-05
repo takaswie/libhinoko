@@ -77,8 +77,7 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 	info.version = 5;
 	if (ioctl(state->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
 		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
-		close(state->fd);
-		state->fd = -1;
+		fw_iso_ctx_state_release(state);
 		return FALSE;
 	}
 
@@ -89,8 +88,7 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 
 	if (ioctl(state->fd, FW_CDEV_IOC_CREATE_ISO_CONTEXT, &create) < 0) {
 		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_CREATE_ISO_CONTEXT");
-		close(state->fd);
-		state->fd = -1;
+		fw_iso_ctx_state_release(state);
 		return FALSE;
 	}
 
@@ -99,4 +97,18 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 	state->header_size = header_size;
 
 	return TRUE;
+}
+
+/**
+ * fw_iso_ctx_state_release:
+ * @state: A [struct@FwIsoCtxState].
+ *
+ * Release allocated isochronous context from 1394 OHCI controller.
+ */
+void fw_iso_ctx_state_release(struct fw_iso_ctx_state *state)
+{
+	if (state->fd >= 0)
+		close(state->fd);
+
+	state->fd = -1;
 }

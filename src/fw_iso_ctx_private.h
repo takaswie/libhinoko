@@ -50,6 +50,7 @@ void fw_iso_ctx_state_release(struct fw_iso_ctx_state *state);
 
 gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes_per_chunk,
 				     guint chunks_per_buffer, GError **error);
+void fw_iso_ctx_state_unmap_buffer(struct fw_iso_ctx_state *state);
 
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,

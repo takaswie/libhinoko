@@ -169,3 +169,22 @@ gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes
 
 	return TRUE;
 }
+
+/**
+ * hinoko_fw_iso_ctx_unmap_buffer:
+ * @state: A [struct@FwIsoCtxState].
+ *
+ * Unmap intermediate buffer shard with 1394 OHCI controller for payload of isochronous context.
+ */
+void fw_iso_ctx_state_unmap_buffer(struct fw_iso_ctx_state *state)
+{
+	if (state->addr != NULL) {
+		munmap(state->addr, state->bytes_per_chunk * state->chunks_per_buffer);
+	}
+
+	if (state->data != NULL)
+		free(state->data);
+
+	state->addr = NULL;
+	state->data = NULL;
+}

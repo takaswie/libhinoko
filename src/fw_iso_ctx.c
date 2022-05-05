@@ -528,24 +528,11 @@ void hinoko_fw_iso_ctx_read_frames(HinokoFwIsoCtx *self, guint offset,
 				   guint *frame_size)
 {
 	HinokoFwIsoCtxPrivate *priv;
-	unsigned int bytes_per_buffer;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	bytes_per_buffer = priv->bytes_per_chunk * priv->chunks_per_buffer;
-	if (offset > bytes_per_buffer) {
-		*frames = NULL;
-		*frame_size = 0;
-		return;
-	}
-
-	*frames = priv->addr + offset;
-
-	if (offset + length < bytes_per_buffer)
-		*frame_size = length;
-	else
-		*frame_size = bytes_per_buffer - offset;
+	fw_iso_ctx_state_read_frame(priv, offset, length, frames, frame_size);
 }
 
 /**

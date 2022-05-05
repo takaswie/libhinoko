@@ -63,6 +63,9 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 				guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error);
 void fw_iso_ctx_state_stop(struct fw_iso_ctx_state *state);
 
+void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, guint length,
+				  const guint8 **frame, guint *frame_size);
+
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,
 				guint channel, guint header_size,

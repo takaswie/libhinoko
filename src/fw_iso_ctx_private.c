@@ -470,3 +470,34 @@ void fw_iso_ctx_state_stop(struct fw_iso_ctx_state *state)
 	state->data_length = 0;
 	state->curr_offset = 0;
 }
+
+/**
+ * fw_iso_ctx_state_read_frames:
+ * @state: A [struct@FwIsoCtxState].
+ * @offset: offset from head of buffer.
+ * @length: the number of bytes to read.
+ * @frames: (array length=frame_size)(out)(transfer none)(nullable): The array to fill the same
+ *	    data frame as @frame_size.
+ * @frame_size: this value is for a case to truncate due to the end of buffer.
+ *
+ * Read frames to given buffer.
+ */
+void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, guint length,
+				  const guint8 **frame, guint *frame_size)
+{
+	unsigned int bytes_per_buffer;
+
+	bytes_per_buffer = state->bytes_per_chunk * state->chunks_per_buffer;
+	if (offset > bytes_per_buffer) {
+		*frame = NULL;
+		*frame_size = 0;
+		return;
+	}
+
+	*frame = state->addr + offset;
+
+	if (offset + length < bytes_per_buffer)
+		*frame_size = length;
+	else
+		*frame_size = bytes_per_buffer - offset;
+}

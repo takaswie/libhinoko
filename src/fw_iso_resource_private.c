@@ -35,6 +35,25 @@ typedef struct {
 	void (*handle_event)(HinokoFwIsoResource *self, const union fw_cdev_event *event);
 } FwIsoResourceSource;
 
+void fw_iso_resource_class_override_properties(GObjectClass *gobject_class)
+{
+	g_object_class_override_property(gobject_class, FW_ISO_RESOURCE_PROP_TYPE_GENERATION,
+					 GENERATION_PROP_NAME);
+}
+
+void fw_iso_resource_state_get_property(const struct fw_iso_resource_state *state, GObject *obj,
+					guint id, GValue *val, GParamSpec *spec)
+{
+	switch (id) {
+	case FW_ISO_RESOURCE_PROP_TYPE_GENERATION:
+		g_value_set_uint(val, state->bus_state.generation);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		break;
+	}
+}
+
 void fw_iso_resource_state_init(struct fw_iso_resource_state *state)
 {
 	state->fd = -1;

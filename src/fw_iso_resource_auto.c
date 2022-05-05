@@ -47,12 +47,11 @@ static const char *const err_msgs[] = {
 	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR, code, err_msgs[code])
 
 enum fw_iso_resource_auto_prop_type {
-	FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED = 1,
+	FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED = FW_ISO_RESOURCE_PROP_TYPE_COUNT,
 	FW_ISO_RESOURCE_AUTO_PROP_CHANNEL,
 	FW_ISO_RESOURCE_AUTO_PROP_BANDWIDTH,
 	FW_ISO_RESOURCE_AUTO_PROP_COUNT,
 };
-static GParamSpec *fw_iso_resource_auto_props[FW_ISO_RESOURCE_AUTO_PROP_COUNT] = { NULL, };
 
 static void fw_iso_resource_auto_get_property(GObject *obj, guint id,
 					      GValue *val, GParamSpec *spec)
@@ -74,7 +73,7 @@ static void fw_iso_resource_auto_get_property(GObject *obj, guint id,
 		g_value_set_uint(val, priv->bandwidth);
 		break;
 	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		fw_iso_resource_state_get_property(&priv->state, obj, id, val, spec);
 		break;
 	}
 
@@ -99,26 +98,24 @@ static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass 
 	gobject_class->get_property = fw_iso_resource_auto_get_property;
 	gobject_class->finalize = fw_iso_resource_auto_finalize;
 
-	fw_iso_resource_auto_props[FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED] =
+	fw_iso_resource_class_override_properties(gobject_class);
+
+	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED,
 		g_param_spec_boolean("is-allocated", "is-allocated",
 				     "Whether to allocated or not.",
-				     FALSE, G_PARAM_READABLE);
+				     FALSE, G_PARAM_READABLE));
 
-	fw_iso_resource_auto_props[FW_ISO_RESOURCE_AUTO_PROP_CHANNEL] =
+	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_CHANNEL,
 		g_param_spec_uint("channel", "channel",
 				  "The allocated channel number.",
 				  0, G_MAXUINT, 0,
-				  G_PARAM_READABLE);
+				  G_PARAM_READABLE));
 
-	fw_iso_resource_auto_props[FW_ISO_RESOURCE_AUTO_PROP_BANDWIDTH] =
+	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_BANDWIDTH,
 		g_param_spec_uint("bandwidth", "bandwidth",
 				  "The allocated amount of bandwidth.",
 				  0, G_MAXUINT, 0,
-				  G_PARAM_READABLE);
-
-	g_object_class_install_properties(gobject_class,
-					  FW_ISO_RESOURCE_AUTO_PROP_COUNT,
-					  fw_iso_resource_auto_props);
+				  G_PARAM_READABLE));
 }
 
 static void hinoko_fw_iso_resource_auto_init(HinokoFwIsoResourceAuto *self)
@@ -188,8 +185,12 @@ static void handle_bus_reset_event(HinokoFwIsoResourceAuto *self,
 {
 	HinokoFwIsoResourceAutoPrivate *priv =
 		hinoko_fw_iso_resource_auto_get_instance_private(self);
+	gboolean need_notify = (priv->state.bus_state.generation != ev->generation);
 
 	memcpy(&priv->state.bus_state, ev, sizeof(*ev));
+
+	if (need_notify)
+		g_object_notify(G_OBJECT(self), GENERATION_PROP_NAME);
 }
 
 void fw_iso_resource_auto_handle_event(HinokoFwIsoResource *inst, const union fw_cdev_event *event)
@@ -217,14 +218,22 @@ static gboolean fw_iso_resource_auto_create_source(HinokoFwIsoResource *inst, GS
 {
 	HinokoFwIsoResourceAuto *self;
 	HinokoFwIsoResourceAutoPrivate *priv;
+	guint generation;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(inst), FALSE);
 	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
 	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
 
-	return fw_iso_resource_state_create_source(&priv->state, inst,
-						   fw_iso_resource_auto_handle_event, source,
-						   error);
+	generation = priv->state.bus_state.generation;
+
+	if (!fw_iso_resource_state_create_source(&priv->state, inst,
+						 fw_iso_resource_auto_handle_event, source, error))
+		return FALSE;
+
+	if (generation != priv->state.bus_state.generation)
+		g_object_notify(G_OBJECT(self), GENERATION_PROP_NAME);
+
+	return TRUE;
 }
 
 static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface)

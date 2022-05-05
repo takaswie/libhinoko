@@ -26,7 +26,10 @@ static guint fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_COUNT] = { 0 };
 
 static void fw_iso_tx_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
 {
-	return;
+	HinokoFwIsoTx *self = HINOKO_FW_ISO_TX(obj);
+	HinokoFwIsoTxPrivate *priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	fw_iso_ctx_state_get_property(&priv->state, obj, id, val, spec);
 }
 
 static void fw_iso_tx_finalize(GObject *obj)
@@ -46,6 +49,7 @@ static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 	gobject_class->get_property = fw_iso_tx_get_property;
 	gobject_class->finalize = fw_iso_tx_finalize;
 
+	fw_iso_ctx_class_override_properties(gobject_class);
 	fw_iso_ctx_class_init(parent_class);
 
 	/**
@@ -133,10 +137,16 @@ static gboolean fw_iso_tx_flush_completions(HinokoFwIsoCtx *inst, GError **error
 gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
 				GError **error)
 {
+	HinokoFwIsoTx *self;
+	HinokoFwIsoTxPrivate *priv;
+
 	const struct fw_cdev_event_iso_interrupt *ev;
 
 	g_return_val_if_fail(HINOKO_FW_ISO_TX(inst), FALSE);
 	g_return_val_if_fail(event->common.type == FW_CDEV_EVENT_ISO_INTERRUPT, FALSE);
+
+	self = HINOKO_FW_ISO_TX(inst);
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
 	ev = &event->iso_interrupt;
 
@@ -147,7 +157,7 @@ gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event 
 	g_signal_emit(inst, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ], 0, sec, cycle, ev->header,
 		      ev->header_length, pkt_count);
 
-	return TRUE;
+	return fw_iso_ctx_state_queue_chunks(&priv->state, error);
 }
 
 gboolean fw_iso_tx_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
@@ -200,12 +210,14 @@ void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
 			       HinokoFwScode scode, guint channel,
 			       guint header_size, GError **error)
 {
+	HinokoFwIsoTxPrivate *priv;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
 	g_return_if_fail(error == NULL || *error == NULL);
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
-	hinoko_fw_iso_ctx_allocate(HINOKO_FW_ISO_CTX(self), path,
-				   HINOKO_FW_ISO_CTX_MODE_TX, scode, channel,
-				   header_size, error);
+	(void)fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_TX, scode,
+					channel, header_size, error);
 }
 
 /**
@@ -216,11 +228,13 @@ void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
  */
 void hinoko_fw_iso_tx_release(HinokoFwIsoTx *self)
 {
+	HinokoFwIsoTxPrivate *priv;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
-	hinoko_fw_iso_tx_unmap_buffer(self);
-
-	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
+	fw_iso_ctx_state_unmap_buffer(&priv->state);
+	fw_iso_ctx_state_release(&priv->state);
 }
 
 /**
@@ -243,11 +257,8 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
-	hinoko_fw_iso_ctx_map_buffer(HINOKO_FW_ISO_CTX(self),
-				     maximum_bytes_per_payload,
-				     payloads_per_buffer, error);
-
-	priv->offset = 0;
+	(void)fw_iso_ctx_state_map_buffer(&priv->state, maximum_bytes_per_payload,
+					  payloads_per_buffer, error);
 }
 
 /**
@@ -258,11 +269,13 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
  */
 void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self)
 {
+	HinokoFwIsoTxPrivate *priv;
+
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
-	hinoko_fw_iso_tx_stop(self);
-
-	hinoko_fw_iso_ctx_unmap_buffer(HINOKO_FW_ISO_CTX(self));
+	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
+	fw_iso_ctx_state_unmap_buffer(&priv->state);
 }
 
 /**
@@ -280,29 +293,13 @@ void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self)
  */
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match, GError **error)
 {
-	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	g_return_if_fail(error == NULL || *error == NULL);
-
-	hinoko_fw_iso_ctx_start(HINOKO_FW_ISO_CTX(self), cycle_match, 0, 0, error);
-
-}
-
-/**
- * hinoko_fw_iso_tx_stop:
- * @self: A [class@FwIsoTx].
- *
- * Stop IT context.
- */
-void hinoko_fw_iso_tx_stop(HinokoFwIsoTx *self)
-{
 	HinokoFwIsoTxPrivate *priv;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
+	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
-	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
-
-	priv->offset = 0;
+	(void)fw_iso_ctx_state_start(&priv->state, cycle_match, 0, 0, error);
 }
 
 /**
@@ -348,14 +345,12 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 	if (header_length == 0 && payload_length == 0)
 		skip = TRUE;
 
-	hinoko_fw_iso_ctx_register_chunk(HINOKO_FW_ISO_CTX(self), skip, tags, sy, header,
-					 header_length, payload_length, schedule_interrupt,
-					 error);
-	if (*error != NULL)
+	if (!fw_iso_ctx_state_register_chunk(&priv->state, skip, tags, sy, header, header_length,
+					     payload_length, schedule_interrupt, error))
 		return;
 
-	hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), priv->offset,
-				      payload_length, &frames, &frame_size);
+	fw_iso_ctx_state_read_frame(&priv->state, priv->offset, payload_length, &frames,
+				    &frame_size);
 	memcpy((void *)frames, payload, frame_size);
 	priv->offset += frame_size;
 
@@ -363,8 +358,7 @@ void hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self,
 		guint rest = payload_length - frame_size;
 
 		payload += frame_size;
-		hinoko_fw_iso_ctx_read_frames(HINOKO_FW_ISO_CTX(self), 0,
-					      rest, &frames, &frame_size);
+		fw_iso_ctx_state_read_frame(&priv->state, 0, rest, &frames, &frame_size);
 		memcpy((void *)frames, payload, frame_size);
 
 		priv->offset = frame_size;

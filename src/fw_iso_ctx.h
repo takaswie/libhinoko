@@ -36,6 +36,7 @@ struct _HinokoFwIsoCtxClass {
 	void (*stopped)(HinokoFwIsoCtx *self, const GError *error);
 };
 
+void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self);
 
 void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 				       HinokoCycleTimer *const *cycle_timer,

@@ -14,7 +14,6 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_rx_single_release";
     "hinoko_fw_iso_rx_single_map_buffer";
     "hinoko_fw_iso_rx_single_unmap_buffer";
-    "hinoko_fw_iso_rx_single_stop";
     "hinoko_fw_iso_rx_single_get_payload";
 
     "hinoko_fw_iso_rx_multiple_get_type";
@@ -24,7 +23,6 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_rx_multiple_map_buffer";
     "hinoko_fw_iso_rx_multiple_unmap_buffer";
     "hinoko_fw_iso_rx_multiple_start";
-    "hinoko_fw_iso_rx_multiple_stop";
     "hinoko_fw_iso_rx_multiple_get_payload";
 
     "hinoko_fw_iso_tx_get_type";
@@ -33,7 +31,6 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_tx_release";
     "hinoko_fw_iso_tx_map_buffer";
     "hinoko_fw_iso_tx_unmap_buffer";
-    "hinoko_fw_iso_tx_stop";
   local:
     *;
 };
@@ -81,6 +78,8 @@ HINOKO_0_6_0 {
 
 HINOKO_0_7_0 {
   global:
+    "hinoko_fw_iso_ctx_stop";
+
     "hinoko_fw_iso_resource_get_type";
     "hinoko_fw_iso_resource_open";
     "hinoko_fw_iso_resource_create_source";

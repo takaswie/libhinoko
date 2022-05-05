@@ -41,7 +41,6 @@ void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 				 guint maximum_bytes_per_payload,
 				 guint payloads_per_buffer,
 				 GError **error);
-void hinoko_fw_iso_tx_unmap_buffer(HinokoFwIsoTx *self);
 
 void hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match, GError **error);
 

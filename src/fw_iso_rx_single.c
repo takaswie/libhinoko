@@ -117,6 +117,18 @@ static void fw_iso_rx_single_stop(HinokoFwIsoCtx *inst)
 		g_signal_emit_by_name(G_OBJECT(inst), "stopped", NULL);
 }
 
+static void fw_iso_rx_single_unmap_buffer(HinokoFwIsoCtx *inst)
+{
+	HinokoFwIsoRxSingle *self;
+	HinokoFwIsoRxSinglePrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(inst));
+	self = HINOKO_FW_ISO_RX_SINGLE(inst);
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	fw_iso_ctx_state_unmap_buffer(&priv->state);
+}
+
 static gboolean fw_iso_rx_single_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
 						 HinokoCycleTimer *const *cycle_timer,
 						 GError **error)
@@ -194,6 +206,7 @@ gboolean fw_iso_rx_single_create_source(HinokoFwIsoCtx *inst, GSource **source, 
 static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
 	iface->stop = fw_iso_rx_single_stop;
+	iface->unmap_buffer = fw_iso_rx_single_unmap_buffer;
 	iface->get_cycle_timer = fw_iso_rx_single_get_cycle_timer;
 	iface->flush_completions = fw_iso_rx_single_flush_completions;
 	iface->create_source = fw_iso_rx_single_create_source;
@@ -282,23 +295,6 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 
 	(void)fw_iso_ctx_state_map_buffer(&priv->state, maximum_bytes_per_payload,
 					  payloads_per_buffer, error);
-}
-
-/**
- * hinoko_fw_iso_rx_single_unmap_buffer:
- * @self: A [class@FwIsoRxSingle].
- *
- * Unmap intermediate buffer shard with 1394 OHCI controller for payload of IR context.
- */
-void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self)
-{
-	HinokoFwIsoRxSinglePrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
-
-	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
-	fw_iso_ctx_state_unmap_buffer(&priv->state);
 }
 
 /**

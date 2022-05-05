@@ -43,7 +43,6 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					guint maximum_bytes_per_payload,
 					guint payloads_per_buffer,
 					GError **error);
-void hinoko_fw_iso_rx_single_unmap_buffer(HinokoFwIsoRxSingle *self);
 
 void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean schedule_interrupt,
 					     GError **error);

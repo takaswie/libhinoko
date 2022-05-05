@@ -19,6 +19,8 @@ struct _HinokoFwIsoCtxInterface {
 
 	void (*stop)(HinokoFwIsoCtx *self);
 
+	void (*unmap_buffer)(HinokoFwIsoCtx *self);
+
 	gboolean (*get_cycle_timer)(HinokoFwIsoCtx *self, gint clock_id,
 				    HinokoCycleTimer *const *cycle_timer, GError **error);
 
@@ -37,6 +39,8 @@ struct _HinokoFwIsoCtxInterface {
 };
 
 void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self);
+
+void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self);
 
 void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
 				       HinokoCycleTimer *const *cycle_timer,

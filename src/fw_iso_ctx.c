@@ -121,6 +121,22 @@ void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 }
 
 /**
+ * hinoko_fw_iso_ctx_unmap_buffer:
+ * @self: A [iface@FwIsoCtx].
+ *
+ * Unmap intermediate buffer shared with 1394 OHCI controller for the context.
+ *
+ * Since: 0.7.
+ */
+void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+
+	hinoko_fw_iso_ctx_stop(self);
+	HINOKO_FW_ISO_CTX_GET_IFACE(self)->unmap_buffer(self);
+}
+
+/**
  * hinoko_fw_iso_ctx_flush_completions:
  * @self: A [iface@FwIsoCtx].
  * @error: A [struct@GLib.Error].

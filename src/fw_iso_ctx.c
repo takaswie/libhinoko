@@ -149,10 +149,9 @@ static void hinoko_fw_iso_ctx_class_init(HinokoFwIsoCtxClass *klass)
 
 static void hinoko_fw_iso_ctx_init(HinokoFwIsoCtx *self)
 {
-	HinokoFwIsoCtxPrivate *priv =
-				hinoko_fw_iso_ctx_get_instance_private(self);
+	HinokoFwIsoCtxPrivate *priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	priv->fd = -1;
+	fw_iso_ctx_state_init(priv);
 }
 
 gboolean fw_iso_ctx_handle_event_real(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,

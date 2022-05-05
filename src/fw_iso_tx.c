@@ -163,6 +163,9 @@ gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event 
 	HinokoFwIsoTxPrivate *priv;
 
 	const struct fw_cdev_event_iso_interrupt *ev;
+	guint sec;
+	guint cycle;
+	unsigned int pkt_count;
 
 	g_return_val_if_fail(HINOKO_FW_ISO_TX(inst), FALSE);
 	g_return_val_if_fail(event->common.type == FW_CDEV_EVENT_ISO_INTERRUPT, FALSE);
@@ -172,9 +175,9 @@ gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event 
 
 	ev = &event->iso_interrupt;
 
-	guint sec = (ev->cycle & 0x0000e000) >> 13;
-	guint cycle = ev->cycle & 0x00001fff;
-	unsigned int pkt_count = ev->header_length / 4;
+	sec = (ev->cycle & 0x0000e000) >> 13;
+	cycle = ev->cycle & 0x00001fff;
+	pkt_count = ev->header_length / 4;
 
 	g_signal_emit(inst, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ], 0, sec, cycle, ev->header,
 		      ev->header_length, pkt_count);

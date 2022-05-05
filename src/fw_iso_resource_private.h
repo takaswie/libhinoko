@@ -69,8 +69,8 @@ struct fw_iso_resource_waiter {
 void fw_iso_resource_waiter_init(struct fw_iso_resource_waiter *w, HinokoFwIsoResource *self,
 				 const char *signal_name, guint timeout_ms);
 
-void fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoResource *self,
-				 GError **error);
+gboolean fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoResource *self,
+				     GError **error);
 
 void parse_iso_resource_event(const struct fw_cdev_event_iso_resource *ev, guint *channel,
 			      guint *bandwidth, const char **signal_name, GError **error);

@@ -282,7 +282,7 @@ void hinoko_fw_iso_resource_once_allocate_sync(HinokoFwIsoResourceOnce *self,
 	hinoko_fw_iso_resource_once_allocate_async(self, channel_candidates,
 						   channel_candidates_count, bandwidth, error);
 
-	fw_iso_resource_waiter_wait(&w, HINOKO_FW_ISO_RESOURCE(self), error);
+	(void)fw_iso_resource_waiter_wait(&w, HINOKO_FW_ISO_RESOURCE(self), error);
 }
 
 /**
@@ -312,5 +312,5 @@ void hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *self, 
 
 	hinoko_fw_iso_resource_once_deallocate_async(self, channel, bandwidth, error);
 
-	fw_iso_resource_waiter_wait(&w, HINOKO_FW_ISO_RESOURCE(self), error);
+	(void)fw_iso_resource_waiter_wait(&w, HINOKO_FW_ISO_RESOURCE(self), error);
 }

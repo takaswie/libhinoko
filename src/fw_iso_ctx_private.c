@@ -6,6 +6,17 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
+typedef struct {
+	GSource src;
+	gpointer tag;
+	unsigned int len;
+	void *buf;
+	HinokoFwIsoCtx *self;
+	int fd;
+	gboolean (*handle_event)(HinokoFwIsoCtx *self, const union fw_cdev_event *event,
+				 GError **error);
+} FwIsoCtxSource;
+
 void fw_iso_ctx_class_override_properties(GObjectClass *gobject_class)
 {
 	g_object_class_override_property(gobject_class, FW_ISO_CTX_PROP_TYPE_BYTES_PER_CHUNK,
@@ -590,6 +601,117 @@ gboolean fw_iso_ctx_state_get_cycle_timer(struct fw_iso_ctx_state *state, gint c
 		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_CYCLE_TIMER2");
 		return FALSE;
 	}
+
+	return TRUE;
+}
+
+static gboolean check_src(GSource *source)
+{
+	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
+	GIOCondition condition;
+
+	// Don't go to dispatch if nothing available. As an error, return
+	// TRUE for POLLERR to call .dispatch for internal destruction.
+	condition = g_source_query_unix_fd(source, src->tag);
+	return !!(condition & (G_IO_IN | G_IO_ERR));
+}
+
+static gboolean dispatch_src(GSource *source, GSourceFunc cb, gpointer user_data)
+{
+	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
+	GIOCondition condition;
+	GError *error = NULL;
+	int len;
+	const union fw_cdev_event *event;
+
+	condition = g_source_query_unix_fd(source, src->tag);
+	if (condition & G_IO_ERR)
+		return G_SOURCE_REMOVE;
+
+	len = read(src->fd, src->buf, src->len);
+	if (len < 0) {
+		if (errno != EAGAIN) {
+			generate_file_error(&error, g_file_error_from_errno(errno),
+					    "read %s", strerror(errno));
+			goto error;
+		}
+
+		return G_SOURCE_CONTINUE;
+	}
+
+	event = (const union fw_cdev_event *)src->buf;
+	if (!src->handle_event(src->self, event, &error))
+		goto error;
+
+	// Just be sure to continue to process this source.
+	return G_SOURCE_CONTINUE;
+error:
+	hinoko_fw_iso_ctx_stop(src->self);
+	g_clear_error(&error);
+	return G_SOURCE_REMOVE;
+}
+
+static void finalize_src(GSource *source)
+{
+	FwIsoCtxSource *src = (FwIsoCtxSource *)source;
+
+	g_free(src->buf);
+	g_object_unref(src->self);
+}
+
+/**
+ * fw_iso_ctx_state_create_source:
+ * @state: A [struct@FwIsoCtxState].
+ * @source: (out): A [struct@GLib.Source].
+ * @error: A [struct@GLib.Error].
+ *
+ * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
+ * context.
+ */
+gboolean fw_iso_ctx_state_create_source(struct fw_iso_ctx_state *state, HinokoFwIsoCtx *inst,
+					gboolean (*handle_event)(HinokoFwIsoCtx *inst,
+								 const union fw_cdev_event *event,
+								 GError **error),
+					GSource **source, GError **error)
+{
+	static GSourceFuncs funcs = {
+		.check		= check_src,
+		.dispatch	= dispatch_src,
+		.finalize	= finalize_src,
+	};
+	FwIsoCtxSource *src;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_CTX(inst), FALSE);
+	g_return_val_if_fail(source != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	if (state->fd < 0) {
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return FALSE;
+	}
+
+	*source = g_source_new(&funcs, sizeof(FwIsoCtxSource));
+
+	g_source_set_name(*source, "HinokoFwIsoCtx");
+
+	src = (FwIsoCtxSource *)(*source);
+
+	if (state->mode != HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
+		// MEMO: Linux FireWire subsystem queues isochronous event
+		// independently of interrupt flag when the same number of
+		// bytes as one page is stored in the buffer of header. To
+		// avoid truncated read, keep enough size.
+		src->len = sizeof(struct fw_cdev_event_iso_interrupt) +
+			   sysconf(_SC_PAGESIZE);
+	} else {
+		src->len = sizeof(struct fw_cdev_event_iso_interrupt_mc);
+	}
+	src->buf = g_malloc0(src->len);
+
+	src->tag = g_source_add_unix_fd(*source, state->fd, G_IO_IN);
+	src->fd = state->fd;
+	src->self = g_object_ref(inst);
+	src->handle_event = handle_event;
 
 	return TRUE;
 }

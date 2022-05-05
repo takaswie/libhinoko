@@ -137,6 +137,22 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 }
 
 /**
+ * hinoko_fw_iso_ctx_release:
+ * @self: A [iface@FwIsoCtx].
+ *
+ * Release the contest from 1394 OHCI controller.
+ *
+ * Since: 0.7.
+ */
+void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
+{
+	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
+
+	hinoko_fw_iso_ctx_unmap_buffer(self);
+	HINOKO_FW_ISO_CTX_GET_IFACE(self)->release(self);
+}
+
+/**
  * hinoko_fw_iso_ctx_flush_completions:
  * @self: A [iface@FwIsoCtx].
  * @error: A [struct@GLib.Error].

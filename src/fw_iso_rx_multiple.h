@@ -31,7 +31,6 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 					const guint8 *channels,
 					guint channels_length,
 					GError **error);
-void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self);
 
 void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 					  guint bytes_per_chunk,

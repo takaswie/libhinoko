@@ -37,7 +37,6 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 				      const char *path,
 				      guint channel, guint header_size,
 				      GError **error);
-void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self);
 
 void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
 					guint maximum_bytes_per_payload,

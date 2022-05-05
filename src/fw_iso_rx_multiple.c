@@ -62,9 +62,7 @@ static void fw_iso_rx_multiple_get_property(GObject *obj, guint id, GValue *val,
 
 static void fw_iso_rx_multiple_finalize(GObject *obj)
 {
-	HinokoFwIsoRxMultiple *self = HINOKO_FW_ISO_RX_MULTIPLE(obj);
-
-	hinoko_fw_iso_rx_multiple_release(self);
+	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(obj));
 
 	G_OBJECT_CLASS(hinoko_fw_iso_rx_multiple_parent_class)->finalize(obj);
 }
@@ -151,6 +149,22 @@ static void fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoCtx *inst)
 		free(priv->concat_frames);
 
 	priv->concat_frames = NULL;
+}
+
+static void fw_iso_rx_multiple_release(HinokoFwIsoCtx *inst)
+{
+	HinokoFwIsoRxMultiple *self;
+	HinokoFwIsoRxMultiplePrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst));
+	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	fw_iso_ctx_state_release(&priv->state);
+
+	if (priv->channels != NULL)
+		g_byte_array_unref(priv->channels);
+	priv->channels = NULL;
 }
 
 static gboolean fw_iso_rx_multiple_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
@@ -303,6 +317,7 @@ static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
 	iface->stop = fw_iso_rx_multiple_stop;
 	iface->unmap_buffer = fw_iso_rx_multiple_unmap_buffer;
+	iface->release = fw_iso_rx_multiple_release;
 	iface->get_cycle_timer = fw_iso_rx_multiple_get_cycle_timer;
 	iface->flush_completions = fw_iso_rx_multiple_flush_completions;
 	iface->create_source = fw_iso_rx_multiple_create_source;
@@ -364,13 +379,13 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	set.handle = priv->state.handle;
 	if (ioctl(priv->state.fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
 		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_SET_ISO_CHANNELS");
-		hinoko_fw_iso_rx_multiple_release(self);
+		hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
 		return;
 	} else if (set.channels == 0) {
 		g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR,
 				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
 				    "No isochronous channel is available");
-		hinoko_fw_iso_rx_multiple_release(self);
+		hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
 		return;
 	}
 
@@ -379,27 +394,6 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 		if (set.channels & (G_GUINT64_CONSTANT(1) << i))
 			g_byte_array_append(priv->channels, (const guint8 *)&i, 1);
 	}
-}
-
-/**
- * hinoko_fw_iso_rx_multiple_release:
- * @self: A [class@FwIsoRxMultiple].
- *
- * Release allocated IR context from 1394 OHCI controller.
- */
-void hinoko_fw_iso_rx_multiple_release(HinokoFwIsoRxMultiple *self)
-{
-	HinokoFwIsoRxMultiplePrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
-
-	fw_iso_ctx_state_unmap_buffer(&priv->state);
-	fw_iso_ctx_state_release(&priv->state);
-
-	if (priv->channels != NULL)
-		g_byte_array_unref(priv->channels);
-	priv->channels = NULL;
 }
 
 /**

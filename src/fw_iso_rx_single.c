@@ -42,9 +42,7 @@ static void fw_iso_rx_single_get_property(GObject *obj, guint id, GValue *val, G
 
 static void fw_iso_rx_single_finalize(GObject *obj)
 {
-	HinokoFwIsoRxSingle *self = HINOKO_FW_ISO_RX_SINGLE(obj);
-
-	hinoko_fw_iso_rx_single_release(self);
+	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(obj));
 
 	G_OBJECT_CLASS(hinoko_fw_iso_rx_single_parent_class)->finalize(obj);
 }
@@ -129,6 +127,18 @@ static void fw_iso_rx_single_unmap_buffer(HinokoFwIsoCtx *inst)
 	fw_iso_ctx_state_unmap_buffer(&priv->state);
 }
 
+static void fw_iso_rx_single_release(HinokoFwIsoCtx *inst)
+{
+	HinokoFwIsoRxSingle *self;
+	HinokoFwIsoRxSinglePrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(inst));
+	self = HINOKO_FW_ISO_RX_SINGLE(inst);
+	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
+
+	fw_iso_ctx_state_release(&priv->state);
+}
+
 static gboolean fw_iso_rx_single_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
 						 HinokoCycleTimer *const *cycle_timer,
 						 GError **error)
@@ -207,6 +217,7 @@ static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
 	iface->stop = fw_iso_rx_single_stop;
 	iface->unmap_buffer = fw_iso_rx_single_unmap_buffer;
+	iface->release = fw_iso_rx_single_release;
 	iface->get_cycle_timer = fw_iso_rx_single_get_cycle_timer;
 	iface->flush_completions = fw_iso_rx_single_flush_completions;
 	iface->create_source = fw_iso_rx_single_create_source;
@@ -253,23 +264,6 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
 		return;
 
 	priv->header_size = header_size;
-}
-
-/**
- * hinoko_fw_iso_rx_single_release:
- * @self: A [class@FwIsoRxSingle].
- *
- * Release allocated IR context from 1394 OHCI controller.
- */
-void hinoko_fw_iso_rx_single_release(HinokoFwIsoRxSingle *self)
-{
-	HinokoFwIsoRxSinglePrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
-
-	fw_iso_ctx_state_unmap_buffer(&priv->state);
-	fw_iso_ctx_state_release(&priv->state);
 }
 
 /*

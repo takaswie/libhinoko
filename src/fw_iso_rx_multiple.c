@@ -382,9 +382,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 		hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
 		return;
 	} else if (set.channels == 0) {
-		g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR,
-				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
-				    "No isochronous channel is available");
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL);
 		hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
 		return;
 	}
@@ -418,13 +416,6 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
-
-	if (priv->channels == NULL) {
-		g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR,
-				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
-				    "No isochronous channel is available");
-		return;
-	}
 
 	// The size of each chunk should be aligned to quadlet.
 	bytes_per_chunk = (bytes_per_chunk + 3) / 4;

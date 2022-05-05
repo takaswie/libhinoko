@@ -139,6 +139,10 @@ IEEE 1394 bus:
 
 - ``Hinoko.FwIsoResource::generation``
 
+In GNOME convention, the throw function to report error at GError argument should return gboolean
+value to report the overall operation finishes successfully or not. At v0.7, the most of public
+API are rewritten according to it.
+
 Loss of backward compatibility between v0.5/v0.6 releases
 =========================================================
 

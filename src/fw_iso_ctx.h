@@ -46,13 +46,12 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self);
 
 void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self);
 
-void hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
-				       HinokoCycleTimer *const *cycle_timer,
-				       GError **error);
+gboolean hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
+					   HinokoCycleTimer *const *cycle_timer, GError **error);
 
-void hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GError **error);
+gboolean hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GError **error);
 
-void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **error);
+gboolean hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **error);
 
 G_END_DECLS
 

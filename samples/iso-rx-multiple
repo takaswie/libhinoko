@@ -24,7 +24,7 @@ class IsoRxMultiple(Hinoko.FwIsoRxMultiple):
         self.release()
 
     def begin(self, dispatcher, duration):
-        self.__src = self.create_source()
+        _, self.__src = self.create_source()
         self.__src.attach(dispatcher.get_context())
         self.__dispatcher = dispatcher
 

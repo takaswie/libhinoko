@@ -4,9 +4,6 @@ HINOKO_0_1_0 {
     "hinoko_fw_scode_get_type";
     "hinoko_fw_iso_ctx_match_flag_get_type";
 
-    "hinoko_fw_iso_ctx_get_cycle_timer";
-    "hinoko_fw_iso_ctx_create_source";
-
     "hinoko_fw_iso_rx_single_new";
     "hinoko_fw_iso_rx_single_allocate";
     "hinoko_fw_iso_rx_single_map_buffer";
@@ -57,8 +54,6 @@ HINOKO_0_5_0 {
 
 HINOKO_0_6_0 {
   global:
-    "hinoko_fw_iso_ctx_flush_completions";
-
     "hinoko_fw_iso_tx_register_packet";
     "hinoko_fw_iso_tx_start";
 
@@ -72,6 +67,9 @@ HINOKO_0_7_0 {
     "hinoko_fw_iso_ctx_stop";
     "hinoko_fw_iso_ctx_unmap_buffer";
     "hinoko_fw_iso_ctx_release";
+    "hinoko_fw_iso_ctx_get_cycle_timer";
+    "hinoko_fw_iso_ctx_create_source";
+    "hinoko_fw_iso_ctx_flush_completions";
 
     "hinoko_fw_iso_rx_single_get_type";
     "hinoko_fw_iso_rx_multiple_get_type";

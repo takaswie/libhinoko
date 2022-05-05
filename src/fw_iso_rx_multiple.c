@@ -136,6 +136,23 @@ static void fw_iso_rx_multiple_stop(HinokoFwIsoCtx *inst)
 		g_signal_emit_by_name(G_OBJECT(inst), "stopped", NULL);
 }
 
+static void fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoCtx *inst)
+{
+	HinokoFwIsoRxMultiple *self;
+	HinokoFwIsoRxMultiplePrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst));
+	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	fw_iso_ctx_state_unmap_buffer(&priv->state);
+
+	if (priv->concat_frames != NULL)
+		free(priv->concat_frames);
+
+	priv->concat_frames = NULL;
+}
+
 static gboolean fw_iso_rx_multiple_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
 						 HinokoCycleTimer *const *cycle_timer,
 						 GError **error)
@@ -285,6 +302,7 @@ gboolean fw_iso_rx_multiple_create_source(HinokoFwIsoCtx *inst, GSource **source
 static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
 	iface->stop = fw_iso_rx_multiple_stop;
+	iface->unmap_buffer = fw_iso_rx_multiple_unmap_buffer;
 	iface->get_cycle_timer = fw_iso_rx_multiple_get_cycle_timer;
 	iface->flush_completions = fw_iso_rx_multiple_flush_completions;
 	iface->create_source = fw_iso_rx_multiple_create_source;
@@ -428,28 +446,6 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 
 	priv->ctx_payloads = g_malloc_n(bytes_per_chunk * chunks_per_buffer / 8 / 2,
 					sizeof(*priv->ctx_payloads));
-}
-
-/**
- * hinoko_fw_iso_rx_multiple_unmap_buffer:
- * @self: A [class@FwIsoRxMultiple].
- *
- * Unmap intermediate buffer shard with 1394 OHCI controller for payload of IR context.
- */
-void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self)
-{
-	HinokoFwIsoRxMultiplePrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
-
-	hinoko_fw_iso_ctx_stop(HINOKO_FW_ISO_CTX(self));
-	fw_iso_ctx_state_unmap_buffer(&priv->state);
-
-	if (priv->concat_frames != NULL)
-		free(priv->concat_frames);
-
-	priv->concat_frames = NULL;
 }
 
 /**

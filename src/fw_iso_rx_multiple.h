@@ -37,7 +37,6 @@ void hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self,
 					  guint bytes_per_chunk,
 					  guint chunks_per_buffer,
 					  GError **error);
-void hinoko_fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoRxMultiple *self);
 
 void hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self,
 				     const guint16 *cycle_match, guint32 sync,

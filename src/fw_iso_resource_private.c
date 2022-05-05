@@ -233,12 +233,14 @@ void fw_iso_resource_waiter_init(struct fw_iso_resource_waiter *w, HinokoFwIsoRe
 	w->handler_id = g_signal_connect(self, signal_name, G_CALLBACK(handle_event_signal), w);
 }
 
-void fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoResource *self,
-				 GError **error)
+gboolean fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoResource *self,
+				     GError **error)
 {
+	gboolean result;
+
 	if (*error != NULL) {
 		g_signal_handler_disconnect(self, w->handler_id);
-		return;
+		return FALSE;
 	}
 
 	g_mutex_lock(&w->mutex);
@@ -249,10 +251,17 @@ void fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwIsoRe
 	g_signal_handler_disconnect(self, w->handler_id);
 	g_mutex_unlock(&w->mutex);
 
-	if (w->handled == FALSE)
+	if (w->handled == FALSE) {
 		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
-	else if (w->error != NULL)
+		result = FALSE;
+	} else if (w->error != NULL) {
 		*error = w->error;	// Delegate ownership.
+		result = FALSE;
+	} else {
+		result = TRUE;
+	}
+
+	return result;
 }
 
 void parse_iso_resource_event(const struct fw_cdev_event_iso_resource *ev, guint *channel,

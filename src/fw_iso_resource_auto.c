@@ -301,12 +301,10 @@ void hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *self,
 	}
 	res.bandwidth = bandwidth;
 
-	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)",
-				       "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE");
-	} else {
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res) < 0)
+		generate_ioctl_error(error, errno, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE);
+	else
 		priv->handle = res.handle;
-	}
 end:
 	g_mutex_unlock(&priv->mutex);
 }
@@ -340,10 +338,8 @@ void hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 
 	dealloc.handle = priv->handle;
 
-	if (ioctl(priv->state.fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE, &dealloc) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)",
-				       "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE");
-	}
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE, &dealloc) < 0)
+		generate_ioctl_error(error, errno, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE);
 end:
 	g_mutex_unlock(&priv->mutex);
 }

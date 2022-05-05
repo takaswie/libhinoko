@@ -203,10 +203,8 @@ void hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *self,
 	}
 	res.bandwidth = bandwidth;
 
-	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)",
-				       "FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE");
-	}
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0)
+		generate_ioctl_error(error, errno, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE);
 }
 
 /**
@@ -240,10 +238,8 @@ void hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self,
 	res.channels = 1ull << channel;
 	res.bandwidth = bandwidth;
 
-	if (ioctl(priv->state.fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)",
-				       "FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE");
-	}
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0)
+		generate_ioctl_error(error, errno, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE);
 }
 
 /**

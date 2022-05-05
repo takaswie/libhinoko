@@ -18,6 +18,9 @@
 		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
+#define generate_ioctl_error(error, errno, request)			\
+	generate_syscall_error(error, errno, "ioctl(%s)", #request)
+
 struct fw_iso_resource_state {
 	int fd;
 	struct fw_cdev_event_bus_reset bus_state;

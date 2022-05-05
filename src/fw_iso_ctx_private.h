@@ -41,13 +41,15 @@ struct fw_iso_ctx_state {
 	gboolean running;
 };
 
+#define STOPPED_SIGNAL_NEME		"stopped"
 
 gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *path,
 				   HinokoFwIsoCtxMode mode, HinokoFwScode scode, guint channel,
 				   guint header_size, GError **error);
 void fw_iso_ctx_state_release(struct fw_iso_ctx_state *state);
 
-#define STOPPED_SIGNAL_NEME		"stopped"
+gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes_per_chunk,
+				     guint chunks_per_buffer, GError **error);
 
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,

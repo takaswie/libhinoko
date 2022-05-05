@@ -219,48 +219,11 @@ void hinoko_fw_iso_ctx_map_buffer(HinokoFwIsoCtx *self, guint bytes_per_chunk,
 				  guint chunks_per_buffer, GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
-	unsigned int datum_size;
-	int prot;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(bytes_per_chunk > 0);
-	g_return_if_fail(chunks_per_buffer > 0);
-	g_return_if_fail(error == NULL || *error == NULL);
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	if (priv->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return;
-	}
-
-	if (priv->addr != NULL) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_MAPPED);
-		return;
-	}
-
-	datum_size = sizeof(struct fw_cdev_iso_packet);
-	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
-		datum_size += priv->header_size;
-
-	priv->data = g_malloc_n(chunks_per_buffer, datum_size);
-
-	priv->alloc_data_length = chunks_per_buffer * datum_size;
-
-	prot = PROT_READ;
-	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX)
-		prot |= PROT_WRITE;
-
-	// Align to size of page.
-	priv->addr = mmap(NULL, bytes_per_chunk * chunks_per_buffer, prot,
-			  MAP_SHARED, priv->fd, 0);
-	if (priv->addr == MAP_FAILED) {
-		generate_syscall_error(error, errno,
-				       "mmap(%d)", bytes_per_chunk * chunks_per_buffer);
-		return;
-	}
-
-	priv->bytes_per_chunk = bytes_per_chunk;
-	priv->chunks_per_buffer = chunks_per_buffer;
+	(void)fw_iso_ctx_state_map_buffer(priv, bytes_per_chunk, chunks_per_buffer, error);
 }
 
 /**

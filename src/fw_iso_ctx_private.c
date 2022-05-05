@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/mman.h>
 
 /**
  * fw_iso_ctx_state_allocate:
@@ -111,4 +112,60 @@ void fw_iso_ctx_state_release(struct fw_iso_ctx_state *state)
 		close(state->fd);
 
 	state->fd = -1;
+}
+
+/**
+ * fw_iso_ctx_state_map_buffer:
+ * @state: A [struct@FwIsoCtxState].
+ * @bytes_per_chunk: The number of bytes per chunk in buffer going to be allocated.
+ * @chunks_per_buffer: The number of chunks in buffer going to be allocated.
+ * @error: A [struct@GLib.Error].
+ *
+ * Map intermediate buffer to share payload of isochronous context with 1394 OHCI controller.
+ */
+gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes_per_chunk,
+				     guint chunks_per_buffer, GError **error)
+{
+	unsigned int datum_size;
+	int prot;
+
+	g_return_val_if_fail(bytes_per_chunk > 0, FALSE);
+	g_return_val_if_fail(chunks_per_buffer > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	if (state->fd < 0) {
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return FALSE;
+	}
+
+	if (state->addr != NULL) {
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_MAPPED);
+		return FALSE;
+	}
+
+	datum_size = sizeof(struct fw_cdev_iso_packet);
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+		datum_size += state->header_size;
+
+	state->data = g_malloc_n(chunks_per_buffer, datum_size);
+
+	state->alloc_data_length = chunks_per_buffer * datum_size;
+
+	prot = PROT_READ;
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+		prot |= PROT_WRITE;
+
+	// Align to size of page.
+	state->addr = mmap(NULL, bytes_per_chunk * chunks_per_buffer, prot,
+			  MAP_SHARED, state->fd, 0);
+	if (state->addr == MAP_FAILED) {
+		generate_syscall_error(error, errno,
+				       "mmap(%d)", bytes_per_chunk * chunks_per_buffer);
+		return FALSE;
+	}
+
+	state->bytes_per_chunk = bytes_per_chunk;
+	state->chunks_per_buffer = chunks_per_buffer;
+
+	return TRUE;
 }

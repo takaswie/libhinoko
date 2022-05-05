@@ -36,9 +36,7 @@ static void fw_iso_tx_get_property(GObject *obj, guint id, GValue *val, GParamSp
 
 static void fw_iso_tx_finalize(GObject *obj)
 {
-	HinokoFwIsoTx *self = HINOKO_FW_ISO_TX(obj);
-
-	hinoko_fw_iso_tx_release(self);
+	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(obj));
 
 	G_OBJECT_CLASS(hinoko_fw_iso_tx_parent_class)->finalize(obj);
 }
@@ -120,6 +118,18 @@ void fw_iso_tx_unmap_buffer(HinokoFwIsoCtx *inst)
 	fw_iso_ctx_state_unmap_buffer(&priv->state);
 }
 
+static void fw_iso_tx_release(HinokoFwIsoCtx *inst)
+{
+	HinokoFwIsoTx *self;
+	HinokoFwIsoTxPrivate *priv;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_TX(inst));
+	self = HINOKO_FW_ISO_TX(inst);
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	fw_iso_ctx_state_release(&priv->state);
+}
+
 static gboolean fw_iso_tx_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
 						 HinokoCycleTimer *const *cycle_timer,
 						 GError **error)
@@ -189,6 +199,7 @@ static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
 	iface->stop = fw_iso_tx_stop;
 	iface->unmap_buffer = fw_iso_tx_unmap_buffer;
+	iface->release = fw_iso_tx_release;
 	iface->get_cycle_timer = fw_iso_tx_get_cycle_timer;
 	iface->flush_completions = fw_iso_tx_flush_completions;
 	iface->create_source = fw_iso_tx_create_source;
@@ -231,23 +242,6 @@ void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
 
 	(void)fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_TX, scode,
 					channel, header_size, error);
-}
-
-/**
- * hinoko_fw_iso_tx_release:
- * @self: A [class@FwIsoTx].
- *
- * Release allocated IT context from 1394 OHCI controller.
- */
-void hinoko_fw_iso_tx_release(HinokoFwIsoTx *self)
-{
-	HinokoFwIsoTxPrivate *priv;
-
-	g_return_if_fail(HINOKO_IS_FW_ISO_TX(self));
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
-
-	fw_iso_ctx_state_unmap_buffer(&priv->state);
-	fw_iso_ctx_state_release(&priv->state);
 }
 
 /**

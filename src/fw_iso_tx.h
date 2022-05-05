@@ -35,7 +35,6 @@ HinokoFwIsoTx *hinoko_fw_iso_tx_new(void);
 void hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path,
 			       HinokoFwScode scode, guint channel,
 			       guint header_size, GError **error);
-void hinoko_fw_iso_tx_release(HinokoFwIsoTx *self);
 
 void hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self,
 				 guint maximum_bytes_per_payload,

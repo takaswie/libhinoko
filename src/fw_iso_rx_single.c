@@ -246,24 +246,28 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * Allocate an IR context to 1394 OHCI controller for packet-per-buffer mode. A local node of the
  * node corresponding to the given path is used as the controller, thus any path is accepted as
  * long as process has enough permission for the path.
+ *
+ * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
-				      const char *path,
-				      guint channel, guint header_size,
-				      GError **error)
+gboolean hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self, const char *path,
+					  guint channel, guint header_size, GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	if (!fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0,
 				       channel, header_size, error))
-		return;
+		return FALSE;
 
 	priv->header_size = header_size;
+
+	return TRUE;
 }
 
 /*
@@ -274,21 +278,24 @@ void hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self,
  * @error: A [struct@GLib.Error].
  *
  * Map intermediate buffer to share payload of IR context with 1394 OHCI controller.
+ *
+ * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
-					guint maximum_bytes_per_payload,
-					guint payloads_per_buffer,
-					GError **error)
+gboolean hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
+					    guint maximum_bytes_per_payload,
+					    guint payloads_per_buffer, GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
-	(void)fw_iso_ctx_state_map_buffer(&priv->state, maximum_bytes_per_payload,
-					  payloads_per_buffer, error);
+	return fw_iso_ctx_state_map_buffer(&priv->state, maximum_bytes_per_payload,
+					   payloads_per_buffer, error);
 }
 
 /**
@@ -301,18 +308,20 @@ void hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
  * hardware interrupt to generate interrupt event. In detail, please refer to documentation about
  * [signal@FwIsoRxSingle::interrupted] signal.
  *
- * Since: 0.6.
+ * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean schedule_interrupt,
-					     GError **error)
+gboolean hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self,
+						 gboolean schedule_interrupt, GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
-	(void)fw_iso_ctx_state_register_chunk(&priv->state, FALSE, 0, 0, NULL, 0, 0,
-					      schedule_interrupt, error);
+	return fw_iso_ctx_state_register_chunk(&priv->state, FALSE, 0, 0, NULL, 0, 0,
+					       schedule_interrupt, error);
 }
 
 /**
@@ -328,37 +337,40 @@ void hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self, gboolean
  *
  * Start IR context.
  *
- * Since: 0.6.
+ * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ *
+ * Since: 0.7.
  */
-void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
-				   guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error)
+gboolean hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
+				       guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	priv->chunk_cursor = 0;
 
-	(void)fw_iso_ctx_state_start(&priv->state, cycle_match, sync, tags, error);
+	return fw_iso_ctx_state_start(&priv->state, cycle_match, sync, tags, error);
 }
 
 /**
  * hinoko_fw_iso_rx_single_get_payload:
  * @self: A [class@FwIsoRxSingle].
- * @index: the index inner available packets.
+ * @index: the index inner available packets at the event of interrupt.
  * @payload: (element-type guint8)(array length=length)(out)(transfer none): The array with data
  *	     frame for payload of IR context.
  * @length: The number of bytes in the above payload.
- * @error: A [struct@GLib.Error].
  *
- * Retrieve payload of IR context for a handled packet corresponding to index.
+ * Retrieve payload of IR context for a handled packet corresponding to index at the event of
+ * interrupt.
+ *
+ * Since: 0.7.
  */
 void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
-					 const guint8 **payload, guint *length,
-					 GError **error)
+					 const guint8 **payload, guint *length)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 	unsigned int bytes_per_chunk;
@@ -369,7 +381,6 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 	guint frame_size;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self));
-	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 

@@ -10,8 +10,12 @@
  * Linux FireWire subsystem.
  */
 typedef struct {
+	struct fw_iso_ctx_state state;
 	guint offset;
 } HinokoFwIsoTxPrivate;
+
+static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class);
+
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoTx, hinoko_fw_iso_tx, HINOKO_TYPE_FW_ISO_CTX)
 
 static void fw_iso_tx_finalize(GObject *obj)
@@ -32,8 +36,11 @@ static guint fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_COUNT] = { 0 };
 static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	HinokoFwIsoCtxClass *parent_class = HINOKO_FW_ISO_CTX_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_tx_finalize;
+
+	fw_iso_ctx_class_init(parent_class);
 
 	/**
 	 * HinokoFwIsoTx::interrupted:
@@ -71,6 +78,50 @@ static void hinoko_fw_iso_tx_init(HinokoFwIsoTx *self)
 	return;
 }
 
+static void fw_iso_tx_stop(HinokoFwIsoCtx *inst)
+{
+	HinokoFwIsoTx *self;
+	HinokoFwIsoTxPrivate *priv;
+	gboolean running;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_TX(inst));
+	self = HINOKO_FW_ISO_TX(inst);
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	running = priv->state.running;
+
+	fw_iso_ctx_state_stop(&priv->state);
+
+	if (priv->state.running != running)
+		g_signal_emit_by_name(G_OBJECT(inst), "stopped", NULL);
+}
+
+static gboolean fw_iso_tx_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
+						 HinokoCycleTimer *const *cycle_timer,
+						 GError **error)
+{
+	HinokoFwIsoTx *self;
+	HinokoFwIsoTxPrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(inst), FALSE);
+	self = HINOKO_FW_ISO_TX(inst);
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	return fw_iso_ctx_state_get_cycle_timer(&priv->state, clock_id, cycle_timer, error);
+}
+
+static gboolean fw_iso_tx_flush_completions(HinokoFwIsoCtx *inst, GError **error)
+{
+	HinokoFwIsoTx *self;
+	HinokoFwIsoTxPrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(inst), FALSE);
+	self = HINOKO_FW_ISO_TX(inst);
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	return fw_iso_ctx_state_flush_completions(&priv->state, error);
+}
+
 gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
 				GError **error)
 {
@@ -89,6 +140,27 @@ gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event 
 		      ev->header_length, pkt_count);
 
 	return TRUE;
+}
+
+gboolean fw_iso_tx_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
+{
+	HinokoFwIsoTx *self;
+	HinokoFwIsoTxPrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(inst), FALSE);
+	self = HINOKO_FW_ISO_TX(inst);
+	priv = hinoko_fw_iso_tx_get_instance_private(self);
+
+	return fw_iso_ctx_state_create_source(&priv->state, inst, fw_iso_tx_handle_event, source,
+					      error);
+}
+
+static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class)
+{
+	parent_class->stop = fw_iso_tx_stop;
+	parent_class->get_cycle_timer = fw_iso_tx_get_cycle_timer;
+	parent_class->flush_completions = fw_iso_tx_flush_completions;
+	parent_class->create_source = fw_iso_tx_create_source;
 }
 
 /**

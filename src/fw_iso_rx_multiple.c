@@ -13,6 +13,8 @@ struct ctx_payload {
 	unsigned int length;
 };
 typedef struct {
+	struct fw_iso_ctx_state state;
+
 	GByteArray *channels;
 
 	guint prev_offset;
@@ -24,6 +26,9 @@ typedef struct {
 	guint chunks_per_irq;
 	guint accumulated_chunk_count;
 } HinokoFwIsoRxMultiplePrivate;
+
+static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class);
+
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple, HINOKO_TYPE_FW_ISO_CTX)
 
 enum fw_iso_rx_multiple_prop_type {
@@ -73,10 +78,13 @@ static void fw_iso_rx_multiple_set_property(GObject *obj, guint id,
 static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	HinokoFwIsoCtxClass *parent_class = HINOKO_FW_ISO_CTX_CLASS(klass);
 
 	gobject_class->finalize = fw_iso_rx_multiple_finalize;
 	gobject_class->get_property = fw_iso_rx_multiple_get_property;
 	gobject_class->set_property = fw_iso_rx_multiple_set_property;
+
+	fw_iso_ctx_class_init(parent_class);
 
 	fw_iso_rx_multiple_props[FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS] =
 		g_param_spec_boxed("channels", "channels",
@@ -118,6 +126,50 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 static void hinoko_fw_iso_rx_multiple_init(HinokoFwIsoRxMultiple *self)
 {
 	return;
+}
+
+static void fw_iso_rx_multiple_stop(HinokoFwIsoCtx *inst)
+{
+	HinokoFwIsoRxMultiple *self;
+	HinokoFwIsoRxMultiplePrivate *priv;
+	gboolean running;
+
+	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst));
+	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	running = priv->state.running;
+
+	fw_iso_ctx_state_stop(&priv->state);
+
+	if (priv->state.running != running)
+		g_signal_emit_by_name(G_OBJECT(inst), "stopped", NULL);
+}
+
+static gboolean fw_iso_rx_multiple_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
+						 HinokoCycleTimer *const *cycle_timer,
+						 GError **error)
+{
+	HinokoFwIsoRxMultiple *self;
+	HinokoFwIsoRxMultiplePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst), FALSE);
+	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	return fw_iso_ctx_state_get_cycle_timer(&priv->state, clock_id, cycle_timer, error);
+}
+
+static gboolean fw_iso_rx_multiple_flush_completions(HinokoFwIsoCtx *inst, GError **error)
+{
+	HinokoFwIsoRxMultiple *self;
+	HinokoFwIsoRxMultiplePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst), FALSE);
+	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	return fw_iso_ctx_state_flush_completions(&priv->state, error);
 }
 
 static gboolean fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self, GError **error)
@@ -230,6 +282,27 @@ gboolean fw_iso_rx_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cd
 	priv->prev_offset %= bytes_per_buffer;
 
 	return TRUE;
+}
+
+gboolean fw_iso_rx_multiple_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
+{
+	HinokoFwIsoRxMultiple *self;
+	HinokoFwIsoRxMultiplePrivate *priv;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst), FALSE);
+	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
+	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+
+	return fw_iso_ctx_state_create_source(&priv->state, inst, fw_iso_rx_multiple_handle_event,
+					      source, error);
+}
+
+static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class)
+{
+	parent_class->stop = fw_iso_rx_multiple_stop;
+	parent_class->get_cycle_timer = fw_iso_rx_multiple_get_cycle_timer;
+	parent_class->flush_completions = fw_iso_rx_multiple_flush_completions;
+	parent_class->create_source = fw_iso_rx_multiple_create_source;
 }
 
 /**

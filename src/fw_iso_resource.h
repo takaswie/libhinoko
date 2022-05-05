@@ -53,11 +53,11 @@ struct _HinokoFwIsoResourceInterface {
 			    guint bandwidth, const GError *error);
 };
 
-void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path,
-				 gint open_flag, GError **error);
+gboolean hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
+				     GError **error);
 
-void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self,
-					  GSource **source, GError **error);
+gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource **source,
+					      GError **error);
 
 guint hinoko_fw_iso_resource_calculate_bandwidth(guint bytes_per_payload,
 						 HinokoFwScode scode);

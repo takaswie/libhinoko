@@ -92,16 +92,18 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
  * Open Linux FireWire character device to delegate any request for isochronous
  * resource management to Linux FireWire subsystem.
  *
+ * Returns: TRUE if the overall operation finished successfully, else FALSE.
+ *
  * Since: 0.7.
  */
-void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
-				 GError **error)
+gboolean hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
+				     GError **error)
 {
-	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
+	g_return_val_if_fail(path != NULL && strlen(path) > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
-	(void)HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->open(self, path, open_flag, error);
+	return HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->open(self, path, open_flag, error);
 }
 
 /**
@@ -113,16 +115,18 @@ void hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path, g
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
  * resource.
  *
+ * Returns: TRUE if the overall operation finished successfully, else FALSE.
+ *
  * Since: 0.7.
  */
-void hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource **source,
-					  GError **error)
+gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource **source,
+					      GError **error)
 {
-	g_return_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self));
-	g_return_if_fail(source != NULL);
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
+	g_return_val_if_fail(source != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
-	(void)HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->create_source(self, source, error);
+	return HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->create_source(self, source, error);
 }
 
 /**

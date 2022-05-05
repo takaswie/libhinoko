@@ -32,10 +32,9 @@ static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class);
 G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple, HINOKO_TYPE_FW_ISO_CTX)
 
 enum fw_iso_rx_multiple_prop_type {
-	FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS = 1,
+	FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS = FW_ISO_CTX_PROP_TYPE_COUNT,
 	FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT,
 };
-static GParamSpec *fw_iso_rx_multiple_props[FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT] = { NULL, };
 
 enum fw_iso_rx_multiple_sig_type {
 	FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ = 1,
@@ -43,17 +42,7 @@ enum fw_iso_rx_multiple_sig_type {
 };
 static guint fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_COUNT] = { 0 };
 
-static void fw_iso_rx_multiple_finalize(GObject *obj)
-{
-	HinokoFwIsoRxMultiple *self = HINOKO_FW_ISO_RX_MULTIPLE(obj);
-
-	hinoko_fw_iso_rx_multiple_release(self);
-
-	G_OBJECT_CLASS(hinoko_fw_iso_rx_multiple_parent_class)->finalize(obj);
-}
-
-static void fw_iso_rx_multiple_get_property(GObject *obj, guint id, GValue *val,
-					    GParamSpec *spec)
+static void fw_iso_rx_multiple_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
 {
 	HinokoFwIsoRxMultiple *self = HINOKO_FW_ISO_RX_MULTIPLE(obj);
 	HinokoFwIsoRxMultiplePrivate *priv =
@@ -69,10 +58,13 @@ static void fw_iso_rx_multiple_get_property(GObject *obj, guint id, GValue *val,
 	}
 }
 
-static void fw_iso_rx_multiple_set_property(GObject *obj, guint id,
-					    const GValue *val, GParamSpec *spec)
+static void fw_iso_rx_multiple_finalize(GObject *obj)
 {
-	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+	HinokoFwIsoRxMultiple *self = HINOKO_FW_ISO_RX_MULTIPLE(obj);
+
+	hinoko_fw_iso_rx_multiple_release(self);
+
+	G_OBJECT_CLASS(hinoko_fw_iso_rx_multiple_parent_class)->finalize(obj);
 }
 
 static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *klass)
@@ -80,22 +72,17 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 	HinokoFwIsoCtxClass *parent_class = HINOKO_FW_ISO_CTX_CLASS(klass);
 
-	gobject_class->finalize = fw_iso_rx_multiple_finalize;
 	gobject_class->get_property = fw_iso_rx_multiple_get_property;
-	gobject_class->set_property = fw_iso_rx_multiple_set_property;
+	gobject_class->finalize = fw_iso_rx_multiple_finalize;
 
 	fw_iso_ctx_class_init(parent_class);
 
-	fw_iso_rx_multiple_props[FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS] =
+	g_object_class_install_property(gobject_class, FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS,
 		g_param_spec_boxed("channels", "channels",
 				   "The array with elements to represent "
 				   "channels to be listened to",
 				   G_TYPE_BYTE_ARRAY,
-				   G_PARAM_READABLE);
-
-	g_object_class_install_properties(gobject_class,
-					  FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT,
-					  fw_iso_rx_multiple_props);
+				   G_PARAM_READABLE));
 
 	/**
 	 * HinokoFwIsoRxMultiple::interrupted:

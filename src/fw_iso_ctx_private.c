@@ -448,3 +448,25 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 
 	return TRUE;
 }
+
+/**
+ * fw_iso_ctx_state_stop:
+ * @state: A [struct@FwIsoCtxState].
+ *
+ * Stop isochronous context.
+ */
+void fw_iso_ctx_state_stop(struct fw_iso_ctx_state *state)
+{
+	struct fw_cdev_stop_iso arg = {0};
+
+	if (!state->running)
+		return;
+
+	arg.handle = state->handle;
+	ioctl(state->fd, FW_CDEV_IOC_STOP_ISO, &arg);
+
+	state->running = FALSE;
+	state->registered_chunk_count = 0;
+	state->data_length = 0;
+	state->curr_offset = 0;
+}

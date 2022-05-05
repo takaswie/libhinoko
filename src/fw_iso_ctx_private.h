@@ -61,6 +61,7 @@ gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **
 
 gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *cycle_match,
 				guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error);
+void fw_iso_ctx_state_stop(struct fw_iso_ctx_state *state);
 
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,

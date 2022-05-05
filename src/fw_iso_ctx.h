@@ -8,14 +8,14 @@ G_BEGIN_DECLS
 
 #define HINOKO_TYPE_FW_ISO_CTX		(hinoko_fw_iso_ctx_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, HINOKO, FW_ISO_CTX, GObject);
+G_DECLARE_INTERFACE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, HINOKO, FW_ISO_CTX, GObject);
 
 #define HINOKO_FW_ISO_CTX_ERROR		hinoko_fw_iso_ctx_error_quark()
 
 GQuark hinoko_fw_iso_ctx_error_quark();
 
-struct _HinokoFwIsoCtxClass {
-	GObjectClass parent_class;
+struct _HinokoFwIsoCtxInterface {
+	GTypeInterface parent_iface;
 
 	void (*stop)(HinokoFwIsoCtx *self);
 
@@ -28,7 +28,7 @@ struct _HinokoFwIsoCtxClass {
 
 	/**
 	 * HinokoFwIsoCtxClass::stopped:
-	 * @self: A [class@FwIsoCtx].
+	 * @self: A [iface@FwIsoCtx].
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error].
 	 *
 	 * Class closure for the [signal@FwIsoCtx::stopped] signal.

@@ -20,9 +20,11 @@ typedef struct {
 	const struct fw_cdev_event_iso_interrupt *ev;
 } HinokoFwIsoRxSinglePrivate;
 
-static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class);
+static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface);
 
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single, HINOKO_TYPE_FW_ISO_CTX)
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoRxSingle, hinoko_fw_iso_rx_single, G_TYPE_OBJECT,
+			G_ADD_PRIVATE(HinokoFwIsoRxSingle)
+			G_IMPLEMENT_INTERFACE(HINOKO_TYPE_FW_ISO_CTX, fw_iso_ctx_iface_init))
 
 enum fw_iso_rx_single_sig_type {
 	FW_ISO_RX_SINGLE_SIG_TYPE_IRQ = 1,
@@ -50,13 +52,11 @@ static void fw_iso_rx_single_finalize(GObject *obj)
 static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	HinokoFwIsoCtxClass *parent_class = HINOKO_FW_ISO_CTX_CLASS(klass);
 
 	gobject_class->get_property = fw_iso_rx_single_get_property;
 	gobject_class->finalize = fw_iso_rx_single_finalize;
 
 	fw_iso_ctx_class_override_properties(gobject_class);
-	fw_iso_ctx_class_init(parent_class);
 
 	/**
 	 * HinokoFwIsoRxSingle::interrupted:
@@ -191,12 +191,12 @@ gboolean fw_iso_rx_single_create_source(HinokoFwIsoCtx *inst, GSource **source, 
 					      source, error);
 }
 
-static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class)
+static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
-	parent_class->stop = fw_iso_rx_single_stop;
-	parent_class->get_cycle_timer = fw_iso_rx_single_get_cycle_timer;
-	parent_class->flush_completions = fw_iso_rx_single_flush_completions;
-	parent_class->create_source = fw_iso_rx_single_create_source;
+	iface->stop = fw_iso_rx_single_stop;
+	iface->get_cycle_timer = fw_iso_rx_single_get_cycle_timer;
+	iface->flush_completions = fw_iso_rx_single_flush_completions;
+	iface->create_source = fw_iso_rx_single_create_source;
 }
 
 /**
@@ -354,7 +354,6 @@ void hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cyc
 
 	(void)fw_iso_ctx_state_start(&priv->state, cycle_match, sync, tags, error);
 }
-
 
 /**
  * hinoko_fw_iso_rx_single_get_payload:

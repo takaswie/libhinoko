@@ -27,9 +27,11 @@ typedef struct {
 	guint accumulated_chunk_count;
 } HinokoFwIsoRxMultiplePrivate;
 
-static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class);
+static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface);
 
-G_DEFINE_TYPE_WITH_PRIVATE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple, HINOKO_TYPE_FW_ISO_CTX)
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple, G_TYPE_OBJECT,
+			G_ADD_PRIVATE(HinokoFwIsoRxMultiple)
+			G_IMPLEMENT_INTERFACE(HINOKO_TYPE_FW_ISO_CTX, fw_iso_ctx_iface_init))
 
 enum fw_iso_rx_multiple_prop_type {
 	FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS = FW_ISO_CTX_PROP_TYPE_COUNT,
@@ -70,13 +72,11 @@ static void fw_iso_rx_multiple_finalize(GObject *obj)
 static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	HinokoFwIsoCtxClass *parent_class = HINOKO_FW_ISO_CTX_CLASS(klass);
 
 	gobject_class->get_property = fw_iso_rx_multiple_get_property;
 	gobject_class->finalize = fw_iso_rx_multiple_finalize;
 
 	fw_iso_ctx_class_override_properties(gobject_class);
-	fw_iso_ctx_class_init(parent_class);
 
 	g_object_class_install_property(gobject_class, FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS,
 		g_param_spec_boxed("channels", "channels",
@@ -282,12 +282,12 @@ gboolean fw_iso_rx_multiple_create_source(HinokoFwIsoCtx *inst, GSource **source
 					      source, error);
 }
 
-static void fw_iso_ctx_class_init(HinokoFwIsoCtxClass *parent_class)
+static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
-	parent_class->stop = fw_iso_rx_multiple_stop;
-	parent_class->get_cycle_timer = fw_iso_rx_multiple_get_cycle_timer;
-	parent_class->flush_completions = fw_iso_rx_multiple_flush_completions;
-	parent_class->create_source = fw_iso_rx_multiple_create_source;
+	iface->stop = fw_iso_rx_multiple_stop;
+	iface->get_cycle_timer = fw_iso_rx_multiple_get_cycle_timer;
+	iface->flush_completions = fw_iso_rx_multiple_flush_completions;
+	iface->create_source = fw_iso_rx_multiple_create_source;
 }
 
 /**
@@ -346,20 +346,20 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 	set.handle = priv->state.handle;
 	if (ioctl(priv->state.fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
 		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_SET_ISO_CHANNELS");
+		hinoko_fw_iso_rx_multiple_release(self);
 		return;
 	} else if (set.channels == 0) {
 		g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR,
 				    HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
 				    "No isochronous channel is available");
+		hinoko_fw_iso_rx_multiple_release(self);
 		return;
 	}
 
 	priv->channels = g_byte_array_new();
 	for (i = 0; i < 64; ++i) {
-		if (!(set.channels & (G_GUINT64_CONSTANT(1) << i)))
-			continue;
-
-		g_byte_array_append(priv->channels, (const guint8 *)&i, 1);
+		if (set.channels & (G_GUINT64_CONSTANT(1) << i))
+			g_byte_array_append(priv->channels, (const guint8 *)&i, 1);
 	}
 }
 

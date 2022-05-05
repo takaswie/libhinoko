@@ -8,10 +8,10 @@ G_BEGIN_DECLS
 
 #define HINOKO_TYPE_FW_ISO_TX	(hinoko_fw_iso_tx_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoTx, hinoko_fw_iso_tx, HINOKO, FW_ISO_TX, HinokoFwIsoCtx);
+G_DECLARE_DERIVABLE_TYPE(HinokoFwIsoTx, hinoko_fw_iso_tx, HINOKO, FW_ISO_TX, GObject);
 
 struct _HinokoFwIsoTxClass {
-	HinokoFwIsoCtxClass parent_class;
+	GObjectClass parent_class;
 
 	/**
 	 * HinokoFwIsoTxClass::interrupted:

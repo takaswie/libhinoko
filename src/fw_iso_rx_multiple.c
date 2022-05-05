@@ -378,7 +378,7 @@ void hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self,
 
 	set.handle = priv->state.handle;
 	if (ioctl(priv->state.fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_SET_ISO_CHANNELS");
+		generate_ioctl_error(error, errno, FW_CDEV_IOC_SET_ISO_CHANNELS);
 		hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
 		return;
 	} else if (set.channels == 0) {

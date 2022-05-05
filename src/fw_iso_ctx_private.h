@@ -18,6 +18,9 @@ extern const char *const fw_iso_ctx_err_msgs[7];
 		    HINOKO_FW_ISO_CTX_ERROR_FAILED,			\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
+#define generate_ioctl_error(error, errno, request)			\
+	generate_syscall_error(error, errno, "ioctl(%s)", #request)
+
 #define generate_file_error(error, code, format, arg) \
 	g_set_error(error, G_FILE_ERROR, code, format, arg)
 

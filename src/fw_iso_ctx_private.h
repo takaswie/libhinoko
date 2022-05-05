@@ -52,6 +52,12 @@ gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes
 				     guint chunks_per_buffer, GError **error);
 void fw_iso_ctx_state_unmap_buffer(struct fw_iso_ctx_state *state);
 
+gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolean skip,
+					 HinokoFwIsoCtxMatchFlag tags, guint sy,
+					 const guint8 *header, guint header_length,
+					 guint payload_length, gboolean schedule_interrupt,
+					 GError **error);
+
 void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				HinokoFwIsoCtxMode mode, HinokoFwScode scode,
 				guint channel, guint header_size,

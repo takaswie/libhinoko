@@ -188,3 +188,98 @@ void fw_iso_ctx_state_unmap_buffer(struct fw_iso_ctx_state *state)
 	state->addr = NULL;
 	state->data = NULL;
 }
+
+/**
+ * fw_iso_ctx_state_register_chunk:
+ * @state: A [struct@FwIsoCtxState].
+ * @skip: Whether to skip packet transmission or not.
+ * @tags: The value of tag field for isochronous packet to handle.
+ * @sy: The value of sy field for isochronous packet to handle.
+ * @header: (array length=header_length) (element-type guint8): The content of header for IT
+ *	    context, nothing for IR context.
+ * @header_length: The number of bytes for @header.
+ * @payload_length: The number of bytes for payload of isochronous context.
+ * @schedule_interrupt: schedule hardware interrupt at isochronous cycle for the chunk.
+ * @error: A [struct@GLib.Error].
+ *
+ * Register data on buffer for payload of isochronous context.
+ */
+gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolean skip,
+					 HinokoFwIsoCtxMatchFlag tags, guint sy,
+					 const guint8 *header, guint header_length,
+					 guint payload_length, gboolean schedule_interrupt,
+					 GError **error)
+{
+	struct fw_cdev_iso_packet *datum;
+
+	g_return_val_if_fail(skip == TRUE || skip == FALSE, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	g_return_val_if_fail(tags == 0 ||
+			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 ||
+			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 ||
+			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 ||
+			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3, FALSE);
+
+	g_return_val_if_fail(sy < 16, FALSE);
+
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+		if (!skip) {
+			g_return_val_if_fail(header_length == state->header_size, FALSE);
+			g_return_val_if_fail(payload_length <= state->bytes_per_chunk, FALSE);
+		} else {
+			g_return_val_if_fail(payload_length == 0, FALSE);
+			g_return_val_if_fail(header_length == 0, FALSE);
+			g_return_val_if_fail(header == NULL, FALSE);
+		}
+	} else if (state->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
+		   state->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
+		g_return_val_if_fail(tags == 0, FALSE);
+		g_return_val_if_fail(sy == 0, FALSE);
+		g_return_val_if_fail(header == NULL, FALSE);
+		g_return_val_if_fail(header_length == 0, FALSE);
+		g_return_val_if_fail(payload_length == 0, FALSE);
+	}
+
+	g_return_val_if_fail(
+		state->data_length + sizeof(*datum) + header_length <= state->alloc_data_length,
+		FALSE);
+
+	if (state->fd < 0) {
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return FALSE;
+	}
+
+	if (state->addr == NULL) {
+		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
+		return FALSE;
+	}
+
+	datum = (struct fw_cdev_iso_packet *)(state->data + state->data_length);
+	state->data_length += sizeof(*datum) + header_length;
+	++state->registered_chunk_count;
+
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+		if (!skip)
+			memcpy(datum->header, header, header_length);
+	} else {
+		payload_length = state->bytes_per_chunk;
+
+		if (state->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE)
+			header_length = state->header_size;
+	}
+
+	datum->control =
+		FW_CDEV_ISO_PAYLOAD_LENGTH(payload_length) |
+		FW_CDEV_ISO_TAG(tags) |
+		FW_CDEV_ISO_SY(sy) |
+		FW_CDEV_ISO_HEADER_LENGTH(header_length);
+
+	if (skip)
+		datum->control |= FW_CDEV_ISO_SKIP;
+
+	if (schedule_interrupt)
+		datum->control |= FW_CDEV_ISO_INTERRUPT;
+
+	return TRUE;
+}

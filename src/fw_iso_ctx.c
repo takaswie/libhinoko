@@ -334,76 +334,12 @@ void hinoko_fw_iso_ctx_register_chunk(HinokoFwIsoCtx *self, gboolean skip,
 				      GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
-	struct fw_cdev_iso_packet *datum;
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(skip == TRUE || skip == FALSE);
-	g_return_if_fail(error == NULL || *error == NULL);
-
-	g_return_if_fail(tags == 0 ||
-			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 ||
-			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 ||
-			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 ||
-			 tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3);
-
-	g_return_if_fail(sy < 16);
-
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
-	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
-		if (!skip) {
-			g_return_if_fail(header_length == priv->header_size);
-			g_return_if_fail(payload_length <= priv->bytes_per_chunk);
-		} else {
-			g_return_if_fail(payload_length == 0);
-			g_return_if_fail(header_length == 0);
-			g_return_if_fail(header == NULL);
-		}
-	} else if (priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
-		   priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
-		g_return_if_fail(tags == 0);
-		g_return_if_fail(sy == 0);
-		g_return_if_fail(header == NULL);
-		g_return_if_fail(header_length == 0);
-		g_return_if_fail(payload_length == 0);
-	}
 
-	g_return_if_fail(priv->data_length + sizeof(*datum) + header_length <= priv->alloc_data_length);
-
-	if (priv->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
-		return;
-	}
-
-	if (priv->addr == NULL) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
-		return;
-	}
-
-	datum = (struct fw_cdev_iso_packet *)(priv->data + priv->data_length);
-	priv->data_length += sizeof(*datum) + header_length;
-	++priv->registered_chunk_count;
-
-	if (priv->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
-		if (!skip)
-			memcpy(datum->header, header, header_length);
-	} else {
-		payload_length = priv->bytes_per_chunk;
-
-		if (priv->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE)
-			header_length = priv->header_size;
-	}
-
-	datum->control =
-		FW_CDEV_ISO_PAYLOAD_LENGTH(payload_length) |
-		FW_CDEV_ISO_TAG(tags) |
-		FW_CDEV_ISO_SY(sy) |
-		FW_CDEV_ISO_HEADER_LENGTH(header_length);
-
-	if (skip)
-		datum->control |= FW_CDEV_ISO_SKIP;
-
-	if (schedule_interrupt)
-		datum->control |= FW_CDEV_ISO_INTERRUPT;
+	(void)fw_iso_ctx_state_register_chunk(priv, skip, tags, sy, header, header_length,
+					      payload_length, schedule_interrupt, error);
 }
 
 static void fw_iso_ctx_queue_chunks(HinokoFwIsoCtx *self, GError **error)

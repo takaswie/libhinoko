@@ -23,18 +23,6 @@ G_DEFINE_INTERFACE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
  */
 G_DEFINE_QUARK(hinoko-fw-iso-ctx-error-quark, hinoko_fw_iso_ctx_error)
 
-const char *const fw_iso_ctx_err_msgs[7] = {
-	[HINOKO_FW_ISO_CTX_ERROR_ALLOCATED] =
-		"The instance is already associated to any firewire character device",
-	[HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED] =
-		"The instance is not associated to any firewire character device",
-	[HINOKO_FW_ISO_CTX_ERROR_MAPPED] =
-		"The intermediate buffer is already mapped to the process",
-	[HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED] =
-		"The intermediate buffer is not mapped to the process",
-	[HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED] = "No chunk registered before starting",
-};
-
 static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 {
 	g_object_interface_install_property(iface,

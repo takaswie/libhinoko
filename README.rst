@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2022/05/04
+2022/05/05
 Takashi Sakamoto
 
 Introduction
@@ -133,6 +133,11 @@ wait for event:
 
 - ``Hinoko.FwIsoResourceAuto.allocate_sync``
 - ``Hinoko.FwIsoResourceAuto.deallocate_sync``
+
+Beside, below signal is newly added to express the value of current generation for the state of
+IEEE 1394 bus:
+
+- ``Hinoko.FwIsoResource::generation``
 
 Loss of backward compatibility between v0.5/v0.6 releases
 =========================================================

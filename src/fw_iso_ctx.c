@@ -553,6 +553,5 @@ void hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **error)
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	if (ioctl(priv->fd, FW_CDEV_IOC_FLUSH_ISO) < 0)
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_FLUSH_ISO");
+	(void)fw_iso_ctx_state_flush_completions(priv, error);
 }

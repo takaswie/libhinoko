@@ -501,3 +501,22 @@ void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, g
 	else
 		*frame_size = bytes_per_buffer - offset;
 }
+
+/**
+ * fw_iso_ctx_state_flush_completions:
+ * @state: A [struct@FwIsoCtxState].
+ * @error: A [struct@GLib.Error].
+ *
+ * Flush isochronous context until recent isochronous cycle. The call of function forces the
+ * context to queue any type of interrupt event for the recent isochronous cycle. Application can
+ * process the content of isochronous packet without waiting for actual hardware interrupt.
+ */
+gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GError **error)
+{
+	if (ioctl(state->fd, FW_CDEV_IOC_FLUSH_ISO) < 0) {
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_FLUSH_ISO");
+		return FALSE;
+	}
+
+	return TRUE;
+}

@@ -32,6 +32,7 @@ headers = [
 
 privates = [
   'fw_iso_ctx_private.h',
+  'fw_iso_ctx_private.c',
   'fw_iso_resource_private.h',
   'fw_iso_resource_private.c',
 ]

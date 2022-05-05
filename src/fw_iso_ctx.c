@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 #include "fw_iso_ctx_private.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
 #include <sys/mman.h>
 
 /**
@@ -16,25 +12,8 @@
  * subsystem specific request commands. This object is designed for internal
  * use, therefore a few method and properties are available for applications.
  */
-typedef struct {
-	int fd;
-	guint handle;
+typedef struct fw_iso_ctx_state HinokoFwIsoCtxPrivate;
 
-	HinokoFwIsoCtxMode mode;
-	guint header_size;
-	guchar *addr;
-	guint bytes_per_chunk;
-	guint chunks_per_buffer;
-
-	// The number of entries equals to the value of chunks_per_buffer.
-	guint8 *data;
-	guint data_length;
-	guint alloc_data_length;
-	guint registered_chunk_count;
-
-	guint curr_offset;
-	gboolean running;
-} HinokoFwIsoCtxPrivate;
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
 
 /**
@@ -47,7 +26,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OB
  */
 G_DEFINE_QUARK(hinoko-fw-iso-ctx-error-quark, hinoko_fw_iso_ctx_error)
 
-static const char *const err_msgs[] = {
+const char *const fw_iso_ctx_err_msgs[7] = {
 	[HINOKO_FW_ISO_CTX_ERROR_ALLOCATED] =
 		"The instance is already associated to any firewire character device",
 	[HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED] =
@@ -58,17 +37,6 @@ static const char *const err_msgs[] = {
 		"The intermediate buffer is not mapped to the process",
 	[HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED] = "No chunk registered before starting",
 };
-
-#define generate_local_error(error, code) \
-	g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR, code, err_msgs[code])
-
-#define generate_syscall_error(error, errno, format, arg)		\
-	g_set_error(error, HINOKO_FW_ISO_CTX_ERROR,			\
-		    HINOKO_FW_ISO_CTX_ERROR_FAILED,			\
-		    format " %d(%s)", arg, errno, strerror(errno))
-
-#define generate_file_error(error, code, format, arg) \
-	g_set_error(error, G_FILE_ERROR, code, format, arg)
 
 typedef struct {
 	GSource src;
@@ -213,83 +181,11 @@ void hinoko_fw_iso_ctx_allocate(HinokoFwIsoCtx *self, const char *path,
 				GError **error)
 {
 	HinokoFwIsoCtxPrivate *priv;
-	struct fw_cdev_get_info info = {0};
-	struct fw_cdev_create_iso_context create = {0};
 
 	g_return_if_fail(HINOKO_IS_FW_ISO_CTX(self));
-	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(error == NULL || *error == NULL);
-
-	// Linux firewire stack supports three types of isochronous context
-	// described in 1394 OHCI specification.
-	g_return_if_fail(mode == HINOKO_FW_ISO_CTX_MODE_TX ||
-			 mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
-			 mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE);
-
-	g_return_if_fail(scode == HINOKO_FW_SCODE_S100 ||
-			 scode == HINOKO_FW_SCODE_S200 ||
-			 scode == HINOKO_FW_SCODE_S400 ||
-			 scode == HINOKO_FW_SCODE_S800 ||
-			 scode == HINOKO_FW_SCODE_S1600 ||
-			 scode == HINOKO_FW_SCODE_S3200);
-
-	// IEEE 1394 specification supports isochronous channel up to 64.
-	g_return_if_fail(channel < 64);
-
-	// Headers should be aligned to quadlet.
-	g_return_if_fail(header_size % 4 == 0);
-
-	if (mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE) {
-		// At least, 1 quadlet is required for iso_header.
-		g_return_if_fail(header_size >= 4);
-		g_return_if_fail(channel < 64);
-	} else if (mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
-		// Needless.
-		g_return_if_fail(header_size == 0);
-		g_return_if_fail(channel == 0);
-	}
-
 	priv = hinoko_fw_iso_ctx_get_instance_private(self);
 
-	if (priv->fd >= 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_ALLOCATED);
-		return;
-	}
-
-	priv->fd = open(path, O_RDWR);
-	if  (priv->fd < 0) {
-		GFileError code = g_file_error_from_errno(errno);
-		if (code != G_FILE_ERROR_FAILED)
-			generate_file_error(error, code, "open(%s)", path);
-		else
-			generate_syscall_error(error, errno, "open(%s)", path);
-		return;
-	}
-
-	// Support FW_CDEV_VERSION_AUTO_FLUSH_ISO_OVERFLOW.
-	info.version = 5;
-	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
-		close(priv->fd);
-		priv->fd = -1;
-		return;
-	}
-
-	create.type = mode;
-	create.channel = channel;
-	create.speed = scode;
-	create.header_size = header_size;
-
-	if (ioctl(priv->fd, FW_CDEV_IOC_CREATE_ISO_CONTEXT, &create) < 0) {
-		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_CREATE_ISO_CONTEXT");
-		close(priv->fd);
-		priv->fd = -1;
-		return;
-	}
-
-	priv->handle = create.handle;
-	priv->mode = mode;
-	priv->header_size = header_size;
+	(void)fw_iso_ctx_state_allocate(priv, path, mode, scode, channel, header_size, error);
 }
 
 /**

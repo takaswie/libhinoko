@@ -6,6 +6,45 @@
 
 #include <unistd.h>
 #include <errno.h>
+#include <sys/ioctl.h>
+
+extern const char *const fw_iso_ctx_err_msgs[7];
+
+#define generate_local_error(error, code) \
+	g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR, code, fw_iso_ctx_err_msgs[code])
+
+#define generate_syscall_error(error, errno, format, arg)		\
+	g_set_error(error, HINOKO_FW_ISO_CTX_ERROR,			\
+		    HINOKO_FW_ISO_CTX_ERROR_FAILED,			\
+		    format " %d(%s)", arg, errno, strerror(errno))
+
+#define generate_file_error(error, code, format, arg) \
+	g_set_error(error, G_FILE_ERROR, code, format, arg)
+
+struct fw_iso_ctx_state {
+	int fd;
+	guint handle;
+
+	HinokoFwIsoCtxMode mode;
+	guint header_size;
+	guchar *addr;
+	guint bytes_per_chunk;
+	guint chunks_per_buffer;
+
+	// The number of entries equals to the value of chunks_per_buffer.
+	guint8 *data;
+	guint data_length;
+	guint alloc_data_length;
+	guint registered_chunk_count;
+
+	guint curr_offset;
+	gboolean running;
+};
+
+
+gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *path,
+				   HinokoFwIsoCtxMode mode, HinokoFwScode scode, guint channel,
+				   guint header_size, GError **error);
 
 #define STOPPED_SIGNAL_NEME		"stopped"
 

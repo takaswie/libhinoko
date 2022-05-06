@@ -46,7 +46,7 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 	 */
 	g_signal_new(STOPPED_SIGNAL_NEME,
 		G_TYPE_FROM_INTERFACE(iface),
-		G_SIGNAL_RUN_LAST,
+		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		G_STRUCT_OFFSET(HinokoFwIsoCtxInterface, stopped),
 		NULL, NULL,
 		g_cclosure_marshal_VOID__BOXED,

@@ -140,6 +140,58 @@ static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar
 	return fw_iso_resource_state_open(&priv->state, path, open_flag, error);
 }
 
+static gboolean fw_iso_resource_auto_allocate_async(HinokoFwIsoResource *inst,
+						    guint8 *channel_candidates,
+						    gsize channel_candidates_count,
+						    guint bandwidth,
+						    GError **error)
+{
+	HinokoFwIsoResourceAuto *self;
+	HinokoFwIsoResourceAutoPrivate *priv;
+	struct fw_cdev_allocate_iso_resource res = {0};
+	gboolean result;
+	int i;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(inst), FALSE);
+	g_return_val_if_fail(channel_candidates != NULL, FALSE);
+	g_return_val_if_fail(channel_candidates_count > 0, FALSE);
+	g_return_val_if_fail(bandwidth > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	self = HINOKO_FW_ISO_RESOURCE_AUTO(inst);
+	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
+	if (priv->state.fd < 0) {
+		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		return FALSE;
+	}
+
+	g_mutex_lock(&priv->mutex);
+
+	if (priv->is_allocated) {
+		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED);
+		result = FALSE;
+		goto end;
+	}
+
+	for (i = 0; i < channel_candidates_count; ++i) {
+		if (channel_candidates[i] < 64)
+			res.channels |= 1ull << channel_candidates[i];
+	}
+	res.bandwidth = bandwidth;
+
+	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res) < 0) {
+		generate_ioctl_error(error, errno, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE);
+		result = FALSE;
+	} else {
+		priv->handle = res.handle;
+		result = TRUE;
+	}
+end:
+	g_mutex_unlock(&priv->mutex);
+
+	return result;
+}
+
 static void handle_iso_resource_event(HinokoFwIsoResourceAuto *self,
 				      const struct fw_cdev_event_iso_resource *ev)
 {
@@ -279,48 +331,9 @@ gboolean hinoko_fw_iso_resource_auto_allocate_async(HinokoFwIsoResourceAuto *sel
 						    guint bandwidth,
 						    GError **error)
 {
-	HinokoFwIsoResourceAutoPrivate *priv;
-	struct fw_cdev_allocate_iso_resource res = {0};
-	gboolean result;
-	int i;
-
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE_AUTO(self), FALSE);
-	g_return_val_if_fail(channel_candidates != NULL, FALSE);
-	g_return_val_if_fail(channel_candidates_count > 0, FALSE);
-	g_return_val_if_fail(bandwidth > 0, FALSE);
-	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
-
-	priv = hinoko_fw_iso_resource_auto_get_instance_private(self);
-	if (priv->state.fd < 0) {
-		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
-		return FALSE;
-	}
-
-	g_mutex_lock(&priv->mutex);
-
-	if (priv->is_allocated) {
-		generate_local_error(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED);
-		result = FALSE;
-		goto end;
-	}
-
-	for (i = 0; i < channel_candidates_count; ++i) {
-		if (channel_candidates[i] < 64)
-			res.channels |= 1ull << channel_candidates[i];
-	}
-	res.bandwidth = bandwidth;
-
-	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE, &res) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE);
-		result = FALSE;
-	} else {
-		priv->handle = res.handle;
-		result = TRUE;
-	}
-end:
-	g_mutex_unlock(&priv->mutex);
-
-	return result;
+	return fw_iso_resource_auto_allocate_async(HINOKO_FW_ISO_RESOURCE(self),
+						   channel_candidates, channel_candidates_count,
+						   bandwidth, error);
 }
 
 /**

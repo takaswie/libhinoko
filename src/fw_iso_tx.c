@@ -233,7 +233,7 @@ HinokoFwIsoTx *hinoko_fw_iso_tx_new(void)
  * given path is used as the controller, thus any path is accepted as long as process has enough
  * permission for the path.
  *
- * Returns: TRUE if the overall operation finishes successful, else FALSE.
+ * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -259,7 +259,7 @@ gboolean hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path, Hinoko
  *
  * Map intermediate buffer to share payload of IT context with 1394 OHCI controller.
  *
- * Returns: TRUE if the overall operation finishes successful, else FALSE.
+ * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -287,7 +287,7 @@ gboolean hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self, guint maximum_bytes_pe
  *
  * Start IT context.
  *
- * Returns: TRUE if the overall operation finishes successful, else FALSE.
+ * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -319,7 +319,7 @@ gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
  * interrupt to generate interrupt event. In detail, please refer to documentation about
  * [signal@FwIsoTx::interrupted].
  *
- * Returns: TRUE if the overall operation finishes successful, else FALSE.
+ * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
  * Since: 0.7.
  */

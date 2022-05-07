@@ -571,7 +571,7 @@ void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, g
  * context to queue any type of interrupt event for the recent isochronous cycle. Application can
  * process the content of isochronous packet without waiting for actual hardware interrupt.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  */
 gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GError **error)
 {
@@ -594,7 +594,7 @@ gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GErr
  * Retrieve the value of cycle timer register. This method call is available
  * once any isochronous context is created.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  */
 gboolean fw_iso_ctx_state_get_cycle_timer(struct fw_iso_ctx_state *state, gint clock_id,
 					  HinokoCycleTimer *const *cycle_timer, GError **error)
@@ -679,7 +679,7 @@ static void finalize_src(GSource *source)
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
  * context.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  */
 gboolean fw_iso_ctx_state_create_source(struct fw_iso_ctx_state *state, HinokoFwIsoCtx *inst,
 					gboolean (*handle_event)(HinokoFwIsoCtx *inst,

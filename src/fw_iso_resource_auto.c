@@ -269,7 +269,7 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
  * Initiate allocation of isochronous resource. When the allocation is done,
  * [signal@FwIsoResource::allocated] signal is emit to notify the result, channel, and bandwidth.
  *
- * Returns: TRUE if the overall operation finished successfully, else FALSE.
+ * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -332,7 +332,7 @@ end:
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * [signal@FwIsoResource::deallocated] signal is emit to notify the result, channel, and bandwidth.
  *
- * Returns: TRUE if the overall operation finished successfully, else FALSE.
+ * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -389,7 +389,7 @@ end:
  * signal. When the call is successful, [property@FwIsoResourceAuto:channel] and
  * [property@FwIsoResourceAuto:bandwidth] properties are available.
  *
- * Returns: TRUE if the overall operation finished successfully, else FALSE.
+ * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -423,7 +423,7 @@ gboolean hinoko_fw_iso_resource_auto_allocate_sync(HinokoFwIsoResourceAuto *self
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * [signal@FwIsoResource::deallocated] signal is emit to notify the result, channel, and bandwidth.
  *
- * Returns: TRUE if the overall operation finished successfully, else FALSE.
+ * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */

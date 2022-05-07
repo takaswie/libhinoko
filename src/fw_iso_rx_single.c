@@ -247,7 +247,7 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * node corresponding to the given path is used as the controller, thus any path is accepted as
  * long as process has enough permission for the path.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -279,7 +279,7 @@ gboolean hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self, const char 
  *
  * Map intermediate buffer to share payload of IR context with 1394 OHCI controller.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -308,7 +308,7 @@ gboolean hinoko_fw_iso_rx_single_map_buffer(HinokoFwIsoRxSingle *self,
  * hardware interrupt to generate interrupt event. In detail, please refer to documentation about
  * [signal@FwIsoRxSingle::interrupted] signal.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -337,7 +337,7 @@ gboolean hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self,
  *
  * Start IR context.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */

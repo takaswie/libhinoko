@@ -176,7 +176,7 @@ HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new()
  * Initiate allocation of isochronous resource without any wait. When the allocation finishes,
  * [signal@FwIsoResource::allocated] signal is emit to notify the result, channel, and bandwidth.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -228,7 +228,7 @@ gboolean hinoko_fw_iso_resource_once_allocate_async(HinokoFwIsoResourceOnce *sel
  * deallocation finishes, [signal@FwIsoResource::deallocated] signal is emit to notify the result,
  * channel, and bandwidth.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -275,7 +275,7 @@ gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *s
  * Initiate allocation of isochronous resource and wait for [signal@FwIsoResource::allocated]
  * signal.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -310,7 +310,7 @@ gboolean hinoko_fw_iso_resource_once_allocate_sync(HinokoFwIsoResourceOnce *self
  * Initiate deallocation of isochronous resource and wait for [signal@FwIsoResource::deallocated]
  * signal.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */

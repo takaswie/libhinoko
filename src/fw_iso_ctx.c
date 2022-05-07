@@ -64,7 +64,7 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
  * Retrieve the value of cycle timer register. This method call is available
  * once any isochronous context is created.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -87,7 +87,7 @@ gboolean hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
  * context.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -156,7 +156,7 @@ void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
  * context to queue any type of interrupt event for the recent isochronous cycle. Application can
  * process the content of isochronous packet without waiting for actual hardware interrupt.
  *
- * Returns: TRUE if the overall operation finishes successfully, else FALSE.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */

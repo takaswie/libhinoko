@@ -92,7 +92,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
  * Open Linux FireWire character device to delegate any request for isochronous
  * resource management to Linux FireWire subsystem.
  *
- * Returns: TRUE if the overall operation finished successfully, else FALSE.
+ * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */
@@ -115,7 +115,7 @@ gboolean hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *pat
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for isochronous
  * resource.
  *
- * Returns: TRUE if the overall operation finished successfully, else FALSE.
+ * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
  * Since: 0.7.
  */

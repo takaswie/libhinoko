@@ -9,10 +9,6 @@ major_version = version[0].to_int()
 minor_version = version[1].to_int()
 micro_version = version[2].to_int()
 
-gnome = import('gnome')
-
-inc = include_directories('src')
-
 subdir('src')
 subdir('tests')
 

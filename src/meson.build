@@ -39,6 +39,8 @@ privates = [
 
 inc_dir = meson.project_name()
 
+gnome = import('gnome')
+
 # Generate marshallers for GObject signals.
 marshallers = gnome.genmarshal('hinoko_sigs_marshal',
   prefix: 'hinoko_sigs_marshal',

@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2022/05/05
+2022/05/07
 Takashi Sakamoto
 
 Introduction
@@ -98,8 +98,6 @@ The latter is implemented by below classes inherits GObject directly:
 The ``Hinoko.FwIsoResourceOnce`` is newly added for allocation of isochronous resource bound
 to current generation of bus topology, and some functions are available:
 
-- ``Hinoko.FwIsoResourceOnce.allocate_async``
-- ``Hinoko.FwIsoResourceOnce.allocate_sync``
 - ``Hinoko.FwIsoResourceOnce.deallocate_async``
 - ``Hinoko.FwIsoResourceOnce.deallocate_sync``
 
@@ -121,17 +119,20 @@ Below functions are removed as well:
 - ``Hinoko.FwIsoTx.stop``
 - ``Hinoko.FwIsoTx.unmap_buffer``
 - ``Hinoko.FwIsoTx.release``
+- ``Hinoko.FwIsoResourceAuto.allocate_async``
+- ``Hinoko.FwIsoResourceAuto.allocate_sync``
 
 Alternatively, below functions are available:
 
 - ``Hinoko.FwIsoCtx.stop``
 - ``Hinoko.FwIsoCtx.unmap_buffer``
 - ``Hinoko.FwIsoCtx.release``
+- ``Hinoko.FwIsoResource.allocate_async``
+- ``Hinoko.FwIsoResource.allocate_sync``
 
 Furthermore, below puclic functions are changed to have an argument for the value of timeout to
 wait for event:
 
-- ``Hinoko.FwIsoResourceAuto.allocate_sync``
 - ``Hinoko.FwIsoResourceAuto.deallocate_sync``
 
 Beside, below signal is newly added to express the value of current generation for the state of

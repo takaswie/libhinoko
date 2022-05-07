@@ -20,6 +20,10 @@ struct _HinokoFwIsoResourceInterface {
 	gboolean (*open)(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
 			 GError **error);
 
+	gboolean (*allocate_async)(HinokoFwIsoResource *self,
+				   guint8 *channel_candidates, gsize channel_candidates_count,
+				   guint bandwidth, GError **error);
+
 	gboolean (*create_source)(HinokoFwIsoResource *self, GSource **source, GError **error);
 
 	/**
@@ -58,6 +62,16 @@ gboolean hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *pat
 
 gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource **source,
 					      GError **error);
+
+gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
+					       guint8 *channel_candidates,
+					       gsize channel_candidates_count,
+					       guint bandwidth, GError **error);
+
+gboolean hinoko_fw_iso_resource_allocate_sync(HinokoFwIsoResource *self,
+					      guint8 *channel_candidates,
+				              gsize channel_candidates_count,
+				              guint bandwidth, guint timeout_ms, GError **error);
 
 guint hinoko_fw_iso_resource_calculate_bandwidth(guint bytes_per_payload,
 						 HinokoFwScode scode);

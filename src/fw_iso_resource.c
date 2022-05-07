@@ -130,6 +130,79 @@ gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource
 }
 
 /**
+ * hinoko_fw_iso_resource_allocate_async:
+ * @self: A [iface@FwIsoResource].
+ * @channel_candidates: (array length=channel_candidates_count): The array with elements for
+ *			numeric number of isochronous channel to be allocated.
+ * @channel_candidates_count: The number of channel candidates.
+ * @bandwidth: The amount of bandwidth to be allocated.
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError
+ *	   as well as domain depending on each implementation.
+ *
+ * Initiate allocation of isochronous resource without any wait. One of the candidates is actually
+ * allocated for channel. When the allocation finishes, [signal@FwIsoResource::allocated] signal is
+ * emitted to notify the result, channel, and bandwidth.
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 0.7.
+ */
+gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
+					       guint8 *channel_candidates,
+					       gsize channel_candidates_count,
+					       guint bandwidth, GError **error)
+{
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
+	g_return_val_if_fail(channel_candidates != NULL, FALSE);
+	g_return_val_if_fail(channel_candidates_count > 0, FALSE);
+	g_return_val_if_fail(bandwidth > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	return HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->allocate_async(self, channel_candidates,
+								      channel_candidates_count,
+								      bandwidth, error);
+}
+
+/**
+ * hinoko_fw_iso_resource_allocate_sync:
+ * @self: A [iface@FwIsoResource].
+ * @channel_candidates: (array length=channel_candidates_count): The array with elements for
+ *			numeric number for isochronous channel to be allocated.
+ * @channel_candidates_count: The number of channel candidates.
+ * @bandwidth: The amount of bandwidth to be allocated.
+ * @timeout_ms: The timeout to wait for allocated event.
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError
+ *	   as well as domain depending on each implementation.
+ *
+ * Initiate allocation of isochronous resource and wait for [signal@FwIsoResource::allocated]
+ * signal. One of the candidates is actually allocated for channel.
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 0.7.
+ */
+gboolean hinoko_fw_iso_resource_allocate_sync(HinokoFwIsoResource *self,
+					      guint8 *channel_candidates,
+				              gsize channel_candidates_count,
+				              guint bandwidth, guint timeout_ms, GError **error)
+{
+	struct fw_iso_resource_waiter w;
+
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
+	g_return_val_if_fail(channel_candidates != NULL, FALSE);
+	g_return_val_if_fail(channel_candidates_count > 0, FALSE);
+	g_return_val_if_fail(bandwidth > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	fw_iso_resource_waiter_init(&w, self, ALLOCATED_SIGNAL_NAME, timeout_ms);
+
+	(void)hinoko_fw_iso_resource_allocate_async(self, channel_candidates,
+						    channel_candidates_count, bandwidth, error);
+
+	return fw_iso_resource_waiter_wait(&w, self, error);
+}
+
+/**
  * hinoko_fw_iso_resource_calculate_bandwidth:
  * @bytes_per_payload: The number of bytes in payload of isochronous packet.
  * @scode: The speed of transmission.

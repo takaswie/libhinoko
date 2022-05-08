@@ -112,7 +112,7 @@ static void fw_iso_rx_single_stop(HinokoFwIsoCtx *inst)
 	fw_iso_ctx_state_stop(&priv->state);
 
 	if (priv->state.running != running)
-		g_signal_emit_by_name(G_OBJECT(inst), "stopped", NULL);
+		g_signal_emit_by_name(G_OBJECT(inst), STOPPED_SIGNAL_NAME, NULL);
 }
 
 static void fw_iso_rx_single_unmap_buffer(HinokoFwIsoCtx *inst)

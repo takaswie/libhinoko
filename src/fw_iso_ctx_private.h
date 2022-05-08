@@ -85,7 +85,7 @@ enum fw_iso_ctx_prop_type {
 #define BYTES_PER_CHUNK_PROP_NAME		"bytes-per-chunk"
 #define CHUNKS_PER_BUFFER_PROP_NAME		"chunks-per-buffer"
 
-#define STOPPED_SIGNAL_NEME		"stopped"
+#define STOPPED_SIGNAL_NAME			"stopped"
 
 void fw_iso_ctx_class_override_properties(GObjectClass *gobject_class);
 

@@ -65,18 +65,41 @@ void hinoko_cycle_timer_get_clock_id(HinokoCycleTimer *self, gint *clock_id)
 	*clock_id = self->clk_id;
 }
 
+#define IEEE1394_CYCLE_TIMER_SEC_MASK		0xfe000000
+#define IEEE1394_CYCLE_TIMER_SEC_SHIFT		25
+#define IEEE1394_CYCLE_TIMER_CYCLE_MASK		0x01fff000
+#define IEEE1394_CYCLE_TIMER_CYCLE_SHIFT	12
+#define IEEE1394_CYCLE_TIMER_OFFSET_MASK	0x00000fff
+
+static guint ieee1394_cycle_timer_to_sec(guint32 cycle_timer)
+{
+	return (cycle_timer & IEEE1394_CYCLE_TIMER_SEC_MASK) >> IEEE1394_CYCLE_TIMER_SEC_SHIFT;
+}
+
+static guint ieee1394_cycle_timer_to_cycle(guint32 cycle_timer)
+{
+	return (cycle_timer & IEEE1394_CYCLE_TIMER_CYCLE_MASK) >> IEEE1394_CYCLE_TIMER_CYCLE_SHIFT;
+}
+
+static guint ieee1394_cycle_timer_to_offset(guint32 cycle_timer)
+{
+	return cycle_timer & IEEE1394_CYCLE_TIMER_OFFSET_MASK;
+}
+
 /**
  * hinoko_cycle_timer_get_cycle_timer:
  * @self: A [struct@CycleTimer].
  * @cycle_timer: (array fixed-size=3)(out caller-allocates): The value of cycle timer register of
  *		 1394 OHCI, including three elements; second, cycle, and offset.
  *
- * Get the value of cycle timer in 1394 OHCI controller.
+ * Get the value of cycle timer in 1394 OHCI controller. The first element of array expresses the
+ * value of sec field, up to 127. The second element of array expresses the value of cycle field,
+ * up to 7999. The third element of array expresses the value of offset field, up to 3071.
  */
 void hinoko_cycle_timer_get_cycle_timer(HinokoCycleTimer *self,
 					guint16 cycle_timer[3])
 {
-	cycle_timer[0] = (self->cycle_timer & 0xfe000000) >> 25;
-	cycle_timer[1] = (self->cycle_timer & 0x01fff000) >> 12;
-	cycle_timer[2] = self->cycle_timer & 0x00000fff;
+	cycle_timer[0] = ieee1394_cycle_timer_to_sec(self->cycle_timer);
+	cycle_timer[1] = ieee1394_cycle_timer_to_cycle(self->cycle_timer);
+	cycle_timer[2] = ieee1394_cycle_timer_to_offset(self->cycle_timer);
 }

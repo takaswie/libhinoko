@@ -240,7 +240,8 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * @self: A [class@FwIsoRxSingle].
  * @path: A path to any Linux FireWire character device.
  * @channel: An isochronous channel to listen, up to 63.
- * @header_size: The number of bytes for header of IR context.
+ * @header_size: The number of bytes for header of IR context, greater than 4 at least to include
+ *		 isochronous header.
  * @error: A [struct@GLib.Error].
  *
  * Allocate an IR context to 1394 OHCI controller for packet-per-buffer mode. A local node of the
@@ -258,6 +259,7 @@ gboolean hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self, const char 
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
 	g_return_val_if_fail(channel <= IEEE1394_MAX_CHANNEL, FALSE);
+	g_return_val_if_fail(header_size >= 4, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);

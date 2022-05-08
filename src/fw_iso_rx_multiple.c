@@ -261,7 +261,7 @@ gboolean fw_iso_rx_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cd
 
 		buf = (const guint32 *)frames;
 		iso_header = GUINT32_FROM_LE(buf[0]);
-		length = (iso_header & 0xffff0000) >> 16;
+		length = ieee1394_iso_header_to_data_length(iso_header);
 
 		// In buffer-fill mode, payload is sandwitched by heading
 		// isochronous header and trailing timestamp.

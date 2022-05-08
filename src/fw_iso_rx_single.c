@@ -394,7 +394,7 @@ void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 
 	pos = index * priv->header_size / 4;
 	iso_header = GUINT32_FROM_BE(priv->ev->header[pos]);
-	*length = (iso_header & 0xffff0000) >> 16;
+	*length = ieee1394_iso_header_to_data_length(iso_header);
 	if (*length > bytes_per_chunk)
 		*length = bytes_per_chunk;
 

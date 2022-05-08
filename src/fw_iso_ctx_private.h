@@ -26,6 +26,14 @@ extern const char *const fw_iso_ctx_err_msgs[7];
 
 #define IEEE1394_MAX_CHANNEL			63
 #define IEEE1394_MAX_SYNC_CODE			15
+#define IEEE1394_ISO_HEADER_DATA_LENGTH_MASK	0xffff0000
+#define IEEE1394_ISO_HEADER_DATA_LENGTH_SHIFT	16
+
+static inline guint ieee1394_iso_header_to_data_length(guint iso_header)
+{
+	return (iso_header & IEEE1394_ISO_HEADER_DATA_LENGTH_MASK) >>
+		IEEE1394_ISO_HEADER_DATA_LENGTH_SHIFT;
+}
 
 struct fw_iso_ctx_state {
 	int fd;

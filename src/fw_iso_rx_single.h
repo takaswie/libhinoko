@@ -17,8 +17,8 @@ struct _HinokoFwIsoRxSingleClass {
 	/**
 	 * HinokoFwIsoRxSingleClass::interrupted:
 	 * @self: A [class@FwIsoRxSingle].
-	 * @sec: sec part of isochronous cycle when interrupt occurs.
-	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
+	 * @sec: The sec part of isochronous cycle when interrupt occurs, up to 7.
+	 * @cycle: The cycle part of of isochronous cycle when interrupt occurs, up to 7999.
 	 * @header: (array length=header_length) (element-type guint8): The headers of IR context
 	 *	    for handled packets.
 	 * @header_length: the number of bytes for header.

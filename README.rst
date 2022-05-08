@@ -81,7 +81,7 @@ Supplemental information for language bindings
 
 * `PyGObject <https://pygobject.readthedocs.io/>`_ is a dynamic loader for libraries compatible
   with g-i.
-* `<hinoko-rs https://github.com/takaswie/hinoko-rs>`_ includes creates to use these libraries.
+* `hinoko-rs <https://github.com/takaswie/hinoko-rs>`_ includes creates to use these libraries.
 
 Loss of backward compatibility between v0.6/v0.7 releases
 =========================================================

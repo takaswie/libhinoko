@@ -312,7 +312,9 @@ gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
  * @self: A [class@FwIsoTx].
  * @tags: The value of tag field for isochronous packet to register.
  * @sync_code: The value of sync field in isochronous packet header for packet processing, up to 15.
- * @header: (array length=header_length)(nullable): The header of IT context for isochronous packet.
+ * @header: (array length=header_length) (nullable): The header of IT context for isochronous
+ *	    packet. The length of header should be the same as the size of header indicated in
+ *	    allocation if it's not null.
  * @header_length: The number of bytes for the @header.
  * @payload: (array length=payload_length)(nullable): The payload of IT context for isochronous
  *	     packet.
@@ -320,8 +322,9 @@ gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
  * @schedule_interrupt: Whether to schedule hardware interrupt at isochronous cycle for the packet.
  * @error: A [struct@GLib.Error].
  *
- * Register packet data with header and payload for IT context. The caller can schedule hardware
- * interrupt to generate interrupt event. In detail, please refer to documentation about
+ * Register packet data with header and payload for IT context. The content of given header and
+ * payload is appended into data field of isochronous packet to be sent. The caller can schedule
+ * hardware interrupt to generate interrupt event. In detail, please refer to documentation about
  * [signal@FwIsoTx::interrupted].
  *
  * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.

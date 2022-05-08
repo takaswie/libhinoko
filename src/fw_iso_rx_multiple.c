@@ -490,6 +490,9 @@ gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guin
  *	     IR context.
  * @length: The number of bytes in the above @payload.
  *
+ * Retrieve data for packet indicated by the index parameter. The data has isochronous packet header
+ * in its first quadlet, timestamp in its last quadlet. The rest is data of isochronous packet.
+ *
  * Since: 0.7.
  */
 void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self, guint index,

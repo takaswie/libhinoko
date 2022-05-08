@@ -348,6 +348,10 @@ gboolean hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 
 	HinokoFwIsoRxSinglePrivate *priv;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(cycle_match == NULL ||
+			     cycle_match[0] <= OHCI1394_IR_contextMatch_cycleMatch_MAX_SEC ||
+			     cycle_match[1] <= OHCI1394_IR_contextMatch_cycleMatch_MAX_CYCLE,
+			     FALSE);
 	g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 

@@ -50,6 +50,12 @@ static inline guint ohci1394_isoc_desc_tstamp_to_cycle(guint32 tstamp)
 	return (tstamp & OHCI1394_ISOC_DESC_timeStmap_CYCLE_MASK);
 }
 
+#define OHCI1394_IR_contextMatch_cycleMatch_MAX_SEC		3
+#define OHCI1394_IR_contextMatch_cycleMatch_MAX_CYCLE		7999
+
+#define OHCI1394_IT_contextControl_cycleMatch_MAX_SEC		3
+#define OHCI1394_IT_contextControl_cycleMatch_MAX_CYCLE		7999
+
 struct fw_iso_ctx_state {
 	int fd;
 	guint handle;

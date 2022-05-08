@@ -434,6 +434,16 @@ gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **
 	return TRUE;
 }
 
+#define FW_CDEV_CYCLE_MATCH_SEC_MASK				0x00007000
+#define FW_CDEV_CYCLE_MATCH_SEC_SHIFT				13
+#define FW_CDEV_CYCLE_MATCH_CYCLE_MASK				0x00001fff
+
+static guint fw_cdev_cycle_match_from_fields(guint sec, guint cycle)
+{
+	return ((sec << FW_CDEV_CYCLE_MATCH_SEC_SHIFT) & FW_CDEV_CYCLE_MATCH_SEC_MASK) |
+	       (cycle & FW_CDEV_CYCLE_MATCH_CYCLE_MASK);
+}
+
 /**
  * fw_iso_ctx_state_start:
  * @state: A [struct@FwIsoCtxState].
@@ -465,25 +475,29 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 		return FALSE;
 	}
 
-	if (cycle_match == NULL) {
-		cycle = -1;
-	} else {
-		g_return_val_if_fail(cycle_match[0] < 4, FALSE);
-		g_return_val_if_fail(cycle_match[1] < 8000, FALSE);
-
-		cycle = (cycle_match[0] << 13) | cycle_match[1];
-	}
-
 	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+		g_return_val_if_fail(cycle_match == NULL ||
+				cycle_match[0] <= OHCI1394_IT_contextControl_cycleMatch_MAX_SEC ||
+				cycle_match[1] <= OHCI1394_IT_contextControl_cycleMatch_MAX_CYCLE,
+				FALSE);
 		g_return_val_if_fail(sync_code == 0, FALSE);
 		g_return_val_if_fail(tags == 0, FALSE);
 	} else {
+		g_return_val_if_fail(cycle_match == NULL ||
+				cycle_match[0] <= OHCI1394_IR_contextMatch_cycleMatch_MAX_SEC ||
+				cycle_match[1] <= OHCI1394_IR_contextMatch_cycleMatch_MAX_CYCLE,
+				FALSE);
 		g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 		g_return_val_if_fail(tags <= (HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 |
 					      HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 |
 					      HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 |
 					      HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3), FALSE);
 	}
+
+	if (cycle_match == NULL)
+		cycle = -1;
+	else
+		cycle = fw_cdev_cycle_match_from_fields(cycle_match[0], cycle_match[1]);
 
 	// Not prepared.
 	if (state->data_length == 0) {

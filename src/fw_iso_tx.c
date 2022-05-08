@@ -297,6 +297,10 @@ gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
 	HinokoFwIsoTxPrivate *priv;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(self), FALSE);
+	g_return_val_if_fail(cycle_match == NULL ||
+			     cycle_match[0] <= OHCI1394_IT_contextControl_cycleMatch_MAX_SEC ||
+			     cycle_match[1] <= OHCI1394_IT_contextControl_cycleMatch_MAX_CYCLE,
+			     FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 

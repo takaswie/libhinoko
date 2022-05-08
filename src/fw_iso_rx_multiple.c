@@ -340,7 +340,7 @@ HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
  * @self: A [class@FwIsoRxMultiple].
  * @path: A path to any Linux FireWire character device.
  * @channels: (array length=channels_length) (element-type guint8): an array for channels to listen
- *	      to.
+ *	      to. The value of each element should be up to 63.
  * @channels_length: The length of channels.
  * @error: A [struct@GLib.Error].
  *
@@ -363,7 +363,7 @@ gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const c
 	g_return_val_if_fail(channels_length > 0, FALSE);
 
 	for (i = 0; i < channels_length; ++i) {
-		g_return_val_if_fail(channels[i] < 64, FALSE);
+		g_return_val_if_fail(channels[i] <= IEEE1394_MAX_CHANNEL, FALSE);
 
 		set.channels |= G_GUINT64_CONSTANT(1) << channels[i];
 	}
@@ -386,7 +386,7 @@ gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const c
 	}
 
 	priv->channels = g_byte_array_new();
-	for (i = 0; i < 64; ++i) {
+	for (i = 0; i <= IEEE1394_MAX_CHANNEL; ++i) {
 		if (set.channels & (G_GUINT64_CONSTANT(1) << i))
 			g_byte_array_append(priv->channels, (const guint8 *)&i, 1);
 	}
@@ -440,7 +440,7 @@ gboolean hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self, guint
  *		 to start packet processing. The first element should be the second part of
  *		 isochronous cycle, up to 3. The second element should be the cycle part of
  *		 isochronous cycle, up to 7999.
- * @sync: The value of sync field in isochronous header for packet processing, up to 15.
+ * @sync_code: The value of sy field in isochronous packet header for packet processing, up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
  * @chunks_per_irq: The number of chunks per interval of interrupt. When 0 is given, application
  *		    should call [method@FwIsoCtx.flush_completions] voluntarily to generate
@@ -450,7 +450,7 @@ gboolean hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self, guint
  * Start IR context.
  */
 gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guint16 *cycle_match,
-					 guint32 sync, HinokoFwIsoCtxMatchFlag tags,
+					 guint32 sync_code, HinokoFwIsoCtxMatchFlag tags,
 					 guint chunks_per_irq, GError **error)
 {
 	HinokoFwIsoRxMultiplePrivate *priv;
@@ -458,6 +458,7 @@ gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guin
 	int i;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
+	g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
@@ -474,7 +475,7 @@ gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guin
 	}
 
 	priv->prev_offset = 0;
-	return fw_iso_ctx_state_start(&priv->state, cycle_match, sync, tags, error);
+	return fw_iso_ctx_state_start(&priv->state, cycle_match, sync_code, tags, error);
 }
 
 /**

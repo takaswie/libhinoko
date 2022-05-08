@@ -225,7 +225,7 @@ HinokoFwIsoTx *hinoko_fw_iso_tx_new(void)
  * @self: A [class@FwIsoTx].
  * @path: A path to any Linux FireWire character device.
  * @scode: A [enum@FwScode] to indicate speed of isochronous communication.
- * @channel: An isochronous channel to transfer.
+ * @channel: An isochronous channel to transfer, up to 63.
  * @header_size: The number of bytes for header of IT context.
  * @error: A [struct@GLib.Error].
  *
@@ -243,6 +243,7 @@ gboolean hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path, Hinoko
 	HinokoFwIsoTxPrivate *priv;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(self), FALSE);
+	g_return_val_if_fail(channel <= IEEE1394_MAX_CHANNEL, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
@@ -306,7 +307,7 @@ gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
  * hinoko_fw_iso_tx_register_packet:
  * @self: A [class@FwIsoTx].
  * @tags: The value of tag field for isochronous packet to register.
- * @sy: The value of sy field for isochronous packet to register.
+ * @sync_code: The value of sync field in isochronous packet header for packet processing, up to 15.
  * @header: (array length=header_length)(nullable): The header of IT context for isochronous packet.
  * @header_length: The number of bytes for the @header.
  * @payload: (array length=payload_length)(nullable): The payload of IT context for isochronous
@@ -324,7 +325,7 @@ gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
  * Since: 0.7.
  */
 gboolean hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self, HinokoFwIsoCtxMatchFlag tags,
-					  guint sy,
+					  guint sync_code,
 					  const guint8 *header, guint header_length,
 					  const guint8 *payload, guint payload_length,
 					  gboolean schedule_interrupt, GError **error)
@@ -335,6 +336,7 @@ gboolean hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self, HinokoFwIsoCtxMat
 	gboolean skip;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(self), FALSE);
+	g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 	g_return_val_if_fail((header != NULL && header_length > 0) ||
 			     (header == NULL && header_length == 0), FALSE);
 	g_return_val_if_fail((payload != NULL && payload_length > 0) ||
@@ -347,8 +349,9 @@ gboolean hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self, HinokoFwIsoCtxMat
 	if (header_length == 0 && payload_length == 0)
 		skip = TRUE;
 
-	if (!fw_iso_ctx_state_register_chunk(&priv->state, skip, tags, sy, header, header_length,
-					     payload_length, schedule_interrupt, error))
+	if (!fw_iso_ctx_state_register_chunk(&priv->state, skip, tags, sync_code,
+					     header, header_length, payload_length,
+					     schedule_interrupt, error))
 		return FALSE;
 
 	fw_iso_ctx_state_read_frame(&priv->state, priv->offset, payload_length, &frames,

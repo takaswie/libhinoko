@@ -2,7 +2,7 @@
 libhinoko
 =========
 
-2022/05/07
+2022/05/08
 Takashi Sakamoto
 
 Introduction
@@ -16,6 +16,8 @@ I design this library for userspace applications to transfer/receive isochronous
 IEEE 1394 bus by any language binding of GObject Introspection. The applications is able to
 operate OHCI 1394 controllers for any isochronous context and isochronous resources. According
 to this design, this library is an application of Linux FireWire subsystem and GLib/GObject.
+
+The latest release is `0.7.0 <https://github.com/takaswie/libhinoko/releases/tag/v0.7.0>`_.
 
 Example of Python 3 with PyGobject
 ==================================
@@ -73,6 +75,13 @@ How to refer document
     $ meson install -C build
 
 You can see documentation files under ``(directory-to-install)/share/doc/hinoko/``.
+
+Supplemental information for language bindings
+==============================================
+
+* `PyGObject <https://pygobject.readthedocs.io/>`_ is a dynamic loader for libraries compatible
+  with g-i.
+* `<hinoko-rs https://github.com/takaswie/hinoko-rs>`_ includes creates to use these libraries.
 
 Loss of backward compatibility between v0.6/v0.7 releases
 =========================================================

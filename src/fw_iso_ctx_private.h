@@ -35,6 +35,21 @@ static inline guint ieee1394_iso_header_to_data_length(guint iso_header)
 		IEEE1394_ISO_HEADER_DATA_LENGTH_SHIFT;
 }
 
+#define OHCI1394_ISOC_DESC_timeStamp_SEC_MASK		0x0000e000
+#define OHCI1394_ISOC_DESC_timeStamp_SEC_SHIFT		13
+#define OHCI1394_ISOC_DESC_timeStmap_CYCLE_MASK		0x00001fff
+
+static inline guint ohci1394_isoc_desc_tstamp_to_sec(guint32 tstamp)
+{
+	return (tstamp & OHCI1394_ISOC_DESC_timeStamp_SEC_MASK) >>
+							OHCI1394_ISOC_DESC_timeStamp_SEC_SHIFT;
+}
+
+static inline guint ohci1394_isoc_desc_tstamp_to_cycle(guint32 tstamp)
+{
+	return (tstamp & OHCI1394_ISOC_DESC_timeStmap_CYCLE_MASK);
+}
+
 struct fw_iso_ctx_state {
 	int fd;
 	guint handle;

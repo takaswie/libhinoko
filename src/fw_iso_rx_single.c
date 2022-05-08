@@ -59,8 +59,8 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 	/**
 	 * HinokoFwIsoRxSingle::interrupted:
 	 * @self: A [class@FwIsoRxSingle]
-	 * @sec: sec part of isochronous cycle when interrupt occurs.
-	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
+	 * @sec: sec part of isochronous cycle when interrupt occurs, up to 7.
+	 * @cycle: cycle part of of isochronous cycle when interrupt occurs, up to 7999.
 	 * @header: (array length=header_length) (element-type guint8): The headers of IR context
 	 *	    for handled packets.
 	 * @header_length: the number of bytes for @header.
@@ -183,8 +183,8 @@ gboolean fw_iso_rx_single_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	ev = &event->iso_interrupt;
-	sec = (ev->cycle & 0x0000e000) >> 13;
-	cycle = ev->cycle & 0x00001fff;
+	sec = ohci1394_isoc_desc_tstamp_to_sec(ev->cycle);
+	cycle = ohci1394_isoc_desc_tstamp_to_cycle(ev->cycle);
 	count = ev->header_length / priv->header_size;
 
 	// TODO; handling error?

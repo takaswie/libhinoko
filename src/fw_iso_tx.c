@@ -53,8 +53,8 @@ static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 	/**
 	 * HinokoFwIsoTx::interrupted:
 	 * @self: A [class@FwIsoTx].
-	 * @sec: sec part of isochronous cycle when interrupt occurs.
-	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
+	 * @sec: sec part of isochronous cycle when interrupt occurs, up to 7.
+	 * @cycle: cycle part of of isochronous cycle when interrupt occurs, up to 7999.
 	 * @tstamp: (array length=tstamp_length) (element-type guint8): A series of timestamps for
 	 *	    packets already handled.
 	 * @tstamp_length: the number of bytes for @tstamp.
@@ -175,8 +175,8 @@ gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event 
 
 	ev = &event->iso_interrupt;
 
-	sec = (ev->cycle & 0x0000e000) >> 13;
-	cycle = ev->cycle & 0x00001fff;
+	sec = ohci1394_isoc_desc_tstamp_to_sec(ev->cycle);
+	cycle = ohci1394_isoc_desc_tstamp_to_cycle(ev->cycle);
 	pkt_count = ev->header_length / 4;
 
 	g_signal_emit(inst, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ], 0, sec, cycle, ev->header,

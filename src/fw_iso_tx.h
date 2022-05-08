@@ -16,8 +16,8 @@ struct _HinokoFwIsoTxClass {
 	/**
 	 * HinokoFwIsoTxClass::interrupted:
 	 * @self: A [class@FwIsoTx].
-	 * @sec: sec part of isochronous cycle when interrupt occurs.
-	 * @cycle: cycle part of of isochronous cycle when interrupt occurs.
+	 * @sec: The sec part of isochronous cycle when interrupt occurs, up to 7.
+	 * @cycle: The cycle part of of isochronous cycle when interrupt occurs, up to 7999.
 	 * @tstamp: (array length=tstamp_length) (element-type guint8): A series of timestamps for
 	 *	    packets already handled.
 	 * @tstamp_length: the number of bytes for @tstamp.

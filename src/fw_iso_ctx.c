@@ -44,7 +44,7 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 	 *
 	 * Emitted when isochronous context is stopped.
 	 */
-	g_signal_new(STOPPED_SIGNAL_NEME,
+	g_signal_new(STOPPED_SIGNAL_NAME,
 		G_TYPE_FROM_INTERFACE(iface),
 		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 		G_STRUCT_OFFSET(HinokoFwIsoCtxInterface, stopped),

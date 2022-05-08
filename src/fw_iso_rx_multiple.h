@@ -34,7 +34,7 @@ gboolean hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self, guint
 					      guint chunks_per_buffer, GError **error);
 
 gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guint16 *cycle_match,
-					 guint32 sync, HinokoFwIsoCtxMatchFlag tags,
+					 guint32 sync_code, HinokoFwIsoCtxMatchFlag tags,
 					 guint chunks_per_irq, GError **error);
 
 void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self, guint index,

@@ -24,6 +24,9 @@ extern const char *const fw_iso_ctx_err_msgs[7];
 #define generate_file_error(error, code, format, arg) \
 	g_set_error(error, G_FILE_ERROR, code, format, arg)
 
+#define IEEE1394_MAX_CHANNEL			63
+#define IEEE1394_MAX_SYNC_CODE			15
+
 struct fw_iso_ctx_state {
 	int fd;
 	guint handle;
@@ -72,14 +75,14 @@ gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes
 void fw_iso_ctx_state_unmap_buffer(struct fw_iso_ctx_state *state);
 
 gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolean skip,
-					 HinokoFwIsoCtxMatchFlag tags, guint sy,
+					 HinokoFwIsoCtxMatchFlag tags, guint sync_code,
 					 const guint8 *header, guint header_length,
 					 guint payload_length, gboolean schedule_interrupt,
 					 GError **error);
 gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **error);
 
 gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *cycle_match,
-				guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error);
+				guint32 sync_code, HinokoFwIsoCtxMatchFlag tags, GError **error);
 void fw_iso_ctx_state_stop(struct fw_iso_ctx_state *state);
 
 void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, guint length,

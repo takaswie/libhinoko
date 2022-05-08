@@ -104,7 +104,7 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 			     scode == HINOKO_FW_SCODE_S3200, FALSE);
 
 	// IEEE 1394 specification supports isochronous channel up to 64.
-	g_return_val_if_fail(channel < 64, FALSE);
+	g_return_val_if_fail(channel <= IEEE1394_MAX_CHANNEL, FALSE);
 
 	// Headers should be aligned to quadlet.
 	g_return_val_if_fail(header_size % 4 == 0, FALSE);
@@ -112,7 +112,6 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 	if (mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE) {
 		// At least, 1 quadlet is required for iso_header.
 		g_return_val_if_fail(header_size >= 4, FALSE);
-		g_return_val_if_fail(channel < 64, FALSE);
 	} else if (mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
 		// Needless.
 		g_return_val_if_fail(header_size == 0, FALSE);
@@ -254,7 +253,7 @@ void fw_iso_ctx_state_unmap_buffer(struct fw_iso_ctx_state *state)
  * @state: A [struct@FwIsoCtxState].
  * @skip: Whether to skip packet transmission or not.
  * @tags: The value of tag field for isochronous packet to handle.
- * @sy: The value of sy field for isochronous packet to handle.
+ * @sync_code: The value of sy field in isochronous packet header for packet processing, up to 15.
  * @header: (array length=header_length) (element-type guint8): The content of header for IT
  *	    context, nothing for IR context.
  * @header_length: The number of bytes for @header.
@@ -265,7 +264,7 @@ void fw_iso_ctx_state_unmap_buffer(struct fw_iso_ctx_state *state)
  * Register data on buffer for payload of isochronous context.
  */
 gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolean skip,
-					 HinokoFwIsoCtxMatchFlag tags, guint sy,
+					 HinokoFwIsoCtxMatchFlag tags, guint sync_code,
 					 const guint8 *header, guint header_length,
 					 guint payload_length, gboolean schedule_interrupt,
 					 GError **error)
@@ -281,7 +280,7 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 ||
 			     tags == HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3, FALSE);
 
-	g_return_val_if_fail(sy < 16, FALSE);
+	g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 
 	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
 		if (!skip) {
@@ -295,7 +294,7 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 	} else if (state->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
 		   state->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
 		g_return_val_if_fail(tags == 0, FALSE);
-		g_return_val_if_fail(sy == 0, FALSE);
+		g_return_val_if_fail(sync_code == 0, FALSE);
 		g_return_val_if_fail(header == NULL, FALSE);
 		g_return_val_if_fail(header_length == 0, FALSE);
 		g_return_val_if_fail(payload_length == 0, FALSE);
@@ -332,7 +331,7 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 	datum->control =
 		FW_CDEV_ISO_PAYLOAD_LENGTH(payload_length) |
 		FW_CDEV_ISO_TAG(tags) |
-		FW_CDEV_ISO_SY(sy) |
+		FW_CDEV_ISO_SY(sync_code) |
 		FW_CDEV_ISO_HEADER_LENGTH(header_length);
 
 	if (skip)
@@ -442,14 +441,14 @@ gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **
  *		 to start packet processing. The first element should be the second part of
  *		 isochronous cycle, up to 3. The second element should be the cycle part of
  *		 isochronous cycle, up to 7999.
- * @sync: The value of sync field in isochronous header for packet processing, up to 15.
+ * @sync_code: The value of sy field in isochronous packet header for packet processing, up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
  * @error: A [struct@GLib.Error].
  *
  * Start isochronous context.
  */
 gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *cycle_match,
-				guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error)
+				guint32 sync_code, HinokoFwIsoCtxMatchFlag tags, GError **error)
 {
 	struct fw_cdev_start_iso arg = {0};
 	gint cycle;
@@ -476,14 +475,14 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 	}
 
 	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
-		g_return_val_if_fail(sync == 0, FALSE);
+		g_return_val_if_fail(sync_code == 0, FALSE);
 		g_return_val_if_fail(tags == 0, FALSE);
 	} else {
-		g_return_val_if_fail(sync < 16, FALSE);
+		g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 		g_return_val_if_fail(tags <= (HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG0 |
-					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 |
-					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 |
-					  HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3), FALSE);
+					      HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG1 |
+					      HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2 |
+					      HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3), FALSE);
 	}
 
 	// Not prepared.
@@ -495,7 +494,7 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 	if (!fw_iso_ctx_state_queue_chunks(state, error))
 		return FALSE;
 
-	arg.sync = sync;
+	arg.sync = sync_code;
 	arg.cycle = cycle;
 	arg.tags = tags;
 	arg.handle = state->handle;

@@ -239,7 +239,7 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * hinoko_fw_iso_rx_single_allocate:
  * @self: A [class@FwIsoRxSingle].
  * @path: A path to any Linux FireWire character device.
- * @channel: An isochronous channel to listen.
+ * @channel: An isochronous channel to listen, up to 63.
  * @header_size: The number of bytes for header of IR context.
  * @error: A [struct@GLib.Error].
  *
@@ -257,6 +257,7 @@ gboolean hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self, const char 
 	HinokoFwIsoRxSinglePrivate *priv;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(channel <= IEEE1394_MAX_CHANNEL, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
@@ -331,7 +332,7 @@ gboolean hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self,
  *		 to start packet processing. The first element should be the second part of
  *		 isochronous cycle, up to 3. The second element should be the cycle part of
  *		 isochronous cycle, up to 7999.
- * @sync: The value of sync field in isochronous header for packet processing, up to 15.
+ * @sync_code: The value of sy field in isochronous packet header for packet processing, up to 15.
  * @tags: The value of tag field in isochronous header for packet processing.
  * @error: A [struct@GLib.Error].
  *
@@ -342,18 +343,19 @@ gboolean hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self,
  * Since: 0.7.
  */
 gboolean hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
-				       guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error)
+				       guint32 sync_code, HinokoFwIsoCtxMatchFlag tags, GError **error)
 {
 	HinokoFwIsoRxSinglePrivate *priv;
 
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_SINGLE(self), FALSE);
+	g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
 	priv->chunk_cursor = 0;
 
-	return fw_iso_ctx_state_start(&priv->state, cycle_match, sync, tags, error);
+	return fw_iso_ctx_state_start(&priv->state, cycle_match, sync_code, tags, error);
 }
 
 /**

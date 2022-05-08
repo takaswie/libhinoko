@@ -41,7 +41,7 @@ gboolean hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self, guint maximum_bytes_pe
 gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match, GError **error);
 
 gboolean hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self, HinokoFwIsoCtxMatchFlag tags,
-					  guint sy,
+					  guint sync_code,
 					  const guint8 *header, guint header_length,
 					  const guint8 *payload, guint payload_length,
 					  gboolean schedule_interrupt, GError **error);

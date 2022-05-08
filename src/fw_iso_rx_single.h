@@ -44,7 +44,8 @@ gboolean hinoko_fw_iso_rx_single_register_packet(HinokoFwIsoRxSingle *self,
 						 gboolean schedule_interrupt, GError **error);
 
 gboolean hinoko_fw_iso_rx_single_start(HinokoFwIsoRxSingle *self, const guint16 *cycle_match,
-				       guint32 sync, HinokoFwIsoCtxMatchFlag tags, GError **error);
+				       guint32 sync_code, HinokoFwIsoCtxMatchFlag tags,
+				       GError **error);
 
 void hinoko_fw_iso_rx_single_get_payload(HinokoFwIsoRxSingle *self, guint index,
 					 const guint8 **payload, guint *length);

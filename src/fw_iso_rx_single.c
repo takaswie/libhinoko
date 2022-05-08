@@ -62,7 +62,8 @@ static void hinoko_fw_iso_rx_single_class_init(HinokoFwIsoRxSingleClass *klass)
 	 * @sec: sec part of isochronous cycle when interrupt occurs, up to 7.
 	 * @cycle: cycle part of of isochronous cycle when interrupt occurs, up to 7999.
 	 * @header: (array length=header_length) (element-type guint8): The headers of IR context
-	 *	    for handled packets.
+	 *	    for packets handled in the event of interrupt. The content is different
+	 *	    depending on header_size parameter of [method@FwIsoRxSingle.allocate].
 	 * @header_length: the number of bytes for @header.
 	 * @count: the number of packets to handle.
 	 *
@@ -241,12 +242,17 @@ HinokoFwIsoRxSingle *hinoko_fw_iso_rx_single_new(void)
  * @path: A path to any Linux FireWire character device.
  * @channel: An isochronous channel to listen, up to 63.
  * @header_size: The number of bytes for header of IR context, greater than 4 at least to include
- *		 isochronous header.
+ *		 isochronous packet header in header parameter of [signal@FwIsoRxSingle::interrupted].
  * @error: A [struct@GLib.Error].
  *
  * Allocate an IR context to 1394 OHCI controller for packet-per-buffer mode. A local node of the
  * node corresponding to the given path is used as the controller, thus any path is accepted as
  * long as process has enough permission for the path.
+ *
+ * The header_size parameter has an effect for the content of header parameter in
+ * [signal@FwIsoRxSingle::interrupted]. When it's greater than 8, header includes the series of two
+ * quadlets for isochronous packet header and timestamp per isochronous packet. When it's greater
+ * than 12, header includes the part of isochronous packet data per packet.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *

@@ -20,7 +20,8 @@ struct _HinokoFwIsoRxSingleClass {
 	 * @sec: The sec part of isochronous cycle when interrupt occurs, up to 7.
 	 * @cycle: The cycle part of of isochronous cycle when interrupt occurs, up to 7999.
 	 * @header: (array length=header_length) (element-type guint8): The headers of IR context
-	 *	    for handled packets.
+	 *	    for packets handled in the event of interrupt. The content is different
+	 *	    depending on header_size parameter of [method@FwIsoRxSingle.allocate].
 	 * @header_length: the number of bytes for header.
 	 * @count: the number of packets to handle.
 	 *

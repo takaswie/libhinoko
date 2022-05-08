@@ -343,6 +343,21 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 	return TRUE;
 }
 
+#define FW_CDEV_ISO_PACKET_CONTROL_HEADER_LENGTH_MASK	0xff000000
+#define FW_CDEV_ISO_PACKET_CONTROL_HEADER_LENGTH_SHIFT	24
+#define FW_CDEV_ISO_PACKET_CONTROL_PAYLOAD_MASK		0x0000ffff
+
+static guint fw_cdev_iso_packet_control_to_header_length(guint control)
+{
+	return (control & FW_CDEV_ISO_PACKET_CONTROL_HEADER_LENGTH_MASK) >>
+		FW_CDEV_ISO_PACKET_CONTROL_HEADER_LENGTH_SHIFT;
+}
+
+static guint fw_cdev_iso_packet_control_to_payload_length(guint control)
+{
+	return (control & FW_CDEV_ISO_PACKET_CONTROL_PAYLOAD_MASK);
+}
+
 /**
  * fw_iso_ctx_state_queue_chunks:
  * @state: A [struct@FwIsoCtxState].
@@ -374,8 +389,8 @@ gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **
 
 			datum = (struct fw_cdev_iso_packet *)
 				(state->data + data_offset + data_length);
-			payload_length = datum->control & 0x0000ffff;
-			header_length = (datum->control & 0xff000000) >> 24;
+			payload_length = fw_cdev_iso_packet_control_to_payload_length(datum->control);
+			header_length = fw_cdev_iso_packet_control_to_header_length(datum->control);
 
 			if (buf_offset + buf_length + payload_length >
 							bytes_per_buffer) {

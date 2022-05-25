@@ -100,17 +100,38 @@ static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass 
 
 	fw_iso_resource_class_override_properties(gobject_class);
 
+	/**
+	 * HinokoFwIsoResourceAuto:is-allocated:
+	 *
+	 * Whether to be allocate isochronous resource or not.
+	 *
+	 * Since: 0.7.
+	 */
 	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED,
 		g_param_spec_boolean("is-allocated", "is-allocated",
-				     "Whether to allocated or not.",
+				     "Whether to allocate or not.",
 				     FALSE, G_PARAM_READABLE));
 
+	/**
+	 * HinokoFwIsoResourceAuto:channel:
+	 *
+	 * The allocated channel number.
+	 *
+	 * Since: 0.7.
+	 */
 	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_CHANNEL,
 		g_param_spec_uint("channel", "channel",
 				  "The allocated channel number.",
 				  0, G_MAXUINT, 0,
 				  G_PARAM_READABLE));
 
+	/**
+	 * HinokoFwIsoResourceAuto:bandwidth:
+	 *
+	 * The allocated amount of bandwidth.
+	 *
+	 * Since: 0.7.
+	 */
 	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_BANDWIDTH,
 		g_param_spec_uint("bandwidth", "bandwidth",
 				  "The allocated amount of bandwidth.",

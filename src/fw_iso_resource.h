@@ -17,12 +17,56 @@ GQuark hinoko_fw_iso_resource_error_quark();
 struct _HinokoFwIsoResourceInterface {
 	GTypeInterface parent_iface;
 
+	/**
+	 * HinokoFwIsoResourceInterface::open:
+	 * @self: A [iface@FwIsoResource].
+	 * @path: A path of any Linux FireWire character device.
+	 * @open_flag: The flag of open(2) system call. O_RDONLY is forced to fulfil internally.
+	 * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.FileError
+	 *	   and Hinoko.FwIsoResourceError.
+	 *
+	 * Virtual function to open Linux FireWire character device to delegate any request for
+	 * isochronous resource management to Linux FireWire subsystem.
+	 *
+	 * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
+	 *
+	 * Since: 0.7.
+	 */
 	gboolean (*open)(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
 			 GError **error);
 
+	/**
+	 * HinokoFwIsoResourceInterface::allocate_async:
+	 * @self: A [iface@FwIsoResource].
+	 * @channel_candidates: (array length=channel_candidates_count): The array with elements for
+	 *			numeric number of isochronous channel to be allocated.
+	 * @channel_candidates_count: The number of channel candidates.
+	 * @bandwidth: The amount of bandwidth to be allocated.
+	 * @error: A [struct@GLib.Error].
+	 *
+	 * Virtual function to create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch
+	 * events for isochronous resource.
+	 *
+	 * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
+	 *
+	 * Since: 0.7.
+	 */
 	gboolean (*allocate_async)(HinokoFwIsoResource *self, const guint8 *channel_candidates,
 				   gsize channel_candidates_count, guint bandwidth, GError **error);
 
+	/**
+	 * HinokoFwIsoResourceInterface::create_source:
+	 * @self: A [iface@FwIsoResource].
+	 * @source: (out): A [struct@GLib.Source]
+	 * @error: A [struct@GLib.Error].
+	 *
+	 * Virtual function to create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch
+	 * events for isochronous resource.
+	 *
+	 * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
+	 *
+	 * Since: 0.7.
+	 */
 	gboolean (*create_source)(HinokoFwIsoResource *self, GSource **source, GError **error);
 
 	/**

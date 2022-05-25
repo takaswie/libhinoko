@@ -29,6 +29,8 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
 	 * HinokoFwIsoResource::generation:
 	 *
 	 * The numeric value of current generation for bus topology.
+	 *
+	 * Since: 0.7.
 	 */
 	g_object_interface_install_property(iface,
 		g_param_spec_uint(GENERATION_PROP_NAME, "generation",

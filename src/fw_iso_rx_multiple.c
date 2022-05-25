@@ -76,9 +76,14 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 
 	fw_iso_ctx_class_override_properties(gobject_class);
 
+	/**
+	 * HinokoFwIsoRxMultiple:channels:
+	 *
+	 * The array with elements to express isochronous channels to be listened to.
+	 */
 	g_object_class_install_property(gobject_class, FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS,
 		g_param_spec_boxed("channels", "channels",
-				   "The array with elements to represent "
+				   "The array with elements to express "
 				   "channels to be listened to",
 				   G_TYPE_BYTE_ARRAY,
 				   G_PARAM_READABLE));

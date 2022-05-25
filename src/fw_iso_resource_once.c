@@ -91,7 +91,7 @@ static gboolean fw_iso_resource_once_allocate_async(HinokoFwIsoResource *inst,
 	self = HINOKO_FW_ISO_RESOURCE_ONCE(inst);
 	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
 	if (priv->state.fd < 0) {
-		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		generate_fw_iso_resource_error_coded(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
 		return FALSE;
 	}
 
@@ -232,7 +232,7 @@ gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *s
 
 	priv = hinoko_fw_iso_resource_once_get_instance_private(self);
 	if (priv->state.fd < 0) {
-		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		generate_fw_iso_resource_error_coded(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
 		return FALSE;
 	}
 

@@ -16,7 +16,7 @@
 // NOTE: make it public in later releases.
 void hinoko_fw_iso_resource_error_to_label(HinokoFwIsoResourceError code, const char **label);
 
-static inline void generate_coded_error(GError **error, HinokoFwIsoResourceError code)
+static inline void generate_fw_iso_resource_error_coded(GError **error, HinokoFwIsoResourceError code)
 {
 	const char *label;
 

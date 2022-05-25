@@ -61,7 +61,7 @@ gboolean fw_iso_resource_state_open(struct fw_iso_resource_state *state, const g
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	if (state->fd >= 0) {
-		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_OPENED);
+		generate_fw_iso_resource_error_coded(error, HINOKO_FW_ISO_RESOURCE_ERROR_OPENED);
 		return FALSE;
 	}
 
@@ -159,7 +159,7 @@ gboolean fw_iso_resource_state_create_source(struct fw_iso_resource_state *state
 	g_return_val_if_fail(error != NULL && *error == NULL, FALSE);
 
 	if (state->fd < 0) {
-		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
+		generate_fw_iso_resource_error_coded(error, HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED);
 		return FALSE;
 	}
 
@@ -243,7 +243,7 @@ gboolean fw_iso_resource_waiter_wait(struct fw_iso_resource_waiter *w, HinokoFwI
 	g_mutex_unlock(&w->mutex);
 
 	if (w->handled == FALSE) {
-		generate_coded_error(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
+		generate_fw_iso_resource_error_coded(error, HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT);
 		result = FALSE;
 	} else if (w->error != NULL) {
 		*error = w->error;	// Delegate ownership.

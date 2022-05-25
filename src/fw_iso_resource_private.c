@@ -5,15 +5,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-const char *const fw_iso_resource_err_msgs[HINOKO_FW_ISO_RESOURCE_ERROR_EVENT + 1] = {
-	[HINOKO_FW_ISO_RESOURCE_ERROR_OPENED] =
-		"The instance is already associated to any firewire character device",
-	[HINOKO_FW_ISO_RESOURCE_ERROR_NOT_OPENED] =
-		"The instance is not associated to any firewire character device",
-	[HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT] =
-		"No event to the request arrives within timeout.",
-};
-
 #define generate_file_error(error, code, format, arg) \
 	g_set_error(error, G_FILE_ERROR, code, format, arg)
 

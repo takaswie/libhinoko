@@ -13,11 +13,16 @@
 #define ALLOCATED_SIGNAL_NAME		"allocated"
 #define DEALLOCATED_SIGNAL_NAME		"deallocated"
 
-extern const char *const fw_iso_resource_err_msgs[HINOKO_FW_ISO_RESOURCE_ERROR_EVENT + 1];
+// NOTE: make it public in later releases.
+void hinoko_fw_iso_resource_error_to_label(HinokoFwIsoResourceError code, const char **label);
 
-#define generate_coded_error(error, code) 				\
-	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_ERROR, code,	\
-			    fw_iso_resource_err_msgs[code])
+static inline void generate_coded_error(GError **error, HinokoFwIsoResourceError code)
+{
+	const char *label;
+
+	hinoko_fw_iso_resource_error_to_label(code, &label);
+	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_ERROR, code, label);
+}
 
 #define generate_syscall_error(error, errno, format, arg)		\
 	g_set_error(error, HINOKO_FW_ISO_RESOURCE_ERROR,		\

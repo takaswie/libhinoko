@@ -141,7 +141,7 @@ static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar
 }
 
 static gboolean fw_iso_resource_auto_allocate_async(HinokoFwIsoResource *inst,
-						    guint8 *channel_candidates,
+						    const guint8 *channel_candidates,
 						    gsize channel_candidates_count,
 						    guint bandwidth,
 						    GError **error)

@@ -148,7 +148,7 @@ gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource
  * Since: 0.7.
  */
 gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
-					       guint8 *channel_candidates,
+					       const guint8 *channel_candidates,
 					       gsize channel_candidates_count,
 					       guint bandwidth, GError **error)
 {
@@ -182,9 +182,9 @@ gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
  * Since: 0.7.
  */
 gboolean hinoko_fw_iso_resource_allocate_sync(HinokoFwIsoResource *self,
-					      guint8 *channel_candidates,
-				              gsize channel_candidates_count,
-				              guint bandwidth, guint timeout_ms, GError **error)
+					      const guint8 *channel_candidates,
+				              gsize channel_candidates_count, guint bandwidth,
+					      guint timeout_ms, GError **error)
 {
 	struct fw_iso_resource_waiter w;
 

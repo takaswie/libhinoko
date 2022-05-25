@@ -8,10 +8,16 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 
-extern const char *const fw_iso_ctx_err_msgs[7];
+// NOTE: make it public in future releases.
+void hinoko_fw_iso_ctx_error_to_label(HinokoFwIsoCtxError code, const char **label);
 
-#define generate_local_error(error, code) \
-	g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR, code, fw_iso_ctx_err_msgs[code])
+static inline void generate_local_error(GError **error, HinokoFwIsoCtxError code)
+{
+	const char *label;
+
+	hinoko_fw_iso_ctx_error_to_label(code, &label);
+	g_set_error_literal(error, HINOKO_FW_ISO_CTX_ERROR, code, label);
+}
 
 #define generate_syscall_error(error, errno, format, arg)		\
 	g_set_error(error, HINOKO_FW_ISO_CTX_ERROR,			\

@@ -23,6 +23,46 @@ G_DEFINE_INTERFACE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
  */
 G_DEFINE_QUARK(hinoko-fw-iso-ctx-error-quark, hinoko_fw_iso_ctx_error)
 
+/**
+ * hinoko_fw_iso_ctx_error_to_label:
+ * @code: One of Hinoko.FwIsoCtxError.
+ * @label: (out) (transfer none): The label of error code.
+ *
+ * Retrieve the label of error code.
+ */
+void hinoko_fw_iso_ctx_error_to_label(HinokoFwIsoCtxError code, const char **label)
+{
+	const char *const labels[7] = {
+		[HINOKO_FW_ISO_CTX_ERROR_FAILED] = "The system call fails",
+		[HINOKO_FW_ISO_CTX_ERROR_ALLOCATED] =
+			"The instance is already associated to any firewire character device",
+		[HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED] =
+			"The instance is not associated to any firewire character device",
+		[HINOKO_FW_ISO_CTX_ERROR_MAPPED] =
+			"The intermediate buffer is already mapped to the process",
+		[HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED] =
+			"The intermediate buffer is not mapped to the process",
+		[HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED] = "No chunk registered before starting",
+		[HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL] = "No isochronous channel available",
+	};
+
+	switch (code) {
+	case HINOKO_FW_ISO_CTX_ERROR_FAILED:
+	case HINOKO_FW_ISO_CTX_ERROR_ALLOCATED:
+	case HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED:
+	case HINOKO_FW_ISO_CTX_ERROR_MAPPED:
+	case HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED:
+	case HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED:
+	case HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL:
+		break;
+	default:
+		code = HINOKO_FW_ISO_CTX_ERROR_FAILED;
+		break;
+	}
+
+	*label = labels[code];
+}
+
 static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 {
 	/**

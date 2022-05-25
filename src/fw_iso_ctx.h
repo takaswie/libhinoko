@@ -31,11 +31,11 @@ struct _HinokoFwIsoCtxInterface {
 	gboolean (*create_source)(HinokoFwIsoCtx *self, GSource **source, GError **error);
 
 	/**
-	 * HinokoFwIsoCtxClass::stopped:
+	 * HinokoFwIsoCtxInterface::stopped:
 	 * @self: A [iface@FwIsoCtx].
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error].
 	 *
-	 * Class closure for the [signal@FwIsoCtx::stopped] signal.
+	 * Closure for the [signal@FwIsoCtx::stopped] signal.
 	 */
 	void (*stopped)(HinokoFwIsoCtx *self, const GError *error);
 };

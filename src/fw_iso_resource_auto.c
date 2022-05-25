@@ -36,15 +36,44 @@ G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, G_
  */
 G_DEFINE_QUARK(hinoko-fw-iso-resource-auto-error-quark, hinoko_fw_iso_resource_auto_error)
 
-static const char *const err_msgs[] = {
-	[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED] =
-		"The instance is already associated to allocated isochronous resources",
-	[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED] =
-		"The instance is not associated to allocated isochronous resources",
-};
+/**
+ * fw_iso_resource_auto_error_to_label:
+ * @code: One of Hinoko.FwIsoResourceAutoError.
+ * @label: (out) (transfer none): The label of error code.
+ *
+ * Retrieve the label of error code.
+ */
+static void fw_iso_resource_auto_error_to_label(HinokoFwIsoResourceAutoError code,
+						const char **label)
+{
+	static const char *const labels[] = {
+		[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED] = "The system call fails",
+		[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED] =
+			"The instance is already associated to allocated isochronous resources",
+		[HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED] =
+			"The instance is not associated to allocated isochronous resources",
+	};
 
-#define generate_local_error(error, code) \
-	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR, code, err_msgs[code])
+	switch (code) {
+	case HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED:
+	case HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_ALLOCATED:
+	case HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED:
+		break;
+	default:
+		code = HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED;
+		break;
+	}
+
+	*label = labels[code];
+}
+
+static inline void generate_local_error(GError **error, HinokoFwIsoResourceAutoError code)
+{
+	const char *label;
+
+	fw_iso_resource_auto_error_to_label(code, &label);
+	g_set_error_literal(error, HINOKO_FW_ISO_RESOURCE_AUTO_ERROR, code, label);
+}
 
 enum fw_iso_resource_auto_prop_type {
 	FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED = FW_ISO_RESOURCE_PROP_TYPE_COUNT,

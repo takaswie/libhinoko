@@ -26,14 +26,14 @@ struct _HinokoFwIsoResourceInterface {
 	gboolean (*create_source)(HinokoFwIsoResource *self, GSource **source, GError **error);
 
 	/**
-	 * HinokoFwIsoResourceClass::allocated:
+	 * HinokoFwIsoResourceInterface::allocated:
 	 * @self: A [iface@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
 	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
-	 * Class closure for the [signal@FwIsoResource::allocated] signal.
+	 * Closure for the [signal@FwIsoResource::allocated] signal.
 	 *
 	 * Since: 0.7.
 	 */
@@ -41,14 +41,14 @@ struct _HinokoFwIsoResourceInterface {
 			  guint bandwidth, const GError *error);
 
 	/**
-	 * HinokoFwIsoResourceClass::deallocated:
+	 * HinokoFwIsoResourceInterface::deallocated:
 	 * @self: A [iface@FwIsoResource].
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
 	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
 	 *
-	 * Class closure for the [signal@FwIsoResource::deallocated] signal.
+	 * Closure for the [signal@FwIsoResource::deallocated] signal.
 	 *
 	 * Since: 0.7.
 	 */

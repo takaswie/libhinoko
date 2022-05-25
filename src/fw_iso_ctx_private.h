@@ -11,7 +11,7 @@
 // NOTE: make it public in future releases.
 void hinoko_fw_iso_ctx_error_to_label(HinokoFwIsoCtxError code, const char **label);
 
-static inline void generate_local_error(GError **error, HinokoFwIsoCtxError code)
+static inline void generate_fw_iso_ctx_error_coded(GError **error, HinokoFwIsoCtxError code)
 {
 	const char *label;
 

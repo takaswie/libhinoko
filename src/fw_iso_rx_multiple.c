@@ -385,7 +385,7 @@ gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const c
 		hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
 		return FALSE;
 	} else if (set.channels == 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL);
 		hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
 		return FALSE;
 	}

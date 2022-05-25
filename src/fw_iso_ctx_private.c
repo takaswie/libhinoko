@@ -109,7 +109,7 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 	}
 
 	if (state->fd >= 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_ALLOCATED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_ALLOCATED);
 		return FALSE;
 	}
 
@@ -183,12 +183,12 @@ gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	if (state->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return FALSE;
 	}
 
 	if (state->addr != NULL) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_MAPPED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_MAPPED);
 		return FALSE;
 	}
 
@@ -295,12 +295,12 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 		FALSE);
 
 	if (state->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return FALSE;
 	}
 
 	if (state->addr == NULL) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
 		return FALSE;
 	}
 
@@ -471,12 +471,12 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	if (state->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return FALSE;
 	}
 
 	if (state->addr == NULL) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NOT_MAPPED);
 		return FALSE;
 	}
 
@@ -506,7 +506,7 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 
 	// Not prepared.
 	if (state->data_length == 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED);
 		return FALSE;
 	}
 
@@ -621,7 +621,7 @@ gboolean fw_iso_ctx_state_get_cycle_timer(struct fw_iso_ctx_state *state, gint c
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	if (state->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return FALSE;
 	}
 
@@ -717,7 +717,7 @@ gboolean fw_iso_ctx_state_create_source(struct fw_iso_ctx_state *state, HinokoFw
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	if (state->fd < 0) {
-		generate_local_error(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
 		return FALSE;
 	}
 

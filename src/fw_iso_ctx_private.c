@@ -6,6 +6,9 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
+#define generate_file_error(error, code, format, arg)		\
+	g_set_error(error, G_FILE_ERROR, code, format, arg)
+
 typedef struct {
 	GSource src;
 	gpointer tag;

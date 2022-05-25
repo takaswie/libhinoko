@@ -27,9 +27,6 @@ static inline void generate_local_error(GError **error, HinokoFwIsoCtxError code
 #define generate_ioctl_error(error, errno, request)			\
 	generate_syscall_error(error, errno, "ioctl(%s)", #request)
 
-#define generate_file_error(error, code, format, arg) \
-	g_set_error(error, G_FILE_ERROR, code, format, arg)
-
 #define IEEE1394_MAX_CHANNEL			63
 #define IEEE1394_MAX_SYNC_CODE			15
 #define IEEE1394_ISO_HEADER_DATA_LENGTH_MASK	0xffff0000

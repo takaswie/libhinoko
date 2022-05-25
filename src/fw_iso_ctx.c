@@ -25,12 +25,26 @@ G_DEFINE_QUARK(hinoko-fw-iso-ctx-error-quark, hinoko_fw_iso_ctx_error)
 
 static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 {
+	/**
+	 * HinokoFwIsoCtx:bytes-per-chunk:
+	 *
+	 * The number of bytes per chunk in buffer.
+	 *
+	 * Since: 0.7.
+	 */
 	g_object_interface_install_property(iface,
 		g_param_spec_uint(BYTES_PER_CHUNK_PROP_NAME, "bytes-per-chunk",
 				  "The number of bytes for chunk in buffer.",
 				  0, G_MAXUINT, 0,
 				  G_PARAM_READABLE));
 
+	/**
+	 * HinokoFwIsoCtx:chunks-per-buffer:
+	 *
+	 * The number of chunks per buffer.
+	 *
+	 * Since: 0.7.
+	 */
 	g_object_interface_install_property(iface,
 		g_param_spec_uint(CHUNKS_PER_BUFFER_PROP_NAME, "chunks-per-buffer",
 				  "The number of chunks in buffer.",
@@ -43,6 +57,8 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error].
 	 *
 	 * Emitted when isochronous context is stopped.
+	 *
+	 * Since: 0.7.
 	 */
 	g_signal_new(STOPPED_SIGNAL_NAME,
 		G_TYPE_FROM_INTERFACE(iface),

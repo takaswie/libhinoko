@@ -126,7 +126,7 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 	// Support FW_CDEV_VERSION_AUTO_FLUSH_ISO_OVERFLOW.
 	info.version = 5;
 	if (ioctl(state->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_GET_INFO);
+		generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_GET_INFO);
 		fw_iso_ctx_state_release(state);
 		return FALSE;
 	}
@@ -137,7 +137,7 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 	create.header_size = header_size;
 
 	if (ioctl(state->fd, FW_CDEV_IOC_CREATE_ISO_CONTEXT, &create) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_CREATE_ISO_CONTEXT);
+		generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_CREATE_ISO_CONTEXT);
 		fw_iso_ctx_state_release(state);
 		return FALSE;
 	}
@@ -412,7 +412,7 @@ gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **
 		arg.data = (__u64)(state->addr + buf_offset);
 		arg.handle = state->handle;
 		if (ioctl(state->fd, FW_CDEV_IOC_QUEUE_ISO, &arg) < 0) {
-			generate_ioctl_error(error, errno, FW_CDEV_IOC_QUEUE_ISO);
+			generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_QUEUE_ISO);
 			return FALSE;
 		}
 
@@ -518,7 +518,7 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 	arg.tags = tags;
 	arg.handle = state->handle;
 	if (ioctl(state->fd, FW_CDEV_IOC_START_ISO, &arg) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_START_ISO);
+		generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_START_ISO);
 		return FALSE;
 	}
 
@@ -594,7 +594,7 @@ void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, g
 gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GError **error)
 {
 	if (ioctl(state->fd, FW_CDEV_IOC_FLUSH_ISO) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_FLUSH_ISO);
+		generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_FLUSH_ISO);
 		return FALSE;
 	}
 
@@ -627,7 +627,7 @@ gboolean fw_iso_ctx_state_get_cycle_timer(struct fw_iso_ctx_state *state, gint c
 
 	(*cycle_timer)->clk_id = clock_id;
 	if (ioctl(state->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_timer) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_GET_CYCLE_TIMER2);
+		generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_GET_CYCLE_TIMER2);
 		return FALSE;
 	}
 

@@ -381,7 +381,7 @@ gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const c
 
 	set.handle = priv->state.handle;
 	if (ioctl(priv->state.fd, FW_CDEV_IOC_SET_ISO_CHANNELS, &set) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_SET_ISO_CHANNELS);
+		generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_SET_ISO_CHANNELS);
 		hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(self));
 		return FALSE;
 	} else if (set.channels == 0) {

@@ -24,8 +24,9 @@ static inline void generate_fw_iso_ctx_error_coded(GError **error, HinokoFwIsoCt
 		    HINOKO_FW_ISO_CTX_ERROR_FAILED,			\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
-#define generate_ioctl_error(error, errno, request)			\
-	generate_syscall_error(error, errno, "ioctl(%s)", #request)
+#define generate_fw_iso_ctx_error_ioctl(error, errno, request)				\
+	g_set_error(error, HINOKO_FW_ISO_CTX_ERROR, HINOKO_FW_ISO_CTX_ERROR_FAILED,	\
+		    "ioctl(" #request ") %d (%s)", errno, strerror(errno))
 
 #define IEEE1394_MAX_CHANNEL			63
 #define IEEE1394_MAX_SYNC_CODE			15

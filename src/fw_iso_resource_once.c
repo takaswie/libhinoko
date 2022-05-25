@@ -102,7 +102,7 @@ static gboolean fw_iso_resource_once_allocate_async(HinokoFwIsoResource *inst,
 	res.bandwidth = bandwidth;
 
 	if (ioctl(priv->state.fd, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE);
+		generate_fw_iso_resource_error_ioctl(error, errno, FW_CDEV_IOC_ALLOCATE_ISO_RESOURCE_ONCE);
 		return FALSE;
 	}
 
@@ -240,7 +240,7 @@ gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *s
 	res.bandwidth = bandwidth;
 
 	if (ioctl(priv->state.fd, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE, &res) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE);
+		generate_fw_iso_resource_error_ioctl(error, errno, FW_CDEV_IOC_DEALLOCATE_ISO_RESOURCE_ONCE);
 		return FALSE;
 	}
 

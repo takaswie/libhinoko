@@ -193,7 +193,7 @@ gboolean fw_iso_resource_state_cache_bus_state(struct fw_iso_resource_state *sta
 	get_info.bus_reset = (__u64)&state->bus_state;
 
 	if (ioctl(state->fd, FW_CDEV_IOC_GET_INFO, &get_info) < 0) {
-		generate_ioctl_error(error, errno, FW_CDEV_IOC_GET_INFO);
+		generate_fw_iso_resource_error_ioctl(error, errno, FW_CDEV_IOC_GET_INFO);
 		return FALSE;
 	}
 

@@ -29,8 +29,9 @@ static inline void generate_fw_iso_resource_error_coded(GError **error, HinokoFw
 		    HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,		\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
-#define generate_ioctl_error(error, errno, request)			\
-	generate_syscall_error(error, errno, "ioctl(%s)", #request)
+#define generate_fw_iso_resource_error_ioctl(error, errno, request)				\
+	g_set_error(error, HINOKO_FW_ISO_RESOURCE_ERROR, HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,	\
+		    "ioctl(" #request ") %d(%s)", errno, strerror(errno))
 
 struct fw_iso_resource_state {
 	int fd;

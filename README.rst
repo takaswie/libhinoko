@@ -17,7 +17,7 @@ IEEE 1394 bus by any language binding of GObject Introspection. The applications
 operate OHCI 1394 controllers for any isochronous context and isochronous resources. According
 to this design, this library is an application of Linux FireWire subsystem and GLib/GObject.
 
-The latest release is `0.7.0 <https://github.com/takaswie/libhinoko/releases/tag/v0.7.0>`_.
+The latest release is `0.7.1 <https://github.com/takaswie/libhinoko/releases/tag/v0.7.1>`_.
 
 Example of Python 3 with PyGobject
 ==================================
@@ -168,5 +168,20 @@ Furthermore hardware interrupt is not scheduled automatically in ``Hinoko.FwIsoT
 interrupt explicitly by calling ``Hinoko.FwIsoTx.register_packet()`` and
 ``Hinoko.FwIsoRxSingle.register_packet()`` if required. ``Hinawa.FwIsoCtx.flush_completions()``
 allows applciation to process content of packet without scheduling hardware interrupt.
+ 
+About Hinoko
+============
+
+``Hinoko`` is Japanese word which expresses quite a small piece of fire scattered from burning
+flame continuously. ``Hi`` (U+2F55 |kanji-hi|) and ``Ko`` (U+7C89 |kanji-ko|) are connected by
+`No` (U+306E |hiragana-no|) is case markers in Japanese particles. The former means ``fire``.
+The latter means ``flour``.
+
+.. |kanji-hi| unicode:: &#x2f55 .. Hi spelled in Kanji
+.. |kanji-ko| unicode:: &#7c89 .. Ko spelled in Kanji
+.. |hiragana-no| unicode:: &#x306e .. No spelled in Hiragana 
+
+We can see ``Hinoko`` flying from burning fire consecutively, like a stream of isochronous packet
+in IEEE 1394 bus.
 
 end

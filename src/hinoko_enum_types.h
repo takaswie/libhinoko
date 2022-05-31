@@ -2,6 +2,8 @@
 #ifndef __HINOKO_ENUM_TYPES_H__
 #define __HINOKO_ENUM_TYPES_H__
 
+G_BEGIN_DECLS
+
 /**
  * HinokoFwIsoCtxMode:
  * @HINOKO_FW_ISO_CTX_MODE_TX:		The mode of IT context of 1394 OHCI.
@@ -116,5 +118,7 @@ typedef enum {
 	HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED,
 	HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL,
 } HinokoFwIsoCtxError;
+
+G_END_DECLS
 
 #endif

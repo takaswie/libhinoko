@@ -9,7 +9,7 @@ import gi
 gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
-target = Hinoko.FwIsoRxMultiple()
+target_type = Hinoko.FwIsoRxMultiple
 props = (
     'channels',
 )
@@ -30,5 +30,5 @@ signals = (
     'interrupted',
 )
 
-if not test_object(target, props, methods, vmethods, signals):
+if not test_object(target_type,  props, methods, vmethods, signals):
     exit(ENXIO)

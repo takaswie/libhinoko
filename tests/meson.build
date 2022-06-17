@@ -8,6 +8,7 @@ tests = [
   'fw-iso-resource-auto',
   'fw-iso-resource-once',
   'cycle-timer',
+  'hinoko-functions',
 ]
 
 envs = environment()

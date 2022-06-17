@@ -14,24 +14,31 @@ props = (
     'is-allocated',
     'channel',
     'bandwidth',
+    # From interface.
     'generation',
 )
 methods = (
     'new',
+    'deallocate_async',
+    'deallocate_sync',
+    # From interface.
     'open',
     'create_source',
     'allocate_async',
-    'deallocate_async',
     'allocate_sync',
-    'deallocate_sync',
 )
 vmethods = (
-    #'do_allocated',
-    #'do_deallocated',
+    # From interface.
+    'do_open',
+    'do_allocate_async',
+    'do_create_source',
+    'do_allocated',
+    'do_deallocated',
 )
 signals = (
-    #'allocated',
-    #'deallocated',
+    # From interface.
+    'allocated',
+    'deallocated',
 )
 
 if not test_object(target_type,  props, methods, vmethods, signals):

@@ -9,7 +9,7 @@ import gi
 gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
-target = Hinoko.FwIsoTx()
+target_type = Hinoko.FwIsoTx
 props = ()
 methods = (
     'new',
@@ -28,5 +28,5 @@ signals = (
     'interrupted',
 )
 
-if not test_object(target, props, methods, vmethods, signals):
+if not test_object(target_type,  props, methods, vmethods, signals):
     exit(ENXIO)

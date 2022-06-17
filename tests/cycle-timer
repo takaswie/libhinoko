@@ -9,7 +9,7 @@ import gi
 gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
-target = Hinoko.CycleTimer
+target_type = Hinoko.CycleTimer
 methods = (
     'new',
     'get_timestamp',
@@ -17,5 +17,5 @@ methods = (
     'get_cycle_timer',
 )
 
-if not test_struct(target, methods):
+if not test_struct(target_type,  methods):
     exit(ENXIO)

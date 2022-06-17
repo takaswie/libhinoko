@@ -10,23 +10,41 @@ gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
 target_type = Hinoko.FwIsoRxSingle
-props = ()
+props = (
+    # From interface.
+    'bytes-per-chunk',
+    'chunks-per-buffer',
+)
 methods = (
     'new',
     'allocate',
-    'release',
     'map_buffer',
-    'unmap_buffer',
-    'register_packet',
     'start',
-    'stop',
     'get_payload',
+    'register_packet',
+    # From interface.
+    'stop',
+    'unmap_buffer',
+    'release',
+    'get_cycle_timer',
+    'create_source',
+    'flush_completions',
 )
 vmethods = (
     'do_interrupted',
+    # From interface.
+    'do_stop',
+    'do_unmap_buffer',
+    'do_release',
+    'do_get_cycle_timer',
+    'do_flush_completions',
+    'do_create_source',
+    'do_stopped',
 )
 signals = (
     'interrupted',
+    # From interface.
+    'stopped',
 )
 
 if not test_object(target_type,  props, methods, vmethods, signals):

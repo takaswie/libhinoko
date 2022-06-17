@@ -3,7 +3,7 @@
 from sys import exit
 from errno import ENXIO
 
-from helper import test
+from helper import test_object
 
 import gi
 gi.require_version('Hinoko', '0.0')
@@ -28,5 +28,5 @@ signals = (
     'interrupted',
 )
 
-if not test(target, props, methods, vmethods, signals):
+if not test_object(target, props, methods, vmethods, signals):
     exit(ENXIO)

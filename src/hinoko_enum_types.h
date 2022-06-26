@@ -22,12 +22,12 @@ typedef enum {
 
 /**
  * HinokoFwScode:
- * @HINOKO_FW_SCODE_S100:	100 bps.
- * @HINOKO_FW_SCODE_S200:	200 bps.
- * @HINOKO_FW_SCODE_S400:	400 bps.
- * @HINOKO_FW_SCODE_S800:	800 bps.
- * @HINOKO_FW_SCODE_S1600:	1600 bps.
- * @HINOKO_FW_SCODE_S3200:	3200 bps.
+ * @HINOKO_FW_SCODE_S100:	100 Mbps.
+ * @HINOKO_FW_SCODE_S200:	200 Mbps.
+ * @HINOKO_FW_SCODE_S400:	400 Mbps.
+ * @HINOKO_FW_SCODE_S800:	800 Mbps.
+ * @HINOKO_FW_SCODE_S1600:	1600 Mbps.
+ * @HINOKO_FW_SCODE_S3200:	3200 Mbps.
  *
  * A representation of speed for isochronous context on IEEE 1394 bus.
  */

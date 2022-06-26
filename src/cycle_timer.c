@@ -3,10 +3,10 @@
 
 /**
  * HinokoCycleTimer:
- * A boxed object to represent data for cycle timer.
+ * A boxed object to express data of cycle timer.
  *
- * A [struct@CycleTimer] is an boxed object to represent the value of cycle timer and timestamp
- * referring to clock_id.
+ * A [struct@CycleTimer] expresses the value of cycle timer of 1394 OHCI and timestamp referring
+ * to clock_id.
  */
 HinokoCycleTimer *hinoko_cycle_timer_copy(const HinokoCycleTimer *self)
 {
@@ -41,7 +41,7 @@ HinokoCycleTimer *hinoko_cycle_timer_new()
  * @tv_sec: (out): The second part of timestamp.
  * @tv_nsec: (out): The nanosecond part of timestamp.
  *
- * Get timestamp with enough sizee of strorage. The timestamp refers to clock_id available by
+ * Get timestamp with enough size of strorage. The timestamp refers to clock_id available by
  * [method@CycleTimer.get_clock_id].
  */
 void hinoko_cycle_timer_get_timestamp(HinokoCycleTimer *self, gint64 *tv_sec,

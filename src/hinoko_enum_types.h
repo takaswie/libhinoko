@@ -12,7 +12,7 @@ G_BEGIN_DECLS
  * @HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE: The mode of IR context of 1394 OHCI with
  *					buffer-fill protocol.
  *
- * A representation of mode for isochronous context of Linux FireWire subsystem.
+ * A set of mode for isochronous context of Linux FireWire subsystem.
  */
 typedef enum {
 	HINOKO_FW_ISO_CTX_MODE_TX = FW_CDEV_ISO_CONTEXT_TRANSMIT,
@@ -29,7 +29,7 @@ typedef enum {
  * @HINOKO_FW_SCODE_S1600:	1600 Mbps.
  * @HINOKO_FW_SCODE_S3200:	3200 Mbps.
  *
- * A representation of speed for isochronous context on IEEE 1394 bus.
+ * A set of speed for isochronous context on IEEE 1394 bus.
  */
 typedef enum {
 	HINOKO_FW_SCODE_S100	= SCODE_100,
@@ -47,7 +47,7 @@ typedef enum {
  * @HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG2: The value of tag2 in 1394 OHCI.
  * @HINOKO_FW_ISO_CTX_MATCH_FLAG_TAG3: The value of tag3 in 1394 OHCI.
  *
- * A representation of tag field of isochronous packet on IEEE 1394 bus.
+ * A set of tag field of isochronous packet on IEEE 1394 bus.
  */
 typedef enum /*< flags >*/
 {

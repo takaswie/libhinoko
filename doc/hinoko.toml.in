@@ -3,7 +3,7 @@ version = "@VERSION@"
 description = "libhinoko"
 authors = "Takashi Sakamoto"
 license = "LGPL-2.1-or-later"
-website_url = "https://takaswie.github.io/libhinoko-docs/"
+website_url = "https://alsa-project.github.io/gobject-introspection-docs/hinoko/"
 browse_url = "https://github.com/takaswie/libhinoko"
 repository_url = "https://github.com/takaswie/libhinoko.git"
 

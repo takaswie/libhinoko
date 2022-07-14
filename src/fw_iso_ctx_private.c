@@ -605,7 +605,7 @@ gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GErr
  * fw_iso_ctx_state_get_cycle_timer:
  * @state: A [struct@FwIsoCtxState].
  * @clock_id: The numeric ID of clock source for the reference timestamp. One CLOCK_REALTIME(0),
- *	      CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(2) is available in UAPI of Linux kernel.
+ *	      CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(4) is available in UAPI of Linux kernel.
  * @cycle_timer: (inout): A [struct@CycleTimer] to store data of cycle timer.
  * @error: A [struct@GLib.Error].
  *

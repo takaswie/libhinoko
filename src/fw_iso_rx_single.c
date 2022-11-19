@@ -279,7 +279,7 @@ gboolean hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self, const char 
 	return TRUE;
 }
 
-/*
+/**
  * hinoko_fw_iso_rx_single_map_buffer:
  * @self: A [class@FwIsoRxSingle].
  * @maximum_bytes_per_payload: The maximum number of bytes per payload of IR context.

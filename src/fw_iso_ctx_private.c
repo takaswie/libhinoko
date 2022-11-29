@@ -593,7 +593,11 @@ void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, g
  */
 gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GError **error)
 {
-	if (ioctl(state->fd, FW_CDEV_IOC_FLUSH_ISO) < 0) {
+	struct fw_cdev_flush_iso arg = {
+		.handle = state->handle,
+	};
+
+	if (ioctl(state->fd, FW_CDEV_IOC_FLUSH_ISO, &arg) < 0) {
 		generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_FLUSH_ISO);
 		return FALSE;
 	}

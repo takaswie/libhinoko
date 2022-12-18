@@ -9,7 +9,7 @@ from gi.repository import GLib
 gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
-class IsoRxMultiple(Hinoko.FwIsoRxMultiple):
+class IsoIrMultiple(Hinoko.FwIsoIrMultiple):
     def new(self, path, bytes_per_packet, syt_interval):
         channels = [i for i in range(4)]
         self.allocate(path, channels)
@@ -74,7 +74,7 @@ class IsoRxMultiple(Hinoko.FwIsoRxMultiple):
 # 2 CIP headers + 19 quadlet per data block * 8 data block + iso header + tstamp
 bytes_per_packet = (2 + 19 * 8 + 2) * 4
 
-ctx = IsoRxMultiple()
+ctx = IsoIrMultiple()
 ctx.new('/dev/fw0', bytes_per_packet, 8)
 
 dispatcher = GLib.MainLoop.new(None, False)

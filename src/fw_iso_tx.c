@@ -247,7 +247,7 @@ gboolean hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path, Hinoko
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 	priv = hinoko_fw_iso_tx_get_instance_private(self);
 
-	return fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_TX, scode,
+	return fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_IT, scode,
 					 channel, header_size, error);
 }
 

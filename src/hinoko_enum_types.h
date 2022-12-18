@@ -6,18 +6,18 @@ G_BEGIN_DECLS
 
 /**
  * HinokoFwIsoCtxMode:
- * @HINOKO_FW_ISO_CTX_MODE_TX:		The mode of IT context of 1394 OHCI.
- * @HINOKO_FW_ISO_CTX_MODE_RX_SINGLE:	The mode of IR context of 1394 OHCI with
+ * @HINOKO_FW_ISO_CTX_MODE_IT:		The mode of IT context of 1394 OHCI.
+ * @HINOKO_FW_ISO_CTX_MODE_IR_SINGLE:	The mode of IR context of 1394 OHCI with
  *					packer-per-buffer protocol
- * @HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE: The mode of IR context of 1394 OHCI with
+ * @HINOKO_FW_ISO_CTX_MODE_IR_MULTIPLE: The mode of IR context of 1394 OHCI with
  *					buffer-fill protocol.
  *
  * A set of mode for isochronous context of Linux FireWire subsystem.
  */
 typedef enum {
-	HINOKO_FW_ISO_CTX_MODE_TX = FW_CDEV_ISO_CONTEXT_TRANSMIT,
-	HINOKO_FW_ISO_CTX_MODE_RX_SINGLE = FW_CDEV_ISO_CONTEXT_RECEIVE,
-	HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE = FW_CDEV_ISO_CONTEXT_RECEIVE_MULTICHANNEL,
+	HINOKO_FW_ISO_CTX_MODE_IT = FW_CDEV_ISO_CONTEXT_TRANSMIT,
+	HINOKO_FW_ISO_CTX_MODE_IR_SINGLE = FW_CDEV_ISO_CONTEXT_RECEIVE,
+	HINOKO_FW_ISO_CTX_MODE_IR_MULTIPLE = FW_CDEV_ISO_CONTEXT_RECEIVE_MULTICHANNEL,
 } HinokoFwIsoCtxMode;
 
 /**

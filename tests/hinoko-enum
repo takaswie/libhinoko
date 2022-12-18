@@ -10,9 +10,9 @@ gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
 fw_iso_ctx_mode_enumerators = (
-    'TX',
-    'RX_SINGLE',
-    'RX_MULTIPLE',
+    'IT',
+    'IR_SINGLE',
+    'IR_MULTIPLE',
 )
 
 fw_scode_enumerators = (

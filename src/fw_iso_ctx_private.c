@@ -82,9 +82,9 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 
 	// Linux firewire stack supports three types of isochronous context
 	// described in 1394 OHCI specification.
-	g_return_val_if_fail(mode == HINOKO_FW_ISO_CTX_MODE_TX ||
-			     mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
-			     mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, FALSE);
+	g_return_val_if_fail(mode == HINOKO_FW_ISO_CTX_MODE_IT ||
+			     mode == HINOKO_FW_ISO_CTX_MODE_IR_SINGLE ||
+			     mode == HINOKO_FW_ISO_CTX_MODE_IR_MULTIPLE, FALSE);
 
 	g_return_val_if_fail(scode == HINOKO_FW_SCODE_S100 ||
 			     scode == HINOKO_FW_SCODE_S200 ||
@@ -99,10 +99,10 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
 	// Headers should be aligned to quadlet.
 	g_return_val_if_fail(header_size % 4 == 0, FALSE);
 
-	if (mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE) {
+	if (mode == HINOKO_FW_ISO_CTX_MODE_IR_SINGLE) {
 		// At least, 1 quadlet is required for iso_header.
 		g_return_val_if_fail(header_size >= 4, FALSE);
-	} else if (mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
+	} else if (mode == HINOKO_FW_ISO_CTX_MODE_IR_MULTIPLE) {
 		// Needless.
 		g_return_val_if_fail(header_size == 0, FALSE);
 		g_return_val_if_fail(channel == 0, FALSE);
@@ -193,7 +193,7 @@ gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes
 	}
 
 	datum_size = sizeof(struct fw_cdev_iso_packet);
-	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_IT)
 		datum_size += state->header_size;
 
 	state->data = g_malloc_n(chunks_per_buffer, datum_size);
@@ -201,7 +201,7 @@ gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes
 	state->alloc_data_length = chunks_per_buffer * datum_size;
 
 	prot = PROT_READ;
-	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_IT)
 		prot |= PROT_WRITE;
 
 	// Align to size of page.
@@ -272,7 +272,7 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 
 	g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 
-	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_IT) {
 		if (!skip) {
 			g_return_val_if_fail(header_length == state->header_size, FALSE);
 			g_return_val_if_fail(payload_length <= state->bytes_per_chunk, FALSE);
@@ -281,8 +281,8 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 			g_return_val_if_fail(header_length == 0, FALSE);
 			g_return_val_if_fail(header == NULL, FALSE);
 		}
-	} else if (state->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE ||
-		   state->mode == HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
+	} else if (state->mode == HINOKO_FW_ISO_CTX_MODE_IR_SINGLE ||
+		   state->mode == HINOKO_FW_ISO_CTX_MODE_IR_MULTIPLE) {
 		g_return_val_if_fail(tags == 0, FALSE);
 		g_return_val_if_fail(sync_code == 0, FALSE);
 		g_return_val_if_fail(header == NULL, FALSE);
@@ -308,13 +308,13 @@ gboolean fw_iso_ctx_state_register_chunk(struct fw_iso_ctx_state *state, gboolea
 	state->data_length += sizeof(*datum) + header_length;
 	++state->registered_chunk_count;
 
-	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_IT) {
 		if (!skip)
 			memcpy(datum->header, header, header_length);
 	} else {
 		payload_length = state->bytes_per_chunk;
 
-		if (state->mode == HINOKO_FW_ISO_CTX_MODE_RX_SINGLE)
+		if (state->mode == HINOKO_FW_ISO_CTX_MODE_IR_SINGLE)
 			header_length = state->header_size;
 	}
 
@@ -389,7 +389,7 @@ gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **
 			}
 
 			datum_length = sizeof(*datum);
-			if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX)
+			if (state->mode == HINOKO_FW_ISO_CTX_MODE_IT)
 				datum_length += header_length;
 
 			g_debug("%3d: %3d-%3d/%3d: %6d-%6d/%6d: %d",
@@ -480,7 +480,7 @@ gboolean fw_iso_ctx_state_start(struct fw_iso_ctx_state *state, const guint16 *c
 		return FALSE;
 	}
 
-	if (state->mode == HINOKO_FW_ISO_CTX_MODE_TX) {
+	if (state->mode == HINOKO_FW_ISO_CTX_MODE_IT) {
 		g_return_val_if_fail(cycle_match == NULL ||
 				cycle_match[0] <= OHCI1394_IT_contextControl_cycleMatch_MAX_SEC ||
 				cycle_match[1] <= OHCI1394_IT_contextControl_cycleMatch_MAX_CYCLE,
@@ -731,7 +731,7 @@ gboolean fw_iso_ctx_state_create_source(struct fw_iso_ctx_state *state, HinokoFw
 
 	src = (FwIsoCtxSource *)(*source);
 
-	if (state->mode != HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE) {
+	if (state->mode != HINOKO_FW_ISO_CTX_MODE_IR_MULTIPLE) {
 		// MEMO: Linux FireWire subsystem queues isochronous event
 		// independently of interrupt flag when the same number of
 		// bytes as one page is stored in the buffer of header. To

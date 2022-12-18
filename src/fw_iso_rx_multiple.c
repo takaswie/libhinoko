@@ -375,7 +375,7 @@ gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const c
 
 	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
 
-	if (!fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_RX_MULTIPLE, 0,
+	if (!fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_IR_MULTIPLE, 0,
 				       0, 0, error))
 		return FALSE;
 

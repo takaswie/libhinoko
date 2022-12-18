@@ -270,7 +270,7 @@ gboolean hinoko_fw_iso_rx_single_allocate(HinokoFwIsoRxSingle *self, const char 
 
 	priv = hinoko_fw_iso_rx_single_get_instance_private(self);
 
-	if (!fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_RX_SINGLE, 0,
+	if (!fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_IR_SINGLE, 0,
 				       channel, header_size, error))
 		return FALSE;
 

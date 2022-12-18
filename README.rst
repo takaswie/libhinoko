@@ -2,7 +2,7 @@
 The libhinoko project
 =====================
 
-2022/12/01
+2022/12/18
 Takashi Sakamoto
 
 Introduction
@@ -82,6 +82,25 @@ Supplemental information for language bindings
 * `PyGObject <https://pygobject.readthedocs.io/>`_ is a dynamic loader for libraries compatible
   with g-i.
 * `hinoko-rs <https://github.com/takaswie/hinoko-rs>`_ includes creates to use these libraries.
+
+Loss of backward compatibility between v0.7/v0.8 releases
+=========================================================
+
+At v0.8, some main object classes are renamed so that their names are straightforward to express
+corresponding isochronous contexts in 1394 OHCI.
+
+- ``Hinoko.FwIsoIrSingle`` from ``Hinoko.FwIsoRxSingle`` for IR context of packet-per-buffer mode
+- ``Hinoko.FwIsoIrMultiple`` from ``Hinoko.FwIsoRxMultiple`` for IR context of buffer-fill mode
+- ``Hinoko.FwIsoIt`` from ``Hinoko.FwIsoTx`` for IT context
+
+The enumrations to express the mode of context are renamed as well:
+
+- ``Hinoko.FwIsoCtxMode.IR_SINGLE`` from ``Hinoko.FwIsoCtxMode.RX_SINGLE``
+- ``Hinoko.FwIsoCtxMode.IR_MULTIPLE`` from ``Hinoko.FwIsoCtxMode.RX_MULTIPLE``
+- ``Hinoko.FwIsoCtxMode.IT`` from ``Hinoko.FwIsoCtxMode.TX``
+
+
+The symbols for previous names are not public anymore.
 
 Loss of backward compatibility between v0.6/v0.7 releases
 =========================================================

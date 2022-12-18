@@ -16,7 +16,7 @@
 #include <cycle_timer.h>
 
 #include <fw_iso_ctx.h>
-#include <fw_iso_rx_single.h>
+#include <fw_iso_ir_single.h>
 #include <fw_iso_rx_multiple.h>
 #include <fw_iso_tx.h>
 

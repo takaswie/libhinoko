@@ -2,10 +2,10 @@
 #include "fw_iso_ctx_private.h"
 
 /**
- * HinokoFwIsoRxMultiple:
+ * HinokoFwIsoIrMultiple:
  * An object to receive isochronous packet for several channels.
  *
- * A [class@FwIsoRxMultiple] receives isochronous packets for several channels by IR context for
+ * A [class@FwIsoIrMultiple] receives isochronous packets for several channels by IR context for
  * buffer-fill mode in 1394 OHCI.
  */
 struct ctx_payload {
@@ -25,33 +25,33 @@ typedef struct {
 
 	guint chunks_per_irq;
 	guint accumulated_chunk_count;
-} HinokoFwIsoRxMultiplePrivate;
+} HinokoFwIsoIrMultiplePrivate;
 
 static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoRxMultiple, hinoko_fw_iso_rx_multiple, G_TYPE_OBJECT,
-			G_ADD_PRIVATE(HinokoFwIsoRxMultiple)
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoIrMultiple, hinoko_fw_iso_ir_multiple, G_TYPE_OBJECT,
+			G_ADD_PRIVATE(HinokoFwIsoIrMultiple)
 			G_IMPLEMENT_INTERFACE(HINOKO_TYPE_FW_ISO_CTX, fw_iso_ctx_iface_init))
 
-enum fw_iso_rx_multiple_prop_type {
-	FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS = FW_ISO_CTX_PROP_TYPE_COUNT,
-	FW_ISO_RX_MULTIPLE_PROP_TYPE_COUNT,
+enum fw_iso_ir_multiple_prop_type {
+	FW_ISO_IR_MULTIPLE_PROP_TYPE_CHANNELS = FW_ISO_CTX_PROP_TYPE_COUNT,
+	FW_ISO_IR_MULTIPLE_PROP_TYPE_COUNT,
 };
 
-enum fw_iso_rx_multiple_sig_type {
-	FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ = 1,
-	FW_ISO_RX_MULTIPLE_SIG_TYPE_COUNT,
+enum fw_iso_ir_multiple_sig_type {
+	FW_ISO_IR_MULTIPLE_SIG_TYPE_IRQ = 1,
+	FW_ISO_IR_MULTIPLE_SIG_TYPE_COUNT,
 };
-static guint fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_COUNT] = { 0 };
+static guint fw_iso_ir_multiple_sigs[FW_ISO_IR_MULTIPLE_SIG_TYPE_COUNT] = { 0 };
 
-static void fw_iso_rx_multiple_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
+static void fw_iso_ir_multiple_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
 {
-	HinokoFwIsoRxMultiple *self = HINOKO_FW_ISO_RX_MULTIPLE(obj);
-	HinokoFwIsoRxMultiplePrivate *priv =
-			hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	HinokoFwIsoIrMultiple *self = HINOKO_FW_ISO_IR_MULTIPLE(obj);
+	HinokoFwIsoIrMultiplePrivate *priv =
+			hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	switch (id) {
-	case FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS:
+	case FW_ISO_IR_MULTIPLE_PROP_TYPE_CHANNELS:
 		g_value_set_static_boxed(val, priv->channels);
 		break;
 	default:
@@ -60,28 +60,28 @@ static void fw_iso_rx_multiple_get_property(GObject *obj, guint id, GValue *val,
 	}
 }
 
-static void fw_iso_rx_multiple_finalize(GObject *obj)
+static void fw_iso_ir_multiple_finalize(GObject *obj)
 {
 	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(obj));
 
-	G_OBJECT_CLASS(hinoko_fw_iso_rx_multiple_parent_class)->finalize(obj);
+	G_OBJECT_CLASS(hinoko_fw_iso_ir_multiple_parent_class)->finalize(obj);
 }
 
-static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *klass)
+static void hinoko_fw_iso_ir_multiple_class_init(HinokoFwIsoIrMultipleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	gobject_class->get_property = fw_iso_rx_multiple_get_property;
-	gobject_class->finalize = fw_iso_rx_multiple_finalize;
+	gobject_class->get_property = fw_iso_ir_multiple_get_property;
+	gobject_class->finalize = fw_iso_ir_multiple_finalize;
 
 	fw_iso_ctx_class_override_properties(gobject_class);
 
 	/**
-	 * HinokoFwIsoRxMultiple:channels:
+	 * HinokoFwIsoIrMultiple:channels:
 	 *
 	 * The array with elements to express isochronous channels to be listened to.
 	 */
-	g_object_class_install_property(gobject_class, FW_ISO_RX_MULTIPLE_PROP_TYPE_CHANNELS,
+	g_object_class_install_property(gobject_class, FW_ISO_IR_MULTIPLE_PROP_TYPE_CHANNELS,
 		g_param_spec_boxed("channels", "channels",
 				   "The array with elements to express "
 				   "channels to be listened to",
@@ -89,8 +89,8 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 				   G_PARAM_READABLE));
 
 	/**
-	 * HinokoFwIsoRxMultiple::interrupted:
-	 * @self: A [class@FwIsoRxMultiple].
+	 * HinokoFwIsoIrMultiple::interrupted:
+	 * @self: A [class@FwIsoIrMultiple].
 	 * @count: The number of packets available in this interrupt.
 	 *
 	 * Emitted when Linux FireWire subsystem generates interrupt event. There are two cases
@@ -101,35 +101,35 @@ static void hinoko_fw_iso_rx_multiple_class_init(HinokoFwIsoRxMultipleClass *kla
 	 * - When application calls [method@FwIsoCtx.flush_completions] explicitly.
 	 *
 	 * The handler of signal can retrieve the content of packet by call of
-	 * [method@FwIsoRxMultiple.get_payload].
+	 * [method@FwIsoIrMultiple.get_payload].
 	 */
-	fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ] =
+	fw_iso_ir_multiple_sigs[FW_ISO_IR_MULTIPLE_SIG_TYPE_IRQ] =
 		g_signal_new("interrupted",
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
-			G_STRUCT_OFFSET(HinokoFwIsoRxMultipleClass, interrupted),
+			G_STRUCT_OFFSET(HinokoFwIsoIrMultipleClass, interrupted),
 			NULL, NULL,
 			g_cclosure_marshal_VOID__UINT,
 			G_TYPE_NONE,
 			1, G_TYPE_UINT);
 }
 
-static void hinoko_fw_iso_rx_multiple_init(HinokoFwIsoRxMultiple *self)
+static void hinoko_fw_iso_ir_multiple_init(HinokoFwIsoIrMultiple *self)
 {
-	HinokoFwIsoRxMultiplePrivate *priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	HinokoFwIsoIrMultiplePrivate *priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	fw_iso_ctx_state_init(&priv->state);
 }
 
-static void fw_iso_rx_multiple_stop(HinokoFwIsoCtx *inst)
+static void fw_iso_ir_multiple_stop(HinokoFwIsoCtx *inst)
 {
-	HinokoFwIsoRxMultiple *self;
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiple *self;
+	HinokoFwIsoIrMultiplePrivate *priv;
 	gboolean running;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst));
-	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	g_return_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(inst));
+	self = HINOKO_FW_ISO_IR_MULTIPLE(inst);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	running = priv->state.running;
 
@@ -139,14 +139,14 @@ static void fw_iso_rx_multiple_stop(HinokoFwIsoCtx *inst)
 		g_signal_emit_by_name(G_OBJECT(inst), STOPPED_SIGNAL_NAME, NULL);
 }
 
-static void fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoCtx *inst)
+static void fw_iso_ir_multiple_unmap_buffer(HinokoFwIsoCtx *inst)
 {
-	HinokoFwIsoRxMultiple *self;
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiple *self;
+	HinokoFwIsoIrMultiplePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst));
-	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	g_return_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(inst));
+	self = HINOKO_FW_ISO_IR_MULTIPLE(inst);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	fw_iso_ctx_state_unmap_buffer(&priv->state);
 
@@ -156,14 +156,14 @@ static void fw_iso_rx_multiple_unmap_buffer(HinokoFwIsoCtx *inst)
 	priv->concat_frames = NULL;
 }
 
-static void fw_iso_rx_multiple_release(HinokoFwIsoCtx *inst)
+static void fw_iso_ir_multiple_release(HinokoFwIsoCtx *inst)
 {
-	HinokoFwIsoRxMultiple *self;
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiple *self;
+	HinokoFwIsoIrMultiplePrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst));
-	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	g_return_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(inst));
+	self = HINOKO_FW_ISO_IR_MULTIPLE(inst);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	fw_iso_ctx_state_release(&priv->state);
 
@@ -172,35 +172,35 @@ static void fw_iso_rx_multiple_release(HinokoFwIsoCtx *inst)
 	priv->channels = NULL;
 }
 
-static gboolean fw_iso_rx_multiple_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
+static gboolean fw_iso_ir_multiple_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
 						 HinokoCycleTimer *const *cycle_timer,
 						 GError **error)
 {
-	HinokoFwIsoRxMultiple *self;
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiple *self;
+	HinokoFwIsoIrMultiplePrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst), FALSE);
-	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(inst), FALSE);
+	self = HINOKO_FW_ISO_IR_MULTIPLE(inst);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	return fw_iso_ctx_state_get_cycle_timer(&priv->state, clock_id, cycle_timer, error);
 }
 
-static gboolean fw_iso_rx_multiple_flush_completions(HinokoFwIsoCtx *inst, GError **error)
+static gboolean fw_iso_ir_multiple_flush_completions(HinokoFwIsoCtx *inst, GError **error)
 {
-	HinokoFwIsoRxMultiple *self;
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiple *self;
+	HinokoFwIsoIrMultiplePrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst), FALSE);
-	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(inst), FALSE);
+	self = HINOKO_FW_ISO_IR_MULTIPLE(inst);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	return fw_iso_ctx_state_flush_completions(&priv->state, error);
 }
 
-static gboolean fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self, GError **error)
+static gboolean fw_iso_ir_multiple_register_chunk(HinokoFwIsoIrMultiple *self, GError **error)
 {
-	HinokoFwIsoRxMultiplePrivate *priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	HinokoFwIsoIrMultiplePrivate *priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 	gboolean schedule_irq = FALSE;
 
 	if (priv->chunks_per_irq > 0) {
@@ -214,11 +214,11 @@ static gboolean fw_iso_rx_multiple_register_chunk(HinokoFwIsoRxMultiple *self, G
 					       error);
 }
 
-gboolean fw_iso_rx_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+gboolean fw_iso_ir_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
 					 GError **error)
 {
-	HinokoFwIsoRxMultiple *self;
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiple *self;
+	HinokoFwIsoIrMultiplePrivate *priv;
 
 	const struct fw_cdev_event_iso_interrupt_mc *ev;
 	unsigned int bytes_per_chunk;
@@ -230,11 +230,11 @@ gboolean fw_iso_rx_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cd
 	unsigned int chunk_end;
 	struct ctx_payload *ctx_payload;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst), FALSE);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(inst), FALSE);
 	g_return_val_if_fail(event->common.type == FW_CDEV_EVENT_ISO_INTERRUPT_MULTICHANNEL, FALSE);
 
-	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	self = HINOKO_FW_ISO_IR_MULTIPLE(inst);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	ev = &event->iso_interrupt_mc;
 
@@ -289,13 +289,13 @@ gboolean fw_iso_rx_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cd
 	}
 
 	g_signal_emit(self,
-		fw_iso_rx_multiple_sigs[FW_ISO_RX_MULTIPLE_SIG_TYPE_IRQ],
+		fw_iso_ir_multiple_sigs[FW_ISO_IR_MULTIPLE_SIG_TYPE_IRQ],
 		0, priv->ctx_payload_count);
 
 	chunk_pos = priv->prev_offset / bytes_per_chunk;
 	chunk_end = (priv->prev_offset + accum_length) / bytes_per_chunk;
 	for (; chunk_pos < chunk_end; ++chunk_pos) {
-		if (!fw_iso_rx_multiple_register_chunk(self, error))
+		if (!fw_iso_ir_multiple_register_chunk(self, error))
 			return FALSE;
 	}
 
@@ -305,44 +305,44 @@ gboolean fw_iso_rx_multiple_handle_event(HinokoFwIsoCtx *inst, const union fw_cd
 	return fw_iso_ctx_state_queue_chunks(&priv->state, error);
 }
 
-gboolean fw_iso_rx_multiple_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
+gboolean fw_iso_ir_multiple_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
 {
-	HinokoFwIsoRxMultiple *self;
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiple *self;
+	HinokoFwIsoIrMultiplePrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(inst), FALSE);
-	self = HINOKO_FW_ISO_RX_MULTIPLE(inst);
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(inst), FALSE);
+	self = HINOKO_FW_ISO_IR_MULTIPLE(inst);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
-	return fw_iso_ctx_state_create_source(&priv->state, inst, fw_iso_rx_multiple_handle_event,
+	return fw_iso_ctx_state_create_source(&priv->state, inst, fw_iso_ir_multiple_handle_event,
 					      source, error);
 }
 
 static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
-	iface->stop = fw_iso_rx_multiple_stop;
-	iface->unmap_buffer = fw_iso_rx_multiple_unmap_buffer;
-	iface->release = fw_iso_rx_multiple_release;
-	iface->get_cycle_timer = fw_iso_rx_multiple_get_cycle_timer;
-	iface->flush_completions = fw_iso_rx_multiple_flush_completions;
-	iface->create_source = fw_iso_rx_multiple_create_source;
+	iface->stop = fw_iso_ir_multiple_stop;
+	iface->unmap_buffer = fw_iso_ir_multiple_unmap_buffer;
+	iface->release = fw_iso_ir_multiple_release;
+	iface->get_cycle_timer = fw_iso_ir_multiple_get_cycle_timer;
+	iface->flush_completions = fw_iso_ir_multiple_flush_completions;
+	iface->create_source = fw_iso_ir_multiple_create_source;
 }
 
 /**
- * hinoko_fw_iso_rx_multiple_new:
+ * hinoko_fw_iso_ir_multiple_new:
  *
- * Instantiate [class@FwIsoRxMultiple] object and return the instance.
+ * Instantiate [class@FwIsoIrMultiple] object and return the instance.
  *
- * Returns: an instance of [class@FwIsoRxMultiple].
+ * Returns: an instance of [class@FwIsoIrMultiple].
  */
-HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
+HinokoFwIsoIrMultiple *hinoko_fw_iso_ir_multiple_new(void)
 {
-	return g_object_new(HINOKO_TYPE_FW_ISO_RX_MULTIPLE, NULL);
+	return g_object_new(HINOKO_TYPE_FW_ISO_IR_MULTIPLE, NULL);
 }
 
 /**
- * hinoko_fw_iso_rx_multiple_allocate:
- * @self: A [class@FwIsoRxMultiple].
+ * hinoko_fw_iso_ir_multiple_allocate:
+ * @self: A [class@FwIsoIrMultiple].
  * @path: A path to any Linux FireWire character device.
  * @channels: (array length=channels_length) (element-type guint8): an array for channels to listen
  *	      to. The value of each element should be up to 63.
@@ -353,16 +353,16 @@ HinokoFwIsoRxMultiple *hinoko_fw_iso_rx_multiple_new(void)
  * corresponding to the given path is used as the controller, thus any path is accepted as long as
  * process has enough permission for the path.
  */
-gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const char *path,
+gboolean hinoko_fw_iso_ir_multiple_allocate(HinokoFwIsoIrMultiple *self, const char *path,
 					    const guint8 *channels, guint channels_length,
 					    GError **error)
 {
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiplePrivate *priv;
 
 	int i;
 	struct fw_cdev_set_iso_channels set = {0};
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(self), FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	g_return_val_if_fail(channels_length > 0, FALSE);
@@ -373,7 +373,7 @@ gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const c
 		set.channels |= G_GUINT64_CONSTANT(1) << channels[i];
 	}
 
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	if (!fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_IR_MULTIPLE, 0,
 				       0, 0, error))
@@ -400,8 +400,8 @@ gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const c
 }
 
 /**
- * hinoko_fw_iso_rx_multiple_map_buffer:
- * @self: A [class@FwIsoRxMultiple].
+ * hinoko_fw_iso_ir_multiple_map_buffer:
+ * @self: A [class@FwIsoIrMultiple].
  * @bytes_per_chunk: The maximum number of bytes for payload of isochronous packet (not payload for
  *		     isochronous context).
  * @chunks_per_buffer: The number of chunks in buffer.
@@ -410,15 +410,15 @@ gboolean hinoko_fw_iso_rx_multiple_allocate(HinokoFwIsoRxMultiple *self, const c
  * Map an intermediate buffer to share payload of IR context with 1394 OHCI
  * controller.
  */
-gboolean hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self, guint bytes_per_chunk,
+gboolean hinoko_fw_iso_ir_multiple_map_buffer(HinokoFwIsoIrMultiple *self, guint bytes_per_chunk,
 					      guint chunks_per_buffer, GError **error)
 {
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiplePrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(self), FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	// The size of each chunk should be aligned to quadlet.
 	bytes_per_chunk = (bytes_per_chunk + 3) / 4;
@@ -439,8 +439,8 @@ gboolean hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self, guint
 }
 
 /**
- * hinoko_fw_iso_rx_multiple_start:
- * @self: A [class@FwIsoRxMultiple].
+ * hinoko_fw_iso_ir_multiple_start:
+ * @self: A [class@FwIsoIrMultiple].
  * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable): The isochronous cycle
  *		 to start packet processing. The first element should be the second part of
  *		 isochronous cycle, up to 3. The second element should be the cycle part of
@@ -449,20 +449,20 @@ gboolean hinoko_fw_iso_rx_multiple_map_buffer(HinokoFwIsoRxMultiple *self, guint
  * @tags: The value of tag field in isochronous header for packet processing.
  * @chunks_per_irq: The number of chunks per interval of interrupt. When 0 is given, application
  *		    should call [method@FwIsoCtx.flush_completions] voluntarily to generate
- *		    [signal@FwIsoRxMultiple::interrupted] event.
+ *		    [signal@FwIsoIrMultiple::interrupted] event.
  * @error: A [struct@GLib.Error]
  *
  * Start IR context.
  */
-gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guint16 *cycle_match,
+gboolean hinoko_fw_iso_ir_multiple_start(HinokoFwIsoIrMultiple *self, const guint16 *cycle_match,
 					 guint32 sync_code, HinokoFwIsoCtxMatchFlag tags,
 					 guint chunks_per_irq, GError **error)
 {
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiplePrivate *priv;
 	guint chunks_per_buffer;
 	int i;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self), FALSE);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(self), FALSE);
 	g_return_val_if_fail(cycle_match == NULL ||
 			     cycle_match[0] <= OHCI1394_IR_contextMatch_cycleMatch_MAX_SEC ||
 			     cycle_match[1] <= OHCI1394_IR_contextMatch_cycleMatch_MAX_CYCLE,
@@ -470,7 +470,7 @@ gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guin
 	g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	chunks_per_buffer = priv->state.chunks_per_buffer;
 	g_return_val_if_fail(chunks_per_irq < chunks_per_buffer, FALSE);
@@ -479,7 +479,7 @@ gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guin
 	priv->accumulated_chunk_count = 0;
 
 	for (i = 0; i < chunks_per_buffer; ++i) {
-		if (!fw_iso_rx_multiple_register_chunk(self, error))
+		if (!fw_iso_ir_multiple_register_chunk(self, error))
 			return FALSE;
 	}
 
@@ -488,8 +488,8 @@ gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guin
 }
 
 /**
- * hinoko_fw_iso_rx_multiple_get_payload:
- * @self: A [class@FwIsoRxMultiple].
+ * hinoko_fw_iso_ir_multiple_get_payload:
+ * @self: A [class@FwIsoIrMultiple].
  * @index: the index of packet available in this interrupt.
  * @payload: (array length=length)(out)(transfer none): The array with data frame for payload of
  *	     IR context.
@@ -500,16 +500,16 @@ gboolean hinoko_fw_iso_rx_multiple_start(HinokoFwIsoRxMultiple *self, const guin
  *
  * Since: 0.7.
  */
-void hinoko_fw_iso_rx_multiple_get_payload(HinokoFwIsoRxMultiple *self, guint index,
+void hinoko_fw_iso_ir_multiple_get_payload(HinokoFwIsoIrMultiple *self, guint index,
 					   const guint8 **payload, guint *length)
 {
-	HinokoFwIsoRxMultiplePrivate *priv;
+	HinokoFwIsoIrMultiplePrivate *priv;
 	struct ctx_payload *ctx_payload;
 	guint frame_size;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_RX_MULTIPLE(self));
+	g_return_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(self));
 
-	priv = hinoko_fw_iso_rx_multiple_get_instance_private(self);
+	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
 
 	g_return_if_fail(index < priv->ctx_payload_count);
 	ctx_payload = &priv->ctx_payloads[index];

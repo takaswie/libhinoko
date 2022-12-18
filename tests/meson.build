@@ -2,7 +2,7 @@ tests = [
   'hinoko-enum',
   'fw-iso-ctx',
   'fw-iso-ir-single',
-  'fw-iso-rx-multiple',
+  'fw-iso-ir-multiple',
   'fw-iso-tx',
   'fw-iso-resource',
   'fw-iso-resource-auto',

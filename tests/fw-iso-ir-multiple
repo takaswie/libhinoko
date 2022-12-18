@@ -9,7 +9,7 @@ import gi
 gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
-target_type = Hinoko.FwIsoRxMultiple
+target_type = Hinoko.FwIsoIrMultiple
 props = (
     'channels',
     # From interface.

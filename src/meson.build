@@ -9,7 +9,7 @@ dependencies = [
 sources = [
   'fw_iso_ctx.c',
   'fw_iso_ir_single.c',
-  'fw_iso_rx_multiple.c',
+  'fw_iso_ir_multiple.c',
   'fw_iso_tx.c',
   'cycle_timer.c',
   'fw_iso_resource.c',
@@ -21,7 +21,7 @@ headers = [
   'hinoko.h',
   'fw_iso_ctx.h',
   'fw_iso_ir_single.h',
-  'fw_iso_rx_multiple.h',
+  'fw_iso_ir_multiple.h',
   'fw_iso_tx.h',
   'cycle_timer.h',
   'fw_iso_resource.h',

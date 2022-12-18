@@ -3,8 +3,6 @@ HINOKO_0_1_0 {
     "hinoko_fw_iso_ctx_mode_get_type";
     "hinoko_fw_scode_get_type";
     "hinoko_fw_iso_ctx_match_flag_get_type";
-
-    "hinoko_fw_iso_tx_new";
   local:
     *;
 };
@@ -47,12 +45,6 @@ HINOKO_0_7_0 {
     "hinoko_fw_iso_ctx_create_source";
     "hinoko_fw_iso_ctx_flush_completions";
 
-    "hinoko_fw_iso_tx_get_type";
-    "hinoko_fw_iso_tx_allocate";
-    "hinoko_fw_iso_tx_map_buffer";
-    "hinoko_fw_iso_tx_register_packet";
-    "hinoko_fw_iso_tx_start";
-
     "hinoko_fw_iso_resource_get_type";
     "hinoko_fw_iso_resource_open";
     "hinoko_fw_iso_resource_create_source";
@@ -84,4 +76,11 @@ HINOKO_0_8_0 {
     "hinoko_fw_iso_ir_multiple_map_buffer";
     "hinoko_fw_iso_ir_multiple_start";
     "hinoko_fw_iso_ir_multiple_get_payload";
+
+    "hinoko_fw_iso_it_new";
+    "hinoko_fw_iso_it_get_type";
+    "hinoko_fw_iso_it_allocate";
+    "hinoko_fw_iso_it_map_buffer";
+    "hinoko_fw_iso_it_register_packet";
+    "hinoko_fw_iso_it_start";
 } HINOKO_0_7_0;

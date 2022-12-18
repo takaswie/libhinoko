@@ -2,57 +2,57 @@
 #include "fw_iso_ctx_private.h"
 
 /**
- * HinokoFwIsoTx:
+ * HinokoFwIsoIt:
  * An object to transmit isochronous packet for single channel.
  *
- * A [class@FwIsoTx] transmits isochronous packets for single channel by IT context in 1394 OHCI.
+ * A [class@FwIsoIt] transmits isochronous packets for single channel by IT context in 1394 OHCI.
  * The content of packet is split to two parts; context header and context payload in a manner of
  * Linux FireWire subsystem.
  */
 typedef struct {
 	struct fw_iso_ctx_state state;
 	guint offset;
-} HinokoFwIsoTxPrivate;
+} HinokoFwIsoItPrivate;
 
 static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoTx, hinoko_fw_iso_tx, G_TYPE_OBJECT,
-			G_ADD_PRIVATE(HinokoFwIsoTx)
+G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoIt, hinoko_fw_iso_it, G_TYPE_OBJECT,
+			G_ADD_PRIVATE(HinokoFwIsoIt)
 			G_IMPLEMENT_INTERFACE(HINOKO_TYPE_FW_ISO_CTX, fw_iso_ctx_iface_init))
 
-enum fw_iso_tx_sig_type {
-	FW_ISO_TX_SIG_TYPE_IRQ = 1,
-	FW_ISO_TX_SIG_TYPE_COUNT,
+enum fw_iso_it_sig_type {
+	FW_ISO_IT_SIG_TYPE_IRQ = 1,
+	FW_ISO_IT_SIG_TYPE_COUNT,
 };
-static guint fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_COUNT] = { 0 };
+static guint fw_iso_it_sigs[FW_ISO_IT_SIG_TYPE_COUNT] = { 0 };
 
-static void fw_iso_tx_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
+static void fw_iso_it_get_property(GObject *obj, guint id, GValue *val, GParamSpec *spec)
 {
-	HinokoFwIsoTx *self = HINOKO_FW_ISO_TX(obj);
-	HinokoFwIsoTxPrivate *priv = hinoko_fw_iso_tx_get_instance_private(self);
+	HinokoFwIsoIt *self = HINOKO_FW_ISO_IT(obj);
+	HinokoFwIsoItPrivate *priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	fw_iso_ctx_state_get_property(&priv->state, obj, id, val, spec);
 }
 
-static void fw_iso_tx_finalize(GObject *obj)
+static void fw_iso_it_finalize(GObject *obj)
 {
 	hinoko_fw_iso_ctx_release(HINOKO_FW_ISO_CTX(obj));
 
-	G_OBJECT_CLASS(hinoko_fw_iso_tx_parent_class)->finalize(obj);
+	G_OBJECT_CLASS(hinoko_fw_iso_it_parent_class)->finalize(obj);
 }
 
-static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
+static void hinoko_fw_iso_it_class_init(HinokoFwIsoItClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	gobject_class->get_property = fw_iso_tx_get_property;
-	gobject_class->finalize = fw_iso_tx_finalize;
+	gobject_class->get_property = fw_iso_it_get_property;
+	gobject_class->finalize = fw_iso_it_finalize;
 
 	fw_iso_ctx_class_override_properties(gobject_class);
 
 	/**
-	 * HinokoFwIsoTx::interrupted:
-	 * @self: A [class@FwIsoTx].
+	 * HinokoFwIsoIt::interrupted:
+	 * @self: A [class@FwIsoIt].
 	 * @sec: sec part of isochronous cycle when interrupt occurs, up to 7.
 	 * @cycle: cycle part of of isochronous cycle when interrupt occurs, up to 7999.
 	 * @tstamp: (array length=tstamp_length) (element-type guint8): A series of timestamps for
@@ -69,11 +69,11 @@ static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 	 *   one quarter of memory page size (usually 4,096 / 4 = 1,024 packets).
 	 * - When application calls [method@FwIsoCtx.flush_completions] explicitly.
 	 */
-	fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ] =
+	fw_iso_it_sigs[FW_ISO_IT_SIG_TYPE_IRQ] =
 		g_signal_new("interrupted",
 			G_OBJECT_CLASS_TYPE(klass),
 			G_SIGNAL_RUN_LAST,
-			G_STRUCT_OFFSET(HinokoFwIsoTxClass, interrupted),
+			G_STRUCT_OFFSET(HinokoFwIsoItClass, interrupted),
 			NULL, NULL,
 			hinoko_sigs_marshal_VOID__UINT_UINT_POINTER_UINT_UINT,
 			G_TYPE_NONE,
@@ -81,22 +81,22 @@ static void hinoko_fw_iso_tx_class_init(HinokoFwIsoTxClass *klass)
 			G_TYPE_UINT, G_TYPE_UINT);
 }
 
-static void hinoko_fw_iso_tx_init(HinokoFwIsoTx *self)
+static void hinoko_fw_iso_it_init(HinokoFwIsoIt *self)
 {
-	HinokoFwIsoTxPrivate *priv = hinoko_fw_iso_tx_get_instance_private(self);
+	HinokoFwIsoItPrivate *priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	fw_iso_ctx_state_init(&priv->state);
 }
 
-static void fw_iso_tx_stop(HinokoFwIsoCtx *inst)
+static void fw_iso_it_stop(HinokoFwIsoCtx *inst)
 {
-	HinokoFwIsoTx *self;
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoIt *self;
+	HinokoFwIsoItPrivate *priv;
 	gboolean running;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_TX(inst));
-	self = HINOKO_FW_ISO_TX(inst);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	g_return_if_fail(HINOKO_IS_FW_ISO_IT(inst));
+	self = HINOKO_FW_ISO_IT(inst);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	running = priv->state.running;
 
@@ -106,72 +106,72 @@ static void fw_iso_tx_stop(HinokoFwIsoCtx *inst)
 		g_signal_emit_by_name(G_OBJECT(inst), STOPPED_SIGNAL_NAME, NULL);
 }
 
-void fw_iso_tx_unmap_buffer(HinokoFwIsoCtx *inst)
+void fw_iso_it_unmap_buffer(HinokoFwIsoCtx *inst)
 {
-	HinokoFwIsoTx *self;
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoIt *self;
+	HinokoFwIsoItPrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_TX(inst));
-	self = HINOKO_FW_ISO_TX(inst);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	g_return_if_fail(HINOKO_IS_FW_ISO_IT(inst));
+	self = HINOKO_FW_ISO_IT(inst);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	fw_iso_ctx_state_unmap_buffer(&priv->state);
 }
 
-static void fw_iso_tx_release(HinokoFwIsoCtx *inst)
+static void fw_iso_it_release(HinokoFwIsoCtx *inst)
 {
-	HinokoFwIsoTx *self;
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoIt *self;
+	HinokoFwIsoItPrivate *priv;
 
-	g_return_if_fail(HINOKO_IS_FW_ISO_TX(inst));
-	self = HINOKO_FW_ISO_TX(inst);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	g_return_if_fail(HINOKO_IS_FW_ISO_IT(inst));
+	self = HINOKO_FW_ISO_IT(inst);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	fw_iso_ctx_state_release(&priv->state);
 }
 
-static gboolean fw_iso_tx_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
+static gboolean fw_iso_it_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
 						 HinokoCycleTimer *const *cycle_timer,
 						 GError **error)
 {
-	HinokoFwIsoTx *self;
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoIt *self;
+	HinokoFwIsoItPrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(inst), FALSE);
-	self = HINOKO_FW_ISO_TX(inst);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IT(inst), FALSE);
+	self = HINOKO_FW_ISO_IT(inst);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	return fw_iso_ctx_state_get_cycle_timer(&priv->state, clock_id, cycle_timer, error);
 }
 
-static gboolean fw_iso_tx_flush_completions(HinokoFwIsoCtx *inst, GError **error)
+static gboolean fw_iso_it_flush_completions(HinokoFwIsoCtx *inst, GError **error)
 {
-	HinokoFwIsoTx *self;
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoIt *self;
+	HinokoFwIsoItPrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(inst), FALSE);
-	self = HINOKO_FW_ISO_TX(inst);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IT(inst), FALSE);
+	self = HINOKO_FW_ISO_IT(inst);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	return fw_iso_ctx_state_flush_completions(&priv->state, error);
 }
 
-gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
+gboolean fw_iso_it_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event *event,
 				GError **error)
 {
-	HinokoFwIsoTx *self;
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoIt *self;
+	HinokoFwIsoItPrivate *priv;
 
 	const struct fw_cdev_event_iso_interrupt *ev;
 	guint sec;
 	guint cycle;
 	unsigned int pkt_count;
 
-	g_return_val_if_fail(HINOKO_FW_ISO_TX(inst), FALSE);
+	g_return_val_if_fail(HINOKO_FW_ISO_IT(inst), FALSE);
 	g_return_val_if_fail(event->common.type == FW_CDEV_EVENT_ISO_INTERRUPT, FALSE);
 
-	self = HINOKO_FW_ISO_TX(inst);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	self = HINOKO_FW_ISO_IT(inst);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	ev = &event->iso_interrupt;
 
@@ -179,50 +179,50 @@ gboolean fw_iso_tx_handle_event(HinokoFwIsoCtx *inst, const union fw_cdev_event 
 	cycle = ohci1394_isoc_desc_tstamp_to_cycle(ev->cycle);
 	pkt_count = ev->header_length / 4;
 
-	g_signal_emit(inst, fw_iso_tx_sigs[FW_ISO_TX_SIG_TYPE_IRQ], 0, sec, cycle, ev->header,
+	g_signal_emit(inst, fw_iso_it_sigs[FW_ISO_IT_SIG_TYPE_IRQ], 0, sec, cycle, ev->header,
 		      ev->header_length, pkt_count);
 
 	return fw_iso_ctx_state_queue_chunks(&priv->state, error);
 }
 
-gboolean fw_iso_tx_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
+gboolean fw_iso_it_create_source(HinokoFwIsoCtx *inst, GSource **source, GError **error)
 {
-	HinokoFwIsoTx *self;
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoIt *self;
+	HinokoFwIsoItPrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(inst), FALSE);
-	self = HINOKO_FW_ISO_TX(inst);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IT(inst), FALSE);
+	self = HINOKO_FW_ISO_IT(inst);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
-	return fw_iso_ctx_state_create_source(&priv->state, inst, fw_iso_tx_handle_event, source,
+	return fw_iso_ctx_state_create_source(&priv->state, inst, fw_iso_it_handle_event, source,
 					      error);
 }
 
 static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 {
-	iface->stop = fw_iso_tx_stop;
-	iface->unmap_buffer = fw_iso_tx_unmap_buffer;
-	iface->release = fw_iso_tx_release;
-	iface->get_cycle_timer = fw_iso_tx_get_cycle_timer;
-	iface->flush_completions = fw_iso_tx_flush_completions;
-	iface->create_source = fw_iso_tx_create_source;
+	iface->stop = fw_iso_it_stop;
+	iface->unmap_buffer = fw_iso_it_unmap_buffer;
+	iface->release = fw_iso_it_release;
+	iface->get_cycle_timer = fw_iso_it_get_cycle_timer;
+	iface->flush_completions = fw_iso_it_flush_completions;
+	iface->create_source = fw_iso_it_create_source;
 }
 
 /**
- * hinoko_fw_iso_tx_new:
+ * hinoko_fw_iso_it_new:
  *
- * Instantiate [class@FwIsoTx] object and return the instance.
+ * Instantiate [class@FwIsoIt] object and return the instance.
  *
- * Returns: an instance of [class@FwIsoTx].
+ * Returns: an instance of [class@FwIsoIt].
  */
-HinokoFwIsoTx *hinoko_fw_iso_tx_new(void)
+HinokoFwIsoIt *hinoko_fw_iso_it_new(void)
 {
-	return g_object_new(HINOKO_TYPE_FW_ISO_TX, NULL);
+	return g_object_new(HINOKO_TYPE_FW_ISO_IT, NULL);
 }
 
 /**
- * hinoko_fw_iso_tx_allocate:
- * @self: A [class@FwIsoTx].
+ * hinoko_fw_iso_it_allocate:
+ * @self: A [class@FwIsoIt].
  * @path: A path to any Linux FireWire character device.
  * @scode: A [enum@FwScode] to indicate speed of isochronous communication.
  * @channel: An isochronous channel to transfer, up to 63.
@@ -237,23 +237,23 @@ HinokoFwIsoTx *hinoko_fw_iso_tx_new(void)
  *
  * Since: 0.7.
  */
-gboolean hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path, HinokoFwScode scode,
+gboolean hinoko_fw_iso_it_allocate(HinokoFwIsoIt *self, const char *path, HinokoFwScode scode,
 				   guint channel, guint header_size, GError **error)
 {
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoItPrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(self), FALSE);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IT(self), FALSE);
 	g_return_val_if_fail(channel <= IEEE1394_MAX_CHANNEL, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	return fw_iso_ctx_state_allocate(&priv->state, path, HINOKO_FW_ISO_CTX_MODE_IT, scode,
 					 channel, header_size, error);
 }
 
 /**
- * hinoko_fw_iso_tx_map_buffer:
- * @self: A [class@FwIsoTx].
+ * hinoko_fw_iso_it_map_buffer:
+ * @self: A [class@FwIsoIt].
  * @maximum_bytes_per_payload: The number of bytes for payload of IT context.
  * @payloads_per_buffer: The number of payloads of IT context in buffer.
  * @error: A [struct@GLib.Error].
@@ -264,22 +264,22 @@ gboolean hinoko_fw_iso_tx_allocate(HinokoFwIsoTx *self, const char *path, Hinoko
  *
  * Since: 0.7.
  */
-gboolean hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self, guint maximum_bytes_per_payload,
+gboolean hinoko_fw_iso_it_map_buffer(HinokoFwIsoIt *self, guint maximum_bytes_per_payload,
 				     guint payloads_per_buffer, GError **error)
 {
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoItPrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(self), FALSE);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IT(self), FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	return fw_iso_ctx_state_map_buffer(&priv->state, maximum_bytes_per_payload,
 					   payloads_per_buffer, error);
 }
 
 /**
- * hinoko_fw_iso_tx_start:
- * @self: A [class@FwIsoTx].
+ * hinoko_fw_iso_it_start:
+ * @self: A [class@FwIsoIt].
  * @cycle_match: (array fixed-size=2) (element-type guint16) (in) (nullable): The isochronous cycle
  *		 to start packet processing. The first element should be the second part of
  *		 isochronous cycle, up to 3. The second element should be the cycle part of
@@ -292,24 +292,24 @@ gboolean hinoko_fw_iso_tx_map_buffer(HinokoFwIsoTx *self, guint maximum_bytes_pe
  *
  * Since: 0.7.
  */
-gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match, GError **error)
+gboolean hinoko_fw_iso_it_start(HinokoFwIsoIt *self, const guint16 *cycle_match, GError **error)
 {
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoItPrivate *priv;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(self), FALSE);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IT(self), FALSE);
 	g_return_val_if_fail(cycle_match == NULL ||
 			     cycle_match[0] <= OHCI1394_IT_contextControl_cycleMatch_MAX_SEC ||
 			     cycle_match[1] <= OHCI1394_IT_contextControl_cycleMatch_MAX_CYCLE,
 			     FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	return fw_iso_ctx_state_start(&priv->state, cycle_match, 0, 0, error);
 }
 
 /**
- * hinoko_fw_iso_tx_register_packet:
- * @self: A [class@FwIsoTx].
+ * hinoko_fw_iso_it_register_packet:
+ * @self: A [class@FwIsoIt].
  * @tags: The value of tag field for isochronous packet to register.
  * @sync_code: The value of sync field in isochronous packet header for packet processing, up to 15.
  * @header: (array length=header_length) (nullable): The header of IT context for isochronous
@@ -325,24 +325,24 @@ gboolean hinoko_fw_iso_tx_start(HinokoFwIsoTx *self, const guint16 *cycle_match,
  * Register packet data with header and payload for IT context. The content of given header and
  * payload is appended into data field of isochronous packet to be sent. The caller can schedule
  * hardware interrupt to generate interrupt event. In detail, please refer to documentation about
- * [signal@FwIsoTx::interrupted].
+ * [signal@FwIsoIt::interrupted].
  *
  * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
  * Since: 0.7.
  */
-gboolean hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self, HinokoFwIsoCtxMatchFlag tags,
+gboolean hinoko_fw_iso_it_register_packet(HinokoFwIsoIt *self, HinokoFwIsoCtxMatchFlag tags,
 					  guint sync_code,
 					  const guint8 *header, guint header_length,
 					  const guint8 *payload, guint payload_length,
 					  gboolean schedule_interrupt, GError **error)
 {
-	HinokoFwIsoTxPrivate *priv;
+	HinokoFwIsoItPrivate *priv;
 	const guint8 *frames;
 	guint frame_size;
 	gboolean skip;
 
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_TX(self), FALSE);
+	g_return_val_if_fail(HINOKO_IS_FW_ISO_IT(self), FALSE);
 	g_return_val_if_fail(sync_code <= IEEE1394_MAX_SYNC_CODE, FALSE);
 	g_return_val_if_fail((header != NULL && header_length > 0) ||
 			     (header == NULL && header_length == 0), FALSE);
@@ -350,7 +350,7 @@ gboolean hinoko_fw_iso_tx_register_packet(HinokoFwIsoTx *self, HinokoFwIsoCtxMat
 			     (payload == NULL && payload_length == 0), FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
-	priv = hinoko_fw_iso_tx_get_instance_private(self);
+	priv = hinoko_fw_iso_it_get_instance_private(self);
 
 	skip = FALSE;
 	if (header_length == 0 && payload_length == 0)

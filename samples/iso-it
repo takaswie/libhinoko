@@ -9,7 +9,7 @@ from gi.repository import GLib
 gi.require_version('Hinoko', '0.0')
 from gi.repository import Hinoko
 
-class IsoTx(Hinoko.FwIsoTx):
+class IsoIt(Hinoko.FwIsoIt):
     def new(self, path, channel, maximum_bytes_per_payload, packets_per_buffer):
         # Use 8 byte header for CIP header.
         cip_header_size = 8
@@ -115,7 +115,7 @@ packets_per_buffer = 32
 packets_per_interrupt = 4
 duration = 4
 
-ctx = IsoTx()
+ctx = IsoIt()
 ctx.new('/dev/fw0', channel, maximum_bytes_per_payload, packets_per_buffer)
 
 dispatcher = GLib.MainLoop.new(None, False)

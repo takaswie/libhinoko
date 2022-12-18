@@ -17,7 +17,7 @@ IEEE 1394 bus by any language binding of GObject Introspection. The applications
 operate OHCI 1394 controllers for any isochronous context and isochronous resources. According
 to this design, this library is an application of Linux FireWire subsystem and GLib/GObject.
 
-The latest release is `0.7.4 <https://github.com/takaswie/libhinoko/releases/tag/v0.7.4>`_.
+The latest release is `0.8.0 <https://github.com/takaswie/libhinoko/releases/tag/v0.8.0>`_.
 
 Example of Python 3 with PyGobject
 ==================================

@@ -3,7 +3,7 @@ tests = [
   'fw-iso-ctx',
   'fw-iso-ir-single',
   'fw-iso-ir-multiple',
-  'fw-iso-tx',
+  'fw-iso-it',
   'fw-iso-resource',
   'fw-iso-resource-auto',
   'fw-iso-resource-once',

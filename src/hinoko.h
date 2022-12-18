@@ -18,7 +18,7 @@
 #include <fw_iso_ctx.h>
 #include <fw_iso_ir_single.h>
 #include <fw_iso_ir_multiple.h>
-#include <fw_iso_tx.h>
+#include <fw_iso_it.h>
 
 #include <fw_iso_resource.h>
 #include <fw_iso_resource_auto.h>

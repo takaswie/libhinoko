@@ -2,22 +2,20 @@
 The libhinoko project
 =====================
 
-2022/12/18
+2023/04/23
 Takashi Sakamoto
 
 Introduction
 ============
 
-This is a sister project of libhinawa.
-
-- https://github.com/alsa-project/libhinawa
+This is a sister project of `libhinawa <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/>`_.
 
 I design this library for userspace applications to transfer/receive isochronous packets on
 IEEE 1394 bus by any language binding of GObject Introspection. The applications is able to
 operate OHCI 1394 controllers for any isochronous context and isochronous resources. According
 to this design, this library is an application of Linux FireWire subsystem and GLib/GObject.
 
-The latest release is `0.8.0 <https://github.com/takaswie/libhinoko/releases/tag/v0.8.0>`_.
+The latest release is `0.8.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tag/?h=v0.8.0>`_
 
 Example of Python 3 with PyGobject
 ==================================
@@ -27,12 +25,19 @@ See scripts under ``samples`` directory
 Documentation
 =============
 
-- https://takaswie.github.io/libhinoko-docs/
+- `<https://alsa-project.github.io/gobject-introspection-docs/hinoko/>`_
 
 License
 =======
 
 - GNU Lesser General Public License version 2.1 or later
+
+Repository location
+===================
+
+- Upstream is `<https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/>`_.
+* Mirror at `<https://github.com/takaswie/libhinoko>`_ for user support and continuous
+  integration.
 
 Dependencies
 ============
@@ -81,7 +86,8 @@ Supplemental information for language bindings
 
 * `PyGObject <https://pygobject.readthedocs.io/>`_ is a dynamic loader for libraries compatible
   with g-i.
-* `hinoko-rs <https://github.com/takaswie/hinoko-rs>`_ includes creates to use these libraries.
+* `hinoko-rs <https://git.kernel.org/pub/scm/libs/ieee1394/hinoko-rs.git/>`_ includes creates to
+  use these libraries.
 
 Loss of backward compatibility between v0.7/v0.8 releases
 =========================================================

@@ -1,11 +1,14 @@
 [library]
 version = "@VERSION@"
-description = "libhinoko"
+description = "The library to operate Linux firewire character device for IEEE 1394 isochronous communication"
 authors = "Takashi Sakamoto"
 license = "LGPL-2.1-or-later"
 website_url = "https://alsa-project.github.io/gobject-introspection-docs/hinoko/"
-browse_url = "https://github.com/takaswie/libhinoko"
-repository_url = "https://github.com/takaswie/libhinoko.git"
+docs_url = "https://alsa-project.github.io/gobject-introspection-docs/hinoko/"
+browse_url = "https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/"
+repository_url = "https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/"
+devhelp=true
+search_index=true
 
 dependencies = [
   "GLib-2.0",
@@ -23,8 +26,8 @@ description = "The base type system and object class"
 docs_url = "https://docs.gtk.org/gobject/"
 
 [source-location]
-base_url = "https://github.com/takaswie/libhinoko/blob/main/"
-file_format = "{filename}#L{line}"
+base_url = "https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tree/"
+file_format = "{filename}?h=v@VERSION@#n{line}"
 
 [extra]
 content_files = [

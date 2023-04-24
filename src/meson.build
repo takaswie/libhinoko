@@ -78,7 +78,7 @@ install_headers(headers,
 
 pkg = import('pkgconfig')
 pkg.generate(myself,
-  description: 'A library to operate OHCI 1394 controller for isochronous stream',
+  description: 'The library to operate OHCI 1394 hardware for isoochronous communication in IEEE 1394 bus',
   subdirs: inc_dir,
 )
 

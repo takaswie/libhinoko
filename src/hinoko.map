@@ -8,12 +8,6 @@ HINOKO_0_1_0 {
 };
 
 HINOKO_0_3_0 {
-  global:
-    "hinoko_cycle_timer_get_type";
-    "hinoko_cycle_timer_new";
-    "hinoko_cycle_timer_get_timestamp";
-    "hinoko_cycle_timer_get_clock_id";
-    "hinoko_cycle_timer_get_cycle_timer";
 } HINOKO_0_1_0;
 
 HINOKO_0_4_0 {

@@ -606,6 +606,39 @@ gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GErr
 }
 
 /**
+ * fw_iso_ctx_state_read_cycle_time:
+ * @state: A [struct@FwIsoCtxState].
+ * @clock_id: The numeric ID of clock source for the reference timestamp. One CLOCK_REALTIME(0),
+ *	      CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(4) is available in UAPI of Linux kernel.
+ * @cycle_time: (inout): A [struct@Hinawa.CycleTime] to store data of cycle time.
+ * @error: A [struct@GLib.Error].
+ *
+ * Retrieve the value of cycle time register. This method call is available once any isochronous
+ * context is created.
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ */
+gboolean fw_iso_ctx_state_read_cycle_time(struct fw_iso_ctx_state *state, gint clock_id,
+					  HinawaCycleTime *const *cycle_time, GError **error)
+{
+	g_return_val_if_fail(cycle_time != NULL && *cycle_time != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	if (state->fd < 0) {
+		generate_fw_iso_ctx_error_coded(error, HINOKO_FW_ISO_CTX_ERROR_NOT_ALLOCATED);
+		return FALSE;
+	}
+
+	(*cycle_time)->clk_id = clock_id;
+	if (ioctl(state->fd, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_time) < 0) {
+		generate_fw_iso_ctx_error_ioctl(error, errno, FW_CDEV_IOC_GET_CYCLE_TIMER2);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+/**
  * fw_iso_ctx_state_get_cycle_timer:
  * @state: A [struct@FwIsoCtxState].
  * @clock_id: The numeric ID of clock source for the reference timestamp. One CLOCK_REALTIME(0),

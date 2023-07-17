@@ -84,3 +84,7 @@ HINOKO_0_8_0 {
     "hinoko_fw_iso_it_register_packet";
     "hinoko_fw_iso_it_start";
 } HINOKO_0_7_0;
+
+HINOKO_0_9_0 {
+    "hinoko_fw_iso_ctx_read_cycle_time";
+} HINOKO_0_8_0;

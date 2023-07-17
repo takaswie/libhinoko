@@ -41,7 +41,6 @@ HINOKO_0_7_0 {
     "hinoko_fw_iso_ctx_stop";
     "hinoko_fw_iso_ctx_unmap_buffer";
     "hinoko_fw_iso_ctx_release";
-    "hinoko_fw_iso_ctx_get_cycle_timer";
     "hinoko_fw_iso_ctx_create_source";
     "hinoko_fw_iso_ctx_flush_completions";
 

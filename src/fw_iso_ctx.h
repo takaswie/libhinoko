@@ -67,24 +67,6 @@ struct _HinokoFwIsoCtxInterface {
 				    HinawaCycleTime *const *cycle_time, GError **error);
 
 	/**
-	 * HinokoFwIsoCtxInterface::get_cycle_timer:
-	 * @self: A [iface@FwIsoCtx].
-	 * @clock_id: The numeric ID of clock source for the reference timestamp. One CLOCK_REALTIME(0),
-	 *	      CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(4) is available in UAPI of Linux kernel.
-	 * @cycle_timer: (inout): A [struct@CycleTimer] to store data of cycle timer.
-	 * @error: A [struct@GLib.Error].
-	 *
-	 * Virtual function to tetrieve the value of cycle timer register. This method call is
-	 * available once any isochronous context is created.
-	 *
-	 * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
-	 *
-	 * Since: 0.7.
-	 */
-	gboolean (*get_cycle_timer)(HinokoFwIsoCtx *self, gint clock_id,
-				    HinokoCycleTimer *const *cycle_timer, GError **error);
-
-	/**
 	 * HinokoFwIsoCtxInterface::flush_completions:
 	 * @self: A [iface@FwIsoCtx].
 	 * @error: A [struct@GLib.Error].
@@ -133,9 +115,6 @@ void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self);
 
 gboolean hinoko_fw_iso_ctx_read_cycle_time(HinokoFwIsoCtx *self, gint clock_id,
 					   HinawaCycleTime *const *cycle_time, GError **error);
-
-gboolean hinoko_fw_iso_ctx_get_cycle_timer(HinokoFwIsoCtx *self, gint clock_id,
-					   HinokoCycleTimer *const *cycle_timer, GError **error);
 
 gboolean hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GError **error);
 

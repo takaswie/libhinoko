@@ -2,20 +2,46 @@ name: Build test
 
 on: [push, pull_request]
 
+env:
+  KERNEL_ORG_WORKING_PATH: ${{ github.workspace }}/../kernel.org
+  LIBHINAWA_BUILD_PATH: $KERNEL_ORG_WORKING_PATH/libhinawa
+  LIBHINAWA_REPOSITORY_URL: https://github.com/alsa-project/libhinawa.git
+  LIBHINAWA_TAG: 2.6.0
+
 jobs:
   build_in_fedora_amd64_on_docker:
     runs-on: ubuntu-latest
     container:
       image: fedora:rawhide
     steps:
-    - name: Checkout repository.
-      uses: actions/checkout@v3
     - name: Prepare build environment.
       run: |
         dnf -y upgrade
         dnf -y install @development-tools
         dnf -y install meson gobject-introspection-devel systemd-devel
         dnf -y install gi-docgen python3-gobject
+    # Satisfy the dependency on libhinawa.
+    - name: make directory specific to software in kernel.org.
+      run: |
+        mkdir $KERNEL_ORG_WORKING_PATH
+    - name: Clone repository of libhinawa.
+      run: |
+        git clone --depth 1 --branch "${LIBHINAWA_TAG}" "${LIBHINAWA_REPOSITORY_URL}" "${LIBHINAWA_BUILD_PATH}"
+    - name: Initialize to build libhinawa.
+      run: |
+        cd "${LIBHINAWA_BUILD_PATH}"
+        meson setup --prefix=/usr build
+    - name: Install libhinawa.
+      run: |
+        cd "${LIBHINAWA_BUILD_PATH}"
+        meson install -C build
+    - name: Test installation of libhinawa.
+      run: |
+        cd "${LIBHINAWA_BUILD_PATH}"
+        python3 tests/fw-node
+    # Test to build libhinoko.
+    - name: Checkout repository.
+      uses: actions/checkout@v3
     - name: Initialization for build.
       run: |
         meson --prefix=/tmp. -Ddoc=true -Dwarning_level=3 . build
@@ -37,8 +63,6 @@ jobs:
     container:
       image: ubuntu:latest
     steps:
-    - name: Checkout repository.
-      uses: actions/checkout@v3
     - name: Prepare build environment.
       run: |
         DEBIAN_FRONTEND=noninteractive apt-get update
@@ -46,6 +70,28 @@ jobs:
         DEBIAN_FRONTEND=noninteractive apt-get install -y git build-essential
         DEBIAN_FRONTEND=noninteractive apt-get install -y meson ninja-build libglib2.0-dev gobject-introspection libgirepository1.0-dev
         DEBIAN_FRONTEND=noninteractive apt-get install -y gi-docgen python3-gi
+    # Satisfy the dependency on libhinawa.
+    - name: make directory specific to software in kernel.org.
+      run: |
+        mkdir $KERNEL_ORG_WORKING_PATH
+    - name: Clone repository of libhinawa.
+      run: |
+        git clone --depth 1 --branch "${LIBHINAWA_TAG}" "${LIBHINAWA_REPOSITORY_URL}" "${LIBHINAWA_BUILD_PATH}"
+    - name: Initialize to build libhinawa.
+      run: |
+        cd "${LIBHINAWA_BUILD_PATH}"
+        meson setup --prefix=/usr build
+    - name: Install libhinawa.
+      run: |
+        cd "${LIBHINAWA_BUILD_PATH}"
+        meson install -C build
+    - name: Test installation of libhinawa.
+      run: |
+        cd "${LIBHINAWA_BUILD_PATH}"
+        python3 tests/fw-node
+    # Test to build libhinoko.
+    - name: Checkout repository.
+      uses: actions/checkout@v3
     - name: Initialization for build.
       run: |
         meson --prefix=/tmp. -Ddoc=true -Dwarning_level=3 . build

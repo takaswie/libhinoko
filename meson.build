@@ -9,6 +9,10 @@ major_version = version[0].to_int()
 minor_version = version[1].to_int()
 micro_version = version[2].to_int()
 
+hinawa_dependency = dependency('hinawa',
+  version: '>=2.6.0'
+)
+
 subdir('src')
 subdir('tests')
 

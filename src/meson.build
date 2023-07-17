@@ -1,9 +1,11 @@
 # Depends on glib-2.0 and gobject-2.0.
-gobject = dependency('gobject-2.0',
+gobject_dependency = dependency('gobject-2.0',
   version: '>=2.44.0'
 )
+
 dependencies = [
-  gobject,
+  gobject_dependency,
+  hinawa_dependency,
 ]
 
 sources = [
@@ -93,6 +95,7 @@ hinoko_gir = gnome.generate_gir(myself,
   includes: [
     'GLib-2.0',
     'GObject-2.0',
+    'Hinawa-3.0',
   ],
   header: 'hinoko.h',
   install: true,

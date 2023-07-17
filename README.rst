@@ -2,7 +2,7 @@
 The libhinoko project
 =====================
 
-2023/04/23
+2023/07/17
 Takashi Sakamoto
 
 Introduction
@@ -15,7 +15,7 @@ IEEE 1394 bus by any language binding of GObject Introspection. The applications
 operate OHCI 1394 controllers for any isochronous context and isochronous resources. According
 to this design, this library is an application of Linux FireWire subsystem and GLib/GObject.
 
-The latest release is `0.8.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tag/?h=v0.8.0>`_
+The latest release is `0.9.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tag/?h=v0.9.0>`_
 
 Example of Python 3 with PyGobject
 ==================================
@@ -44,6 +44,7 @@ Dependencies
 
 - Glib 2.44.0 or later
 - GObject Introspection 1.32.1 or later
+- Libhinawa 2.6.0 or later
 - Linux kernel 3.4 or later
 
 Requirements to build
@@ -88,6 +89,17 @@ Supplemental information for language bindings
   with g-i.
 * `hinoko-rs <https://git.kernel.org/pub/scm/libs/ieee1394/hinoko-rs.git/>`_ includes creates to
   use these libraries.
+
+Loss of backward compatibility between v0.8/v0.9 releases
+=========================================================
+
+At v0.9, the library newly depends on
+`libhinawa <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/>`_ to use
+`Hinawa.CycleTime <https://alsa-project.github.io/gobject-introspection-docs/hinawa/struct.CycleTime.html>`_
+for
+`Hinoko.FwIsoCtx.read_cycle_time() <https://alsa-project.github.io/gobject-introspection-docs/hinoko/method.FwIsoCtx.read_cycle_time.html>`_
+abstract method. The previous implementation, ``Hinoko.CycleTimer`` and
+``Hinoko.FwIsoCtx.get_cycle_timer()``, is unused anymore and dropped.
 
 Loss of backward compatibility between v0.7/v0.8 releases
 =========================================================

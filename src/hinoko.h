@@ -15,8 +15,6 @@
 #include <hinoko_enum_types.h>
 #include <hinoko_enums.h>
 
-#include <cycle_timer.h>
-
 #include <fw_iso_ctx.h>
 #include <fw_iso_ir_single.h>
 #include <fw_iso_ir_multiple.h>

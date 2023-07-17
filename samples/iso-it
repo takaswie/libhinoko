@@ -4,10 +4,8 @@ from threading import Timer
 from struct import unpack,pack
 
 import gi
-gi.require_version('GLib', '2.0')
-from gi.repository import GLib
-gi.require_version('Hinoko', '0.0')
-from gi.repository import Hinoko
+gi.require_versions({'GLib': '2.0', 'Hinawa': '3.0', 'Hinoko': '0.0'})
+from gi.repository import GLib, Hinawa, Hinoko
 
 class IsoIt(Hinoko.FwIsoIt):
     def new(self, path, channel, maximum_bytes_per_payload, packets_per_buffer):
@@ -47,10 +45,10 @@ class IsoIt(Hinoko.FwIsoIt):
         self.sy = 0
 
         # Start 100 msec later. Scheduling is available with lower 2 bits of second field.
-        cycle_timer = Hinoko.CycleTimer.new()
+        cycle_time = Hinawa.CycleTime.new()
         clock_id = 4    # CLOCK_MONOTONIC_RAW
-        _, cycle_timer = self.get_cycle_timer(clock_id, cycle_timer)
-        (sec, cycle, tick) = cycle_timer.get_cycle_timer()
+        _, cycle_time = self.read_cycle_time(clock_id, cycle_time)
+        (sec, cycle, tick) = cycle_time.get_fields()
         sec, cycle = self.__increment_cycle(sec, cycle, 800)
         cycle_match = (sec & 0x3, cycle)
 

@@ -186,20 +186,6 @@ static gboolean fw_iso_ir_multiple_read_cycle_time(HinokoFwIsoCtx *inst, gint cl
 	return fw_iso_ctx_state_read_cycle_time(&priv->state, clock_id, cycle_time, error);
 }
 
-static gboolean fw_iso_ir_multiple_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
-						 HinokoCycleTimer *const *cycle_timer,
-						 GError **error)
-{
-	HinokoFwIsoIrMultiple *self;
-	HinokoFwIsoIrMultiplePrivate *priv;
-
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_IR_MULTIPLE(inst), FALSE);
-	self = HINOKO_FW_ISO_IR_MULTIPLE(inst);
-	priv = hinoko_fw_iso_ir_multiple_get_instance_private(self);
-
-	return fw_iso_ctx_state_get_cycle_timer(&priv->state, clock_id, cycle_timer, error);
-}
-
 static gboolean fw_iso_ir_multiple_flush_completions(HinokoFwIsoCtx *inst, GError **error)
 {
 	HinokoFwIsoIrMultiple *self;
@@ -338,7 +324,6 @@ static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 	iface->unmap_buffer = fw_iso_ir_multiple_unmap_buffer;
 	iface->release = fw_iso_ir_multiple_release;
 	iface->read_cycle_time = fw_iso_ir_multiple_read_cycle_time;
-	iface->get_cycle_timer = fw_iso_ir_multiple_get_cycle_timer;
 	iface->flush_completions = fw_iso_ir_multiple_flush_completions;
 	iface->create_source = fw_iso_ir_multiple_create_source;
 }

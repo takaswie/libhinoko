@@ -26,7 +26,6 @@ methods = (
     'unmap_buffer',
     'release',
     'read_cycle_time',
-    'get_cycle_timer',
     'create_source',
     'flush_completions',
 )
@@ -37,7 +36,6 @@ vmethods = (
     'do_unmap_buffer',
     'do_release',
     'do_read_cycle_time',
-    'do_get_cycle_timer',
     'do_flush_completions',
     'do_create_source',
     'do_stopped',

@@ -143,20 +143,6 @@ static gboolean fw_iso_it_read_cycle_time(HinokoFwIsoCtx *inst, gint clock_id,
 	return fw_iso_ctx_state_read_cycle_time(&priv->state, clock_id, cycle_time, error);
 }
 
-static gboolean fw_iso_it_get_cycle_timer(HinokoFwIsoCtx *inst, gint clock_id,
-						 HinokoCycleTimer *const *cycle_timer,
-						 GError **error)
-{
-	HinokoFwIsoIt *self;
-	HinokoFwIsoItPrivate *priv;
-
-	g_return_val_if_fail(HINOKO_IS_FW_ISO_IT(inst), FALSE);
-	self = HINOKO_FW_ISO_IT(inst);
-	priv = hinoko_fw_iso_it_get_instance_private(self);
-
-	return fw_iso_ctx_state_get_cycle_timer(&priv->state, clock_id, cycle_timer, error);
-}
-
 static gboolean fw_iso_it_flush_completions(HinokoFwIsoCtx *inst, GError **error)
 {
 	HinokoFwIsoIt *self;
@@ -217,7 +203,6 @@ static void fw_iso_ctx_iface_init(HinokoFwIsoCtxInterface *iface)
 	iface->unmap_buffer = fw_iso_it_unmap_buffer;
 	iface->release = fw_iso_it_release;
 	iface->read_cycle_time = fw_iso_it_read_cycle_time;
-	iface->get_cycle_timer = fw_iso_it_get_cycle_timer;
 	iface->flush_completions = fw_iso_it_flush_completions;
 	iface->create_source = fw_iso_it_create_source;
 }

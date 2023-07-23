@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-#ifndef __HINOKO_ENUM_TYPES_H__
-#define __HINOKO_ENUM_TYPES_H__
+#ifndef __ORG_KERNEL_HINOKO_ENUM_TYPES_H__
+#define __ORG_KERNEL_HINOKO_ENUM_TYPES_H__
 
 G_BEGIN_DECLS
 

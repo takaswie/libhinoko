@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-#ifndef __HINOKO_FW_ISO_IR_SINGLE_H__
-#define __HINOKO_FW_ISO_IR_SINGLE_H__
+#ifndef __ORG_KERNEL_HINOKO_FW_ISO_IR_SINGLE_H__
+#define __ORG_KERNEL_HINOKO_FW_ISO_IR_SINGLE_H__
 
 #include <hinoko.h>
 

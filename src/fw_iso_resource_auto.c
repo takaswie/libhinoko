@@ -134,7 +134,7 @@ static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass 
 	 *
 	 * Whether to be allocate isochronous resource or not.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_IS_ALLOCATED,
 		g_param_spec_boolean("is-allocated", "is-allocated",
@@ -146,7 +146,7 @@ static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass 
 	 *
 	 * The allocated channel number.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_CHANNEL,
 		g_param_spec_uint("channel", "channel",
@@ -159,7 +159,7 @@ static void hinoko_fw_iso_resource_auto_class_init(HinokoFwIsoResourceAutoClass 
 	 *
 	 * The allocated amount of bandwidth.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_object_class_install_property(gobject_class, FW_ISO_RESOURCE_AUTO_PROP_BANDWIDTH,
 		g_param_spec_uint("bandwidth", "bandwidth",
@@ -370,7 +370,7 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
  *
  * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
 						      GError **error)
@@ -423,7 +423,7 @@ end:
  *
  * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
 						     guint timeout_ms, GError **error)

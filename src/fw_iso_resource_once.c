@@ -215,7 +215,7 @@ HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new()
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self, guint channel,
 						      guint bandwidth, GError **error)
@@ -260,7 +260,7 @@ gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *s
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *self, guint channel,
 						     guint bandwidth, guint timeout_ms,

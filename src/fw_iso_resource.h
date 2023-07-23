@@ -30,7 +30,7 @@ struct _HinokoFwIsoResourceInterface {
 	 *
 	 * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	gboolean (*open)(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
 			 GError **error);
@@ -49,7 +49,7 @@ struct _HinokoFwIsoResourceInterface {
 	 *
 	 * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	gboolean (*allocate_async)(HinokoFwIsoResource *self, const guint8 *channel_candidates,
 				   gsize channel_candidates_count, guint bandwidth, GError **error);
@@ -65,7 +65,7 @@ struct _HinokoFwIsoResourceInterface {
 	 *
 	 * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	gboolean (*create_source)(HinokoFwIsoResource *self, GSource **source, GError **error);
 
@@ -79,7 +79,7 @@ struct _HinokoFwIsoResourceInterface {
 	 *
 	 * Closure for the [signal@FwIsoResource::allocated] signal.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	void (*allocated)(HinokoFwIsoResource *self, guint channel,
 			  guint bandwidth, const GError *error);
@@ -94,7 +94,7 @@ struct _HinokoFwIsoResourceInterface {
 	 *
 	 * Closure for the [signal@FwIsoResource::deallocated] signal.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	void (*deallocated)(HinokoFwIsoResource *self, guint channel,
 			    guint bandwidth, const GError *error);

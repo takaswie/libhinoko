@@ -23,7 +23,7 @@ struct _HinokoFwIsoCtxInterface {
 	 *
 	 * Virtual function to stop isochronous context.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	void (*stop)(HinokoFwIsoCtx *self);
 
@@ -34,7 +34,7 @@ struct _HinokoFwIsoCtxInterface {
 	 * Virtual function to unmap intermediate buffer shared with 1394 OHCI controller for the
 	 * context.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	void (*unmap_buffer)(HinokoFwIsoCtx *self);
 
@@ -44,7 +44,7 @@ struct _HinokoFwIsoCtxInterface {
 	 *
 	 * Virtual function to release the contest from 1394 OHCI controller.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	void (*release)(HinokoFwIsoCtx *self);
 
@@ -61,7 +61,7 @@ struct _HinokoFwIsoCtxInterface {
 	 *
 	 * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
 	 *
-	 * Since: 0.9.
+	 * Since: 0.9
 	 */
 	gboolean (*read_cycle_time)(HinokoFwIsoCtx *self, gint clock_id,
 				    HinawaCycleTime *const *cycle_time, GError **error);
@@ -78,7 +78,7 @@ struct _HinokoFwIsoCtxInterface {
 	 *
 	 * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	gboolean (*flush_completions)(HinokoFwIsoCtx *self, GError **error);
 
@@ -93,7 +93,7 @@ struct _HinokoFwIsoCtxInterface {
 	 *
 	 * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	gboolean (*create_source)(HinokoFwIsoCtx *self, GSource **source, GError **error);
 

@@ -256,7 +256,7 @@ HinokoFwIsoIrSingle *hinoko_fw_iso_ir_single_new(void)
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_ir_single_allocate(HinokoFwIsoIrSingle *self, const char *path,
 					  guint channel, guint header_size, GError **error)
@@ -290,7 +290,7 @@ gboolean hinoko_fw_iso_ir_single_allocate(HinokoFwIsoIrSingle *self, const char 
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_ir_single_map_buffer(HinokoFwIsoIrSingle *self,
 					    guint maximum_bytes_per_payload,
@@ -319,7 +319,7 @@ gboolean hinoko_fw_iso_ir_single_map_buffer(HinokoFwIsoIrSingle *self,
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_ir_single_register_packet(HinokoFwIsoIrSingle *self,
 						 gboolean schedule_interrupt, GError **error)
@@ -348,7 +348,7 @@ gboolean hinoko_fw_iso_ir_single_register_packet(HinokoFwIsoIrSingle *self,
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_ir_single_start(HinokoFwIsoIrSingle *self, const guint16 *cycle_match,
 				       guint32 sync_code, HinokoFwIsoCtxMatchFlag tags, GError **error)
@@ -381,7 +381,7 @@ gboolean hinoko_fw_iso_ir_single_start(HinokoFwIsoIrSingle *self, const guint16 
  * Retrieve payload of IR context for a handled packet corresponding to index at the event of
  * interrupt.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 void hinoko_fw_iso_ir_single_get_payload(HinokoFwIsoIrSingle *self, guint index,
 					 const guint8 **payload, guint *length)

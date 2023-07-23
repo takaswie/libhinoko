@@ -234,7 +234,7 @@ HinokoFwIsoIt *hinoko_fw_iso_it_new(void)
  *
  * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_it_allocate(HinokoFwIsoIt *self, const char *path, HinokoFwScode scode,
 				   guint channel, guint header_size, GError **error)
@@ -261,7 +261,7 @@ gboolean hinoko_fw_iso_it_allocate(HinokoFwIsoIt *self, const char *path, Hinoko
  *
  * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_it_map_buffer(HinokoFwIsoIt *self, guint maximum_bytes_per_payload,
 				     guint payloads_per_buffer, GError **error)
@@ -289,7 +289,7 @@ gboolean hinoko_fw_iso_it_map_buffer(HinokoFwIsoIt *self, guint maximum_bytes_pe
  *
  * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_it_start(HinokoFwIsoIt *self, const guint16 *cycle_match, GError **error)
 {
@@ -328,7 +328,7 @@ gboolean hinoko_fw_iso_it_start(HinokoFwIsoIt *self, const guint16 *cycle_match,
  *
  * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_it_register_packet(HinokoFwIsoIt *self, HinokoFwIsoCtxMatchFlag tags,
 					  guint sync_code,

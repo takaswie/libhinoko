@@ -8,7 +8,7 @@
  * The [iface@FwIsoResource] should be implemented in GObject-derived object to listen events of
  * isochronous resource allocation and deallocation.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 
 G_DEFINE_INTERFACE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_OBJECT)
@@ -66,7 +66,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
 	 *
 	 * The numeric value of current generation for bus topology.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_object_interface_install_property(iface,
 		g_param_spec_uint(GENERATION_PROP_NAME, "generation",
@@ -85,7 +85,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
 	 *
 	 * Emitted when allocation of isochronous resource finishes.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_signal_new(ALLOCATED_SIGNAL_NAME,
 		     G_TYPE_FROM_INTERFACE(iface),
@@ -106,7 +106,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
 	 *
 	 * Emitted when deallocation of isochronous resource finishes.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_signal_new(DEALLOCATED_SIGNAL_NAME,
 		     G_TYPE_FROM_INTERFACE(iface),
@@ -132,7 +132,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
  *
  * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *path, gint open_flag,
 				     GError **error)
@@ -155,7 +155,7 @@ gboolean hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *pat
  *
  * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource **source,
 					      GError **error)
@@ -183,7 +183,7 @@ gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
 					       const guint8 *channel_candidates,
@@ -217,7 +217,7 @@ gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_resource_allocate_sync(HinokoFwIsoResource *self,
 					      const guint8 *channel_candidates,

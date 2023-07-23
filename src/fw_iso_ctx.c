@@ -70,7 +70,7 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 	 *
 	 * The number of bytes per chunk in buffer.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_object_interface_install_property(iface,
 		g_param_spec_uint(BYTES_PER_CHUNK_PROP_NAME, "bytes-per-chunk",
@@ -83,7 +83,7 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 	 *
 	 * The number of chunks per buffer.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_object_interface_install_property(iface,
 		g_param_spec_uint(CHUNKS_PER_BUFFER_PROP_NAME, "chunks-per-buffer",
@@ -98,7 +98,7 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
 	 *
 	 * Emitted when isochronous context is stopped.
 	 *
-	 * Since: 0.7.
+	 * Since: 0.7
 	 */
 	g_signal_new(STOPPED_SIGNAL_NAME,
 		G_TYPE_FROM_INTERFACE(iface),
@@ -122,7 +122,7 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.9.
+ * Since: 0.9
  */
 gboolean hinoko_fw_iso_ctx_read_cycle_time(HinokoFwIsoCtx *self, gint clock_id,
 					   HinawaCycleTime *const *cycle_time, GError **error)
@@ -145,7 +145,7 @@ gboolean hinoko_fw_iso_ctx_read_cycle_time(HinokoFwIsoCtx *self, gint clock_id,
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GError **error)
 {
@@ -162,7 +162,7 @@ gboolean hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source,
  *
  * Stop isochronous context.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
 {
@@ -177,7 +177,7 @@ void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
  *
  * Unmap intermediate buffer shared with 1394 OHCI controller for the context.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
 {
@@ -193,7 +193,7 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
  *
  * Release the contest from 1394 OHCI controller.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
 {
@@ -214,7 +214,7 @@ void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self)
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7.
+ * Since: 0.7
  */
 gboolean hinoko_fw_iso_ctx_flush_completions(HinokoFwIsoCtx *self, GError **error)
 {

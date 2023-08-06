@@ -85,9 +85,9 @@ You can see documentation files under ``(directory-to-install)/share/doc/hinoko/
 Supplemental information for language bindings
 ==============================================
 
-* `PyGObject <https://pygobject.readthedocs.io/>`_ is a dynamic loader for libraries compatible
-  with g-i.
-* `hinoko-rs <https://git.kernel.org/pub/scm/libs/ieee1394/hinoko-rs.git/>`_ includes creates to
+* `PyGObject <https://pygobject.readthedocs.io/>`_ is a dynamic loader in Python 3 language for
+  libraries compatible with g-i.
+* `hinoko-rs <https://git.kernel.org/pub/scm/libs/ieee1394/hinoko-rs.git/>`_ includes crates to
   use these libraries.
 
 Loss of backward compatibility between v0.8/v0.9 releases

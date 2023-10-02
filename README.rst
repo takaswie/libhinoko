@@ -2,7 +2,7 @@
 The libhinoko project
 =====================
 
-2023/07/17
+2023/10/01
 Takashi Sakamoto
 
 Introduction
@@ -89,6 +89,39 @@ Supplemental information for language bindings
   libraries compatible with g-i.
 * `hinoko-rs <https://git.kernel.org/pub/scm/libs/ieee1394/hinoko-rs.git/>`_ includes crates to
   use these libraries.
+
+Meson subproject
+================
+
+This is a sample of wrap file to satisfy dependency on libhinoko by
+`Meson subprojects <https://mesonbuild.com/Subprojects.html>`_.
+
+::
+
+    $ cat subproject/hinoko.wrap
+    [wrap-git]
+    directory = hinoko
+    url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git
+    revision = v0.9.0
+    depth = 1
+    
+    [provide]
+    hinoko = hinoko_dep
+
+After installation of the wrap file, the dependency can be solved by ``hinoko`` name since it is
+common in both pkg-config and the wrap file. The implicit or explicit fallback to subproject is
+available.
+
+::
+
+    $ cat meson.build
+    hinoko_dependency = dependency('hinoko',
+      version: '>=0.9.0'
+    )
+
+In the case of subproject, the wrap file for ``hinawa`` should be installed as well, since
+``hinoko`` depends on it. For ``hinawa.wrap``, please refer to README of
+[libhinawa](https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/).
 
 Loss of backward compatibility between v0.8/v0.9 releases
 =========================================================

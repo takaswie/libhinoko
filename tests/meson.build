@@ -10,9 +10,16 @@ tests = [
   'hinoko-functions',
 ]
 
+ld_library_paths = [builddir]
+gi_typelib_path = [builddir]
+if hinawa_is_subproject
+  ld_library_paths += hinawa_gir_dir
+  gi_typelib_path += hinawa_gir_dir
+endif
+
 envs = environment()
-envs.append('LD_LIBRARY_PATH', builddir, separator : ':')
-envs.append('GI_TYPELIB_PATH', builddir, separator : ':')
+envs.append('LD_LIBRARY_PATH', ld_library_paths, separator : ':')
+envs.append('GI_TYPELIB_PATH', gi_typelib_path, separator : ':')
 
 foreach test : tests
   name = test
@@ -20,5 +27,6 @@ foreach test : tests
   prog = find_program(script)
   test(name, prog,
     env: envs,
+    depends: hinoko_gir,
   )
 endforeach

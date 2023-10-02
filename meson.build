@@ -13,6 +13,11 @@ hinawa_dependency = dependency('hinawa',
   version: '>=2.6.0'
 )
 
+hinawa_is_subproject = hinawa_dependency.type_name() != 'pkgconfig'
+if hinawa_is_subproject
+  hinawa_gir_dir = join_paths(meson.build_root(), 'subprojects', 'libhinawa', 'src')
+endif
+
 subdir('src')
 subdir('tests')
 

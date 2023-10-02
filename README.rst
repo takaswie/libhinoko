@@ -2,7 +2,7 @@
 The libhinoko project
 =====================
 
-2023/10/01
+2023/10/03
 Takashi Sakamoto
 
 Introduction
@@ -60,7 +60,7 @@ How to build
 
 ::
 
-    $ meson (--prefix=directory-to-install) build
+    $ meson setup (--prefix=directory-to-install) build
     $ meson compile -C build
     $ meson install -C build
     ($ meson test -C build)
@@ -102,7 +102,7 @@ This is a sample of wrap file to satisfy dependency on libhinoko by
     [wrap-git]
     directory = hinoko
     url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git
-    revision = v0.9.0
+    revision = v0.9.1
     depth = 1
     
     [provide]
@@ -116,7 +116,7 @@ available.
 
     $ cat meson.build
     hinoko_dependency = dependency('hinoko',
-      version: '>=0.9.0'
+      version: '>=0.9.1'
     )
 
 In the case of subproject, the wrap file for ``hinawa`` should be installed as well, since

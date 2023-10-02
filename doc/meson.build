@@ -18,6 +18,11 @@ dependency('gi-docgen',
 )
 gidocgen = find_program('gi-docgen')
 
+subproject_dependent_args = []
+if hinawa_is_subproject
+  subproject_dependent_args = ['--add-include-path', hinawa_gir_dir]
+endif
+
 doc_dir = meson.project_name()
 
 custom_target('hinoko-doc',
@@ -26,13 +31,14 @@ custom_target('hinoko-doc',
   command: [
     gidocgen,
     'generate',
+    subproject_dependent_args,
     '--no-namespace-dir',
     '--config=@INPUT0@',
     '--output-dir=@OUTPUT@',
     '--content-dir=@0@'.format(meson.current_source_dir()),
     '@INPUT1@',
   ],
-  depend_files: [ ext_contents ],
+  depend_files: ext_contents,
   build_by_default: true,
   install: true,
   install_dir: join_paths(get_option('datadir'), 'doc'),

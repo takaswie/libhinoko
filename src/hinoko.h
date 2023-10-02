@@ -8,7 +8,7 @@
 #include <linux/firewire-cdev.h>
 #include <linux/firewire-constants.h>
 
-#include <libhinawa/hinawa.h>
+#include <hinawa.h>
 
 #include <hinoko_sigs_marshal.h>
 

@@ -1,7 +1,7 @@
 project('hinoko', 'c',
   version: '0.9.1',
   license: 'LGPL-2.1+',
-  meson_version: '>= 0.54.0',
+  meson_version: '>= 0.58.0',
 )
 
 version = meson.project_version().split('.')
@@ -15,7 +15,7 @@ hinawa_dependency = dependency('hinawa',
 
 hinawa_is_subproject = hinawa_dependency.type_name() != 'pkgconfig'
 if hinawa_is_subproject
-  hinawa_gir_dir = join_paths(meson.build_root(), 'subprojects', 'libhinawa', 'src')
+  hinawa_gir_dir = join_paths(meson.global_build_root(), 'subprojects', 'libhinawa', 'src')
 endif
 
 subdir('src')

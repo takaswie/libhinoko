@@ -1,7 +1,7 @@
 project('hinoko', 'c',
   version: '0.9.1',
   license: 'LGPL-2.1+',
-  meson_version: '>= 0.46.0',
+  meson_version: '>= 0.54.0',
 )
 
 version = meson.project_version().split('.')

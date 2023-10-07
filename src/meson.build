@@ -99,9 +99,6 @@ hinoko_gir = gnome.generate_gir(myself,
   install: true,
 )
 
-# For test.
-builddir = meson.current_build_dir()
-
 # For wrap dependency system.
 hinoko_dep = declare_dependency(
   link_with: myself,

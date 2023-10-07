@@ -109,3 +109,4 @@ hinoko_dep = declare_dependency(
   sources: headers + marshallers + enums + hinoko_gir,
   include_directories: include_directories('.')
 )
+meson.override_dependency('hinoko', hinoko_dep)

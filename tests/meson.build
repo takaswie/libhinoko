@@ -10,16 +10,15 @@ tests = [
   'hinoko-functions',
 ]
 
-ld_library_paths = [builddir]
-gi_typelib_path = [builddir]
+builddirs = []
+builddirs += join_paths(meson.project_build_root(), 'src')
 if hinawa_is_subproject
-  ld_library_paths += hinawa_gir_dir
-  gi_typelib_path += hinawa_gir_dir
+  builddirs += hinawa_gir_dir
 endif
 
 envs = environment()
-envs.append('LD_LIBRARY_PATH', ld_library_paths, separator : ':')
-envs.append('GI_TYPELIB_PATH', gi_typelib_path, separator : ':')
+envs.append('LD_LIBRARY_PATH', builddirs, separator : ':')
+envs.append('GI_TYPELIB_PATH', builddirs, separator : ':')
 
 foreach test : tests
   name = test

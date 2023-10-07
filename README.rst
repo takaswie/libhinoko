@@ -50,7 +50,7 @@ Dependencies
 Requirements to build
 =====================
 
-- Meson 0.54.0 or later
+- Meson 0.56.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
 - gi-docgen (optional to generate API documentation)
@@ -98,7 +98,7 @@ This is a sample of wrap file to satisfy dependency on libhinoko by
 
 ::
 
-    $ cat subproject/hinoko.wrap
+    $ cat subprojects/hinoko.wrap
     [wrap-git]
     directory = hinoko
     url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git

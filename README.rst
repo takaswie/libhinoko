@@ -2,7 +2,7 @@
 The libhinoko project
 =====================
 
-2023/10/07
+2023/10/29
 Takashi Sakamoto
 
 Introduction
@@ -106,7 +106,7 @@ This is a sample of wrap file to satisfy dependency on libhinoko by
     depth = 1
     
     [provide]
-    hinoko = hinoko_dep
+    dependency_names = hinoko
 
 After installation of the wrap file, the dependency can be solved by ``hinoko`` name since it is
 common in both pkg-config and the wrap file. The implicit or explicit fallback to subproject is

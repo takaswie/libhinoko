@@ -67,7 +67,7 @@ typedef enum /*< flags >*/
  * @HINOKO_FW_ISO_RESOURCE_ERROR_TIMEOUT:	No event to the request arrives within timeout.
  * @HINOKO_FW_ISO_RESOURCE_ERROR_EVENT:		Event for the request arrives but includes error code.
  *
- * A set of error code for [iface@FwIsoResource].
+ * A set of error code for operations in [iface@FwIsoResource].
  */
 typedef enum {
 	HINOKO_FW_ISO_RESOURCE_ERROR_FAILED,
@@ -85,7 +85,7 @@ typedef enum {
  * @HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_NOT_ALLOCATED:	The instance is not associated to allocated
  *							isochronous resources.
  *
- * A set of error code for [class@FwIsoResourceAuto].
+ * A set of error code for operations in [class@FwIsoResourceAuto].
  */
 typedef enum {
 	HINOKO_FW_ISO_RESOURCE_AUTO_ERROR_FAILED,
@@ -107,7 +107,7 @@ typedef enum {
  * @HINOKO_FW_ISO_CTX_ERROR_CHUNK_UNREGISTERED:	No chunk registered before starting.
  * @HINOKO_FW_ISO_CTX_ERROR_NO_ISOC_CHANNEL:	No isochronous channel is available.
  *
- * A set of error code for [iface@FwIsoCtx].
+ * A set of error code for operations in [iface@FwIsoCtx].
  */
 typedef enum {
 	HINOKO_FW_ISO_CTX_ERROR_FAILED,

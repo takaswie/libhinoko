@@ -207,7 +207,7 @@ HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new()
  * @self: A [class@FwIsoResourceOnce].
  * @channel: The channel number to be deallocated.
  * @bandwidth: The amount of bandwidth to be deallocated.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError.
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of [error@FwIsoResourceError].
  *
  * Initiate deallocation of isochronous resource without any wait. When the
  * deallocation finishes, [signal@FwIsoResource::deallocated] signal is emit to notify the result,
@@ -253,7 +253,7 @@ gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *s
  * @channel: The channel number to be deallocated.
  * @bandwidth: The amount of bandwidth to be deallocated.
  * @timeout_ms: The timeout to wait for deallocated event.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError.
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of [error@FwIsoResourceError].
  *
  * Initiate deallocation of isochronous resource and wait for [signal@FwIsoResource::deallocated]
  * signal.

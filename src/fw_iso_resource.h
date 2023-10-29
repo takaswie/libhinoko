@@ -22,8 +22,8 @@ struct _HinokoFwIsoResourceInterface {
 	 * @self: A [iface@FwIsoResource].
 	 * @path: A path of any Linux FireWire character device.
 	 * @open_flag: The flag of open(2) system call. O_RDONLY is forced to fulfil internally.
-	 * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.FileError
-	 *	   and Hinoko.FwIsoResourceError.
+	 * @error: A [struct@GLib.Error]. Error can be generated with two domains;
+	 *	   [error@GLib.FileError] and [error@FwIsoResourceError].
 	 *
 	 * Virtual function to open Linux FireWire character device to delegate any request for
 	 * isochronous resource management to Linux FireWire subsystem.
@@ -75,7 +75,7 @@ struct _HinokoFwIsoResourceInterface {
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
-	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
+	 *	   with domain of [error@FwIsoResourceError] and its EVENT code.
 	 *
 	 * Closure for the [signal@FwIsoResource::allocated] signal.
 	 *
@@ -90,7 +90,7 @@ struct _HinokoFwIsoResourceInterface {
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
-	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
+	 *	   with domain of [error@FwIsoResourceError] and its EVENT code.
 	 *
 	 * Closure for the [signal@FwIsoResource::deallocated] signal.
 	 *

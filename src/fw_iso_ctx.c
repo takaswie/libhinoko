@@ -16,8 +16,7 @@ G_DEFINE_INTERFACE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
 /**
  * hinoko_fw_iso_ctx_error_quark:
  *
- * Return the [alias@GLib.Quark] for error domain of [struct@GLib.Error] which has code in
- * Hinoko.FwIsoCtxError.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in [error@FwIsoCtxError].
  *
  * Returns: A [alias@GLib.Quark].
  */
@@ -25,7 +24,7 @@ G_DEFINE_QUARK(hinoko-fw-iso-ctx-error-quark, hinoko_fw_iso_ctx_error)
 
 /**
  * hinoko_fw_iso_ctx_error_to_label:
- * @code: One of Hinoko.FwIsoCtxError.
+ * @code: One of [error@FwIsoCtxError].
  * @label: (out) (transfer none): The label of error code.
  *
  * Retrieve the label of error code.

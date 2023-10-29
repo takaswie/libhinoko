@@ -30,7 +30,7 @@ G_DEFINE_TYPE_WITH_CODE(HinokoFwIsoResourceAuto, hinoko_fw_iso_resource_auto, G_
  * hinoko_fw_iso_resource_auto_error_quark:
  *
  * Return the [alias@GLib.Quark] for error domain of [struct@GLib.Error] which has code in
- * Hinoko.FwIsoResourceAutoError.
+ * [error@FwIsoResourceAutoError].
  *
  * Returns: A [alias@GLib.Quark].
  */
@@ -38,7 +38,7 @@ G_DEFINE_QUARK(hinoko-fw-iso-resource-auto-error-quark, hinoko_fw_iso_resource_a
 
 /**
  * fw_iso_resource_auto_error_to_label:
- * @code: One of Hinoko.FwIsoResourceAutoError.
+ * @code: One of [error@FwIsoResourceAutoError].
  * @label: (out) (transfer none): The label of error code.
  *
  * Retrieve the label of error code.
@@ -362,8 +362,8 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
 /**
  * hinoko_fw_iso_resource_auto_deallocate_async:
  * @self: A [class@FwIsoResourceAuto]
- * @error: A [struct@GLib.Error]. Error can be generated with domain of
- *	   Hinoko.FwIsoResourceError, and Hinoko.FwIsoResourceAutoError.
+ * @error: A [struct@GLib.Error]. Error can be generated with domains of [error@FwIsoResourceError],
+ *	   and [error@FwIsoResourceAutoError].
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * [signal@FwIsoResource::deallocated] signal is emit to notify the result, channel, and bandwidth.
@@ -415,8 +415,8 @@ end:
  * hinoko_fw_iso_resource_auto_deallocate_sync:
  * @self: A [class@FwIsoResourceAuto]
  * @timeout_ms: The timeout to wait for allocated event by milli second unit.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of
- *	   Hinoko.FwIsoResourceError, and Hinoko.FwIsoResourceAutoError.
+ * @error: A [struct@GLib.Error]. Error can be generated with domains of [error@FwIsoResourceError],
+ *	   and [error@FwIsoResourceAutoError].
  *
  * Initiate deallocation of isochronous resource. When the deallocation is done,
  * [signal@FwIsoResource::deallocated] signal is emit to notify the result, channel, and bandwidth.

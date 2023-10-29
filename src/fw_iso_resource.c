@@ -16,8 +16,8 @@ G_DEFINE_INTERFACE(HinokoFwIsoResource, hinoko_fw_iso_resource, G_TYPE_OBJECT)
 /**
  * hinoko_fw_iso_resource_error_quark:
  *
- * Return the [alias@GLib.Quark] for error domain of [struct@GLib.Error] which has code in
- * Hinoko.FwIsoResourceError.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] with which has code in
+ * [error@FwIsoResourceError].
  *
  * Returns: A [alias@GLib.Quark].
  */
@@ -25,7 +25,7 @@ G_DEFINE_QUARK(hinoko-fw-iso-resource-error-quark, hinoko_fw_iso_resource_error)
 
 /**
  * hinoko_fw_iso_resource_error_to_label:
- * @code: One of Hinoko.FwIsoResourceError.
+ * @code: One of [error@FwIsoResourceError].
  * @label: (out) (transfer none): The label of error code.
  *
  * Retrieve the label of error code.
@@ -81,7 +81,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
-	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
+	 *	   with domain of [error@FwIsoResourceError] and its EVENT code.
 	 *
 	 * Emitted when allocation of isochronous resource finishes.
 	 *
@@ -102,7 +102,7 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
 	 * @channel: The deallocated channel number.
 	 * @bandwidth: The deallocated amount of bandwidth.
 	 * @error: (transfer none) (nullable) (in): A [struct@GLib.Error]. Error can be generated
-	 *	   with domain of Hinoko.FwIsoResourceError and its EVENT code.
+	 *	   with domain of [error@FwIsoResourceError] and its EVENT code.
 	 *
 	 * Emitted when deallocation of isochronous resource finishes.
 	 *
@@ -124,8 +124,8 @@ static void hinoko_fw_iso_resource_default_init(HinokoFwIsoResourceInterface *if
  * @path: A path of any Linux FireWire character device.
  * @open_flag: The flag of open(2) system call. O_RDONLY is forced to fulfil
  *	       internally.
- * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.FileError
- *	   and Hinoko.FwIsoResourceError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; [error@GLib.FileError]
+ *	   and [error@FwIsoResourceError].
  *
  * Open Linux FireWire character device to delegate any request for isochronous
  * resource management to Linux FireWire subsystem.
@@ -174,7 +174,7 @@ gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource
  *			numeric number of isochronous channel to be allocated.
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of [error@FwIsoResourceError]
  *	   as well as domain depending on each implementation.
  *
  * Initiate allocation of isochronous resource without any wait. One of the candidates is actually
@@ -209,7 +209,7 @@ gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
  * @channel_candidates_count: The number of channel candidates.
  * @bandwidth: The amount of bandwidth to be allocated.
  * @timeout_ms: The timeout to wait for allocated event.
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinoko.FwIsoResourceError
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of [error@FwIsoResourceError]
  *	   as well as domain depending on each implementation.
  *
  * Initiate allocation of isochronous resource and wait for [signal@FwIsoResource::allocated]

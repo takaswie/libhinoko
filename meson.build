@@ -10,7 +10,7 @@ minor_version = version[1].to_int()
 micro_version = version[2].to_int()
 
 hinawa_dependency = dependency('hinawa',
-  version: '>=2.6.0'
+  version: '>=4.0.0'
 )
 
 hinawa_is_subproject = hinawa_dependency.type_name() != 'pkgconfig'

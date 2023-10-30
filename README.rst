@@ -44,7 +44,7 @@ Dependencies
 
 - Glib 2.44.0 or later
 - GObject Introspection 1.32.1 or later
-- Libhinawa 2.6.0 or later
+- Libhinawa 4.0.0 or later
 - Linux kernel 3.4 or later
 
 Requirements to build

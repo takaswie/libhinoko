@@ -13,7 +13,7 @@ search_index=true
 dependencies = [
   "GLib-2.0",
   "GObject-2.0",
-  "Hinawa-3.0",
+  "Hinawa-4.0",
 ]
 
 [dependencies."GLib-2.0"]
@@ -26,7 +26,7 @@ name = "GObject"
 description = "The base type system and object class"
 docs_url = "https://docs.gtk.org/gobject/"
 
-[dependencies."Hinawa-3.0"]
+[dependencies."Hinawa-4.0"]
 name = "Hinawa"
 description = "Operate 1394 OHCI hardware for asynchronous communication with GObject Introspection support"
 docs_url = "https://alsa-project.github.io/gobject-introspection-docs/hinawa/"

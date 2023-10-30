@@ -4,7 +4,7 @@ from threading import Timer
 from struct import unpack,pack
 
 import gi
-gi.require_versions({'GLib': '2.0', 'Hinawa': '3.0', 'Hinoko': '0.0'})
+gi.require_versions({'GLib': '2.0', 'Hinawa': '4.0', 'Hinoko': '0.0'})
 from gi.repository import GLib, Hinawa, Hinoko
 
 class IsoIt(Hinoko.FwIsoIt):

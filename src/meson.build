@@ -93,7 +93,7 @@ hinoko_gir = gnome.generate_gir(myself,
   includes: [
     'GLib-2.0',
     'GObject-2.0',
-    'Hinawa-3.0',
+    'Hinawa-4.0',
   ],
   header: 'hinoko.h',
   install: true,

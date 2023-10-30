@@ -73,7 +73,6 @@ HINOKO_0_8_0 {
 } HINOKO_0_7_0;
 
 HINOKO_0_9_0 {
-    "hinoko_fw_iso_ctx_read_cycle_time";
 } HINOKO_0_8_0;
 
 HINOKO_1_0_0 {
@@ -85,4 +84,6 @@ HINOKO_1_0_0 {
 
     "hinoko_fw_iso_resource_auto_deallocate";
     "hinoko_fw_iso_resource_auto_deallocate_wait";
+
+    "hinoko_fw_iso_ctx_read_cycle_time";
 } HINOKO_0_9_0;

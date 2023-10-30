@@ -131,7 +131,7 @@ static void fw_iso_it_release(HinokoFwIsoCtx *inst)
 }
 
 static gboolean fw_iso_it_read_cycle_time(HinokoFwIsoCtx *inst, gint clock_id,
-					  HinawaCycleTime *const *cycle_time, GError **error)
+					  HinawaCycleTime **cycle_time, GError **error)
 {
 	HinokoFwIsoIt *self;
 	HinokoFwIsoItPrivate *priv;

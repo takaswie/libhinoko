@@ -619,7 +619,7 @@ gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GErr
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  */
 gboolean fw_iso_ctx_state_read_cycle_time(struct fw_iso_ctx_state *state, gint clock_id,
-					  HinawaCycleTime *const *cycle_time, GError **error)
+					  HinawaCycleTime **cycle_time, GError **error)
 {
 	g_return_val_if_fail(cycle_time != NULL && *cycle_time != NULL, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);

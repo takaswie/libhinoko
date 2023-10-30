@@ -124,7 +124,7 @@ void fw_iso_ctx_state_read_frame(struct fw_iso_ctx_state *state, guint offset, g
 gboolean fw_iso_ctx_state_flush_completions(struct fw_iso_ctx_state *state, GError **error);
 
 gboolean fw_iso_ctx_state_read_cycle_time(struct fw_iso_ctx_state *state, gint clock_id,
-					  HinawaCycleTime *const *cycle_time, GError **error);
+					  HinawaCycleTime **cycle_time, GError **error);
 
 gboolean fw_iso_ctx_state_create_source(struct fw_iso_ctx_state *state, HinokoFwIsoCtx *inst,
 					gboolean (*handle_event)(HinokoFwIsoCtx *inst,

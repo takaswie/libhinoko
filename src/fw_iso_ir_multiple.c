@@ -173,7 +173,7 @@ static void fw_iso_ir_multiple_release(HinokoFwIsoCtx *inst)
 }
 
 static gboolean fw_iso_ir_multiple_read_cycle_time(HinokoFwIsoCtx *inst, gint clock_id,
-						   HinawaCycleTime *const *cycle_time,
+						   HinawaCycleTime **cycle_time,
 						   GError **error)
 {
 	HinokoFwIsoIrMultiple *self;

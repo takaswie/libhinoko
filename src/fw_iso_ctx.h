@@ -64,7 +64,7 @@ struct _HinokoFwIsoCtxInterface {
 	 * Since: 0.9
 	 */
 	gboolean (*read_cycle_time)(HinokoFwIsoCtx *self, gint clock_id,
-				    HinawaCycleTime *const *cycle_time, GError **error);
+				    HinawaCycleTime **cycle_time, GError **error);
 
 	/**
 	 * HinokoFwIsoCtxInterface::flush_completions:
@@ -114,7 +114,7 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self);
 void hinoko_fw_iso_ctx_release(HinokoFwIsoCtx *self);
 
 gboolean hinoko_fw_iso_ctx_read_cycle_time(HinokoFwIsoCtx *self, gint clock_id,
-					   HinawaCycleTime *const *cycle_time, GError **error);
+					   HinawaCycleTime **cycle_time, GError **error);
 
 gboolean hinoko_fw_iso_ctx_create_source(HinokoFwIsoCtx *self, GSource **source, GError **error);
 

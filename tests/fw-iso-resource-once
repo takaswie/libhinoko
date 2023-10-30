@@ -22,7 +22,7 @@ methods = (
     'open',
     'create_source',
     'allocate_async',
-    'allocate_sync',
+    'allocate_wait',
 )
 vmethods = (
     # From interface.

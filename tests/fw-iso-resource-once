@@ -16,8 +16,8 @@ props = (
 )
 methods = (
     'new',
-    'deallocate_async',
-    'deallocate_sync',
+    'deallocate',
+    'deallocate_wait',
     # From interface.
     'open',
     'create_source',

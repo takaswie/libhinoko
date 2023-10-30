@@ -50,8 +50,6 @@ HINOKO_0_7_0 {
 
     "hinoko_fw_iso_resource_once_get_type";
     "hinoko_fw_iso_resource_once_new";
-    "hinoko_fw_iso_resource_once_deallocate_async";
-    "hinoko_fw_iso_resource_once_deallocate_sync";
 } HINOKO_0_5_0;
 
 HINOKO_0_8_0 {
@@ -81,3 +79,8 @@ HINOKO_0_8_0 {
 HINOKO_0_9_0 {
     "hinoko_fw_iso_ctx_read_cycle_time";
 } HINOKO_0_8_0;
+
+HINOKO_1_0_0 {
+    "hinoko_fw_iso_resource_once_deallocate";
+    "hinoko_fw_iso_resource_once_deallocate_wait";
+} HINOKO_0_9_0;

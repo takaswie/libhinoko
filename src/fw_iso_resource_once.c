@@ -203,7 +203,7 @@ HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new()
 }
 
 /**
- * hinoko_fw_iso_resource_once_deallocate_async:
+ * hinoko_fw_iso_resource_once_deallocate:
  * @self: A [class@FwIsoResourceOnce].
  * @channel: The channel number to be deallocated.
  * @bandwidth: The amount of bandwidth to be deallocated.
@@ -215,10 +215,10 @@ HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new()
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7
+ * Since: 1.0
  */
-gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self, guint channel,
-						      guint bandwidth, GError **error)
+gboolean hinoko_fw_iso_resource_once_deallocate(HinokoFwIsoResourceOnce *self, guint channel,
+						guint bandwidth, GError **error)
 {
 	HinokoFwIsoResourceOncePrivate *priv;
 
@@ -248,7 +248,7 @@ gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *s
 }
 
 /**
- * hinoko_fw_iso_resource_once_deallocate_sync:
+ * hinoko_fw_iso_resource_once_deallocate_wait:
  * @self: A [class@FwIsoResourceOnce].
  * @channel: The channel number to be deallocated.
  * @bandwidth: The amount of bandwidth to be deallocated.
@@ -260,9 +260,9 @@ gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *s
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7
+ * Since: 1.0
  */
-gboolean hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *self, guint channel,
+gboolean hinoko_fw_iso_resource_once_deallocate_wait(HinokoFwIsoResourceOnce *self, guint channel,
 						     guint bandwidth, guint timeout_ms,
 						     GError **error)
 {
@@ -274,7 +274,7 @@ gboolean hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *se
 	fw_iso_resource_waiter_init(&w, HINOKO_FW_ISO_RESOURCE(self), DEALLOCATED_SIGNAL_NAME,
 				    timeout_ms);
 
-	(void)hinoko_fw_iso_resource_once_deallocate_async(self, channel, bandwidth, error);
+	(void)hinoko_fw_iso_resource_once_deallocate(self, channel, bandwidth, error);
 
 	return fw_iso_resource_waiter_wait(&w, HINOKO_FW_ISO_RESOURCE(self), error);
 }

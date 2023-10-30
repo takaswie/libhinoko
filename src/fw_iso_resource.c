@@ -168,7 +168,7 @@ gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource
 }
 
 /**
- * hinoko_fw_iso_resource_allocate_async:
+ * hinoko_fw_iso_resource_allocate:
  * @self: A [iface@FwIsoResource].
  * @channel_candidates: (array length=channel_candidates_count): The array with elements for
  *			numeric number of isochronous channel to be allocated.
@@ -183,12 +183,12 @@ gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7
+ * Since: 1.0
  */
-gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
-					       const guint8 *channel_candidates,
-					       gsize channel_candidates_count,
-					       guint bandwidth, GError **error)
+gboolean hinoko_fw_iso_resource_allocate(HinokoFwIsoResource *self,
+					 const guint8 *channel_candidates,
+					 gsize channel_candidates_count, guint bandwidth,
+					 GError **error)
 {
 	g_return_val_if_fail(HINOKO_IS_FW_ISO_RESOURCE(self), FALSE);
 	g_return_val_if_fail(channel_candidates != NULL, FALSE);
@@ -196,9 +196,9 @@ gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
 	g_return_val_if_fail(bandwidth > 0, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
-	return HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->allocate_async(self, channel_candidates,
-								      channel_candidates_count,
-								      bandwidth, error);
+	return HINOKO_FW_ISO_RESOURCE_GET_IFACE(self)->allocate(self, channel_candidates,
+								channel_candidates_count,
+								bandwidth, error);
 }
 
 /**
@@ -234,8 +234,8 @@ gboolean hinoko_fw_iso_resource_allocate_wait(HinokoFwIsoResource *self,
 
 	fw_iso_resource_waiter_init(&w, self, ALLOCATED_SIGNAL_NAME, timeout_ms);
 
-	(void)hinoko_fw_iso_resource_allocate_async(self, channel_candidates,
-						    channel_candidates_count, bandwidth, error);
+	(void)hinoko_fw_iso_resource_allocate(self, channel_candidates, channel_candidates_count,
+					      bandwidth, error);
 
 	return fw_iso_resource_waiter_wait(&w, self, error);
 }

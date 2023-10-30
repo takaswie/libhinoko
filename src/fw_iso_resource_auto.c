@@ -190,11 +190,10 @@ static gboolean fw_iso_resource_auto_open(HinokoFwIsoResource *inst, const gchar
 	return fw_iso_resource_state_open(&priv->state, path, open_flag, error);
 }
 
-static gboolean fw_iso_resource_auto_allocate_async(HinokoFwIsoResource *inst,
-						    const guint8 *channel_candidates,
-						    gsize channel_candidates_count,
-						    guint bandwidth,
-						    GError **error)
+static gboolean fw_iso_resource_auto_allocate(HinokoFwIsoResource *inst,
+					      const guint8 *channel_candidates,
+					      gsize channel_candidates_count, guint bandwidth,
+					      GError **error)
 {
 	HinokoFwIsoResourceAuto *self;
 	HinokoFwIsoResourceAutoPrivate *priv;
@@ -342,7 +341,7 @@ static gboolean fw_iso_resource_auto_create_source(HinokoFwIsoResource *inst, GS
 static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface)
 {
 	iface->open = fw_iso_resource_auto_open;
-	iface->allocate_async = fw_iso_resource_auto_allocate_async;
+	iface->allocate = fw_iso_resource_auto_allocate;
 	iface->create_source = fw_iso_resource_auto_create_source;
 
 }

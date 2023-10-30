@@ -21,11 +21,14 @@ methods = (
     # From interface.
     'open',
     'create_source',
-    'allocate_async',
+    'allocate',
     'allocate_wait',
 )
 vmethods = (
     # From interface.
+    'do_open',
+    'do_allocate',
+    'do_create_source',
     'do_allocated',
     'do_deallocated',
 )

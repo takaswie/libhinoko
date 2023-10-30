@@ -17,10 +17,10 @@ struct _HinokoFwIsoResourceOnceClass {
 
 HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new();
 
-gboolean hinoko_fw_iso_resource_once_deallocate_async(HinokoFwIsoResourceOnce *self, guint channel,
-						      guint bandwidth, GError **error);
+gboolean hinoko_fw_iso_resource_once_deallocate(HinokoFwIsoResourceOnce *self, guint channel,
+						guint bandwidth, GError **error);
 
-gboolean hinoko_fw_iso_resource_once_deallocate_sync(HinokoFwIsoResourceOnce *self, guint channel,
+gboolean hinoko_fw_iso_resource_once_deallocate_wait(HinokoFwIsoResourceOnce *self, guint channel,
 						     guint bandwidth, guint timeout_ms,
 						     GError **error);
 

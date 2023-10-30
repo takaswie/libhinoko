@@ -3,10 +3,10 @@
 
 /**
  * HinokoFwIsoResource:
- * An interface object to listen events of isochronous resource allocation and deallocation.
+ * A set of basic interfaces to listen to events about isochronous resource.
  *
- * The [iface@FwIsoResource] should be implemented in GObject-derived object to listen events of
- * isochronous resource allocation and deallocation.
+ * [iface@FwIsoResource] includes interfaces to listen to events about allocation and
+ * deallocation of isochronous resource.
  *
  * Since: 0.7
  */

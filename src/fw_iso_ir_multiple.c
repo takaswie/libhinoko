@@ -5,8 +5,8 @@
  * HinokoFwIsoIrMultiple:
  * An object to receive isochronous packet for several channels.
  *
- * A [class@FwIsoIrMultiple] receives isochronous packets for several channels by IR context for
- * buffer-fill mode in 1394 OHCI.
+ * [class@FwIsoIrMultiple] receives isochronous packets for several channels by buffer-fill mode of
+ * IR context in 1394 OHCI.
  */
 struct ctx_payload {
 	unsigned int offset;

@@ -5,10 +5,9 @@
  * HinokoFwIsoIrSingle:
  * An object to receive isochronous packet for single channel.
  *
- * A [class@FwIsoIrSingle] receives isochronous packets for single channel by IR
- * context for packet-per-buffer mode in 1394 OHCI. The content of packet is
- * split to two parts; context header and context payload in a manner of Linux
- * FireWire subsystem.
+ * [class@FwIsoIrSingle] receives isochronous packets for single channel by packet-per-buffer
+ * mode of IR context in 1394 OHCI. The content of packet is split to two parts; context header and
+ * context payload in a manner of Linux FireWire subsystem.
  *
  */
 typedef struct {

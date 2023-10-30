@@ -5,10 +5,10 @@
 
 /**
  * HinokoFwIsoCtx
- * An basic interface to operate isochronous context on 1394 OHCI hardware.
+ * A set of basic interfaces to operate isochronous context on 1394 OHCI hardware.
  *
- * A [iface@FwIsoCtx] is an basic interface to use UAPI of Linux FireWire subsystem to operate
- * 1394 OHCI hardware.
+ * [iface@FwIsoCtx] includes interfaces to operate 1394 OHCI hardware for isochronous communication
+ * by any kind of contexts.
  */
 
 G_DEFINE_INTERFACE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)

@@ -5,7 +5,7 @@
  * HinokoFwIsoIt:
  * An object to transmit isochronous packet for single channel.
  *
- * A [class@FwIsoIt] transmits isochronous packets for single channel by IT context in 1394 OHCI.
+ * [class@FwIsoIt] transmits isochronous packets for single channel by IT context in 1394 OHCI.
  * The content of packet is split to two parts; context header and context payload in a manner of
  * Linux FireWire subsystem.
  */

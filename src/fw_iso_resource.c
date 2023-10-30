@@ -202,7 +202,7 @@ gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
 }
 
 /**
- * hinoko_fw_iso_resource_allocate_sync:
+ * hinoko_fw_iso_resource_allocate_wait:
  * @self: A [iface@FwIsoResource].
  * @channel_candidates: (array length=channel_candidates_count): The array with elements for
  *			numeric number for isochronous channel to be allocated.
@@ -217,9 +217,9 @@ gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 0.7
+ * Since: 1.0
  */
-gboolean hinoko_fw_iso_resource_allocate_sync(HinokoFwIsoResource *self,
+gboolean hinoko_fw_iso_resource_allocate_wait(HinokoFwIsoResource *self,
 					      const guint8 *channel_candidates,
 				              gsize channel_candidates_count, guint bandwidth,
 					      guint timeout_ms, GError **error)

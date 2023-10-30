@@ -111,7 +111,7 @@ gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
 					       gsize channel_candidates_count,
 					       guint bandwidth, GError **error);
 
-gboolean hinoko_fw_iso_resource_allocate_sync(HinokoFwIsoResource *self,
+gboolean hinoko_fw_iso_resource_allocate_wait(HinokoFwIsoResource *self,
 					      const guint8 *channel_candidates,
 				              gsize channel_candidates_count, guint bandwidth,
 					      guint timeout_ms, GError **error);

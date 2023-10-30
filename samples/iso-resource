@@ -37,7 +37,7 @@ src.attach(ctx)
 
 for i in range(2):
     try:
-        res.allocate_sync((use_channel, ), use_bandwidth, 100)
+        res.allocate_wait((use_channel, ), use_bandwidth, 100)
     except GLib.Error as e:
         if e.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
             print(e)
@@ -80,7 +80,7 @@ for i in range(2):
     print_props(res)
 
     try:
-        res.allocate_sync([use_channel], use_bandwidth, 100)
+        res.allocate_wait([use_channel], use_bandwidth, 100)
     except GLib.Error as e:
         if e.matches(Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT):
             print(e)

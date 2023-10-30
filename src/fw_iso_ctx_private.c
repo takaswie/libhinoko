@@ -66,8 +66,8 @@ void fw_iso_ctx_state_init(struct fw_iso_ctx_state *state)
  * @header_size: The number of bytes for header of isochronous context.
  * @error: A [struct@GLib.Error].
  *
- * Allocate a isochronous context to 1394 OHCI controller. A local node of the
- * node corresponding to the given path is used as the controller, thus any
+ * Allocate a isochronous context to 1394 OHCI hardware. A local node of the
+ * node corresponding to the given path is used as the hardware, thus any
  * path is accepted as long as process has enough permission for the path.
  */
 gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *path,
@@ -153,7 +153,7 @@ gboolean fw_iso_ctx_state_allocate(struct fw_iso_ctx_state *state, const char *p
  * fw_iso_ctx_state_release:
  * @state: A [struct@FwIsoCtxState].
  *
- * Release allocated isochronous context from 1394 OHCI controller.
+ * Release allocated isochronous context from 1394 OHCI hardware.
  */
 void fw_iso_ctx_state_release(struct fw_iso_ctx_state *state)
 {
@@ -170,7 +170,7 @@ void fw_iso_ctx_state_release(struct fw_iso_ctx_state *state)
  * @chunks_per_buffer: The number of chunks in buffer going to be allocated.
  * @error: A [struct@GLib.Error].
  *
- * Map intermediate buffer to share payload of isochronous context with 1394 OHCI controller.
+ * Map intermediate buffer to share payload of isochronous context with 1394 OHCI hardware.
  */
 gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes_per_chunk,
 				     guint chunks_per_buffer, GError **error)
@@ -223,7 +223,7 @@ gboolean fw_iso_ctx_state_map_buffer(struct fw_iso_ctx_state *state, guint bytes
  * hinoko_fw_iso_ctx_unmap_buffer:
  * @state: A [struct@FwIsoCtxState].
  *
- * Unmap intermediate buffer shard with 1394 OHCI controller for payload of isochronous context.
+ * Unmap intermediate buffer shard with 1394 OHCI hardware for payload of isochronous context.
  */
 void fw_iso_ctx_state_unmap_buffer(struct fw_iso_ctx_state *state)
 {
@@ -353,7 +353,7 @@ static guint fw_cdev_iso_packet_control_to_payload_length(guint control)
  * @state: A [struct@FwIsoCtxState].
  * @error: A [struct@GLib.Error].
  *
- * Queue registered chunks to 1394 OHCI controller.
+ * Queue registered chunks to 1394 OHCI hardware.
  */
 gboolean fw_iso_ctx_state_queue_chunks(struct fw_iso_ctx_state *state, GError **error)
 {

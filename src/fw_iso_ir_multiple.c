@@ -96,7 +96,7 @@ static void hinoko_fw_iso_ir_multiple_class_init(HinokoFwIsoIrMultipleClass *kla
 	 * Emitted when Linux FireWire subsystem generates interrupt event. There are two cases
 	 * for Linux FireWire subsystem to generate the event:
 	 *
-	 * - When OHCI 1394 controller generates hardware interrupt as a result to process the
+	 * - When 1394 OHCI hardware generates hardware interrupt as a result to process the
 	 *   isochronous packet for the buffer chunk marked to generate hardware interrupt.
 	 * - When application calls [method@FwIsoCtx.flush_completions] explicitly.
 	 *
@@ -349,8 +349,8 @@ HinokoFwIsoIrMultiple *hinoko_fw_iso_ir_multiple_new(void)
  * @channels_length: The length of channels.
  * @error: A [struct@GLib.Error].
  *
- * Allocate an IR context to 1394 OHCI controller for buffer-fill mode. A local node of the node
- * corresponding to the given path is used as the controller, thus any path is accepted as long as
+ * Allocate an IR context to 1394 OHCI hardware for buffer-fill mode. A local node of the node
+ * corresponding to the given path is used as the hardware, thus any path is accepted as long as
  * process has enough permission for the path.
  */
 gboolean hinoko_fw_iso_ir_multiple_allocate(HinokoFwIsoIrMultiple *self, const char *path,
@@ -407,8 +407,7 @@ gboolean hinoko_fw_iso_ir_multiple_allocate(HinokoFwIsoIrMultiple *self, const c
  * @chunks_per_buffer: The number of chunks in buffer.
  * @error: A [struct@GLib.Error].
  *
- * Map an intermediate buffer to share payload of IR context with 1394 OHCI
- * controller.
+ * Map an intermediate buffer to share payload of IR context with 1394 OHCI hardware.
  */
 gboolean hinoko_fw_iso_ir_multiple_map_buffer(HinokoFwIsoIrMultiple *self, guint bytes_per_chunk,
 					      guint chunks_per_buffer, GError **error)

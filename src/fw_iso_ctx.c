@@ -5,10 +5,10 @@
 
 /**
  * HinokoFwIsoCtx
- * An basic interface to operate isochronous context on 1394 OHCI controller.
+ * An basic interface to operate isochronous context on 1394 OHCI hardware.
  *
  * A [iface@FwIsoCtx] is an basic interface to use UAPI of Linux FireWire subsystem to operate
- * 1394 OHCI controller.
+ * 1394 OHCI hardware.
  */
 
 G_DEFINE_INTERFACE(HinokoFwIsoCtx, hinoko_fw_iso_ctx, G_TYPE_OBJECT)
@@ -174,7 +174,7 @@ void hinoko_fw_iso_ctx_stop(HinokoFwIsoCtx *self)
  * hinoko_fw_iso_ctx_unmap_buffer:
  * @self: A [iface@FwIsoCtx].
  *
- * Unmap intermediate buffer shared with 1394 OHCI controller for the context.
+ * Unmap intermediate buffer shared with 1394 OHCI hardware for the context.
  *
  * Since: 0.7
  */
@@ -190,7 +190,7 @@ void hinoko_fw_iso_ctx_unmap_buffer(HinokoFwIsoCtx *self)
  * hinoko_fw_iso_ctx_release:
  * @self: A [iface@FwIsoCtx].
  *
- * Release the contest from 1394 OHCI controller.
+ * Release the contest from 1394 OHCI hardware.
  *
  * Since: 0.7
  */

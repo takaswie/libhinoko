@@ -63,7 +63,7 @@ static void hinoko_fw_iso_it_class_init(HinokoFwIsoItClass *klass)
 	 * Emitted when Linux FireWire subsystem generates interrupt event. There are three cases
 	 * for Linux FireWire subsystem to generate the event:
 	 *
-	 * - When OHCI 1394 controller generates hardware interrupt as a result of processing the
+	 * - When 1394 OHCI hardware generates hardware interrupt as a result of processing the
 	 *   isochronous packet for the buffer chunk marked to generate hardware interrupt.
 	 * - When the number of isochronous packets sent since the last interrupt event reaches
 	 *   one quarter of memory page size (usually 4,096 / 4 = 1,024 packets).
@@ -228,8 +228,8 @@ HinokoFwIsoIt *hinoko_fw_iso_it_new(void)
  * @header_size: The number of bytes for header of IT context.
  * @error: A [struct@GLib.Error].
  *
- * Allocate an IT context to 1394 OHCI controller. A local node of the node corresponding to the
- * given path is used as the controller, thus any path is accepted as long as process has enough
+ * Allocate an IT context to 1394 OHCI hardware. A local node of the node corresponding to the
+ * given path is used as the hardware, thus any path is accepted as long as process has enough
  * permission for the path.
  *
  * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
@@ -257,7 +257,7 @@ gboolean hinoko_fw_iso_it_allocate(HinokoFwIsoIt *self, const char *path, Hinoko
  * @payloads_per_buffer: The number of payloads of IT context in buffer.
  * @error: A [struct@GLib.Error].
  *
- * Map intermediate buffer to share payload of IT context with 1394 OHCI controller.
+ * Map intermediate buffer to share payload of IT context with 1394 OHCI hardware.
  *
  * Returns: TRUE if the overall operation finishes successful, otherwise FALSE.
  *

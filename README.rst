@@ -12,7 +12,7 @@ This is a sister project of `libhinawa <https://git.kernel.org/pub/scm/libs/ieee
 
 I design this library for userspace applications to transfer/receive isochronous packets on
 IEEE 1394 bus by any language binding of GObject Introspection. The applications is able to
-operate OHCI 1394 controllers for any isochronous context and isochronous resources. According
+operate 1394 OHCI hardware for any isochronous context and isochronous resources. According
 to this design, this library is an application of Linux FireWire subsystem and GLib/GObject.
 
 The latest release is `0.9.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tag/?h=v0.9.0>`_

@@ -70,7 +70,7 @@ static void hinoko_fw_iso_ir_single_class_init(HinokoFwIsoIrSingleClass *klass)
 	 * Emitted when Linux FireWire subsystem generates interrupt event. There are three cases
 	 * for Linux FireWire subsystem to generate the event:
 	 *
-	 * - When OHCI 1394 controller generates hardware interrupt as a result to process the
+	 * - When 1394 OHCI hardware generates hardware interrupt as a result to process the
 	 *   isochronous packet for the buffer chunk marked to generate hardware interrupt.
 	 * - When the size of accumulated context header for packets since the last event reaches
 	 *   the size of memory page (usually 4,096 bytes).
@@ -245,8 +245,8 @@ HinokoFwIsoIrSingle *hinoko_fw_iso_ir_single_new(void)
  *		 isochronous packet header in header parameter of [signal@FwIsoIrSingle::interrupted].
  * @error: A [struct@GLib.Error].
  *
- * Allocate an IR context to 1394 OHCI controller for packet-per-buffer mode. A local node of the
- * node corresponding to the given path is used as the controller, thus any path is accepted as
+ * Allocate an IR context to 1394 OHCI hardware for packet-per-buffer mode. A local node of the
+ * node corresponding to the given path is used as the hardware, thus any path is accepted as
  * long as process has enough permission for the path.
  *
  * The header_size parameter has an effect for the content of header parameter in
@@ -286,7 +286,7 @@ gboolean hinoko_fw_iso_ir_single_allocate(HinokoFwIsoIrSingle *self, const char 
  * @payloads_per_buffer: The number of payload in buffer.
  * @error: A [struct@GLib.Error].
  *
- * Map intermediate buffer to share payload of IR context with 1394 OHCI controller.
+ * Map intermediate buffer to share payload of IR context with 1394 OHCI hardware.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *

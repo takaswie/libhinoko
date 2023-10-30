@@ -1,6 +1,6 @@
 [library]
 version = "@VERSION@"
-description = "The library to operate OHCI 1394 hardware for isochronous communication in IEEE 1394 bus"
+description = "The library to operate 1394 OHCI hardware for isochronous communication in IEEE 1394 bus"
 authors = "Takashi Sakamoto"
 license = "LGPL-2.1-or-later"
 website_url = "https://alsa-project.github.io/gobject-introspection-docs/hinoko/"
@@ -28,7 +28,7 @@ docs_url = "https://docs.gtk.org/gobject/"
 
 [dependencies."Hinawa-3.0"]
 name = "Hinawa"
-description = "Operate OHCI 1394 hardware for asynchronous communication with GObject Introspection support"
+description = "Operate 1394 OHCI hardware for asynchronous communication with GObject Introspection support"
 docs_url = "https://alsa-project.github.io/gobject-introspection-docs/hinawa/"
 
 [source-location]

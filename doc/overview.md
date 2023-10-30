@@ -3,7 +3,7 @@ Title: Overview
 The library produces some objects derived from [class@GObject.Object] as an abstraction to operate
 system resources in Linux FireWire subsystem.
 
-The library operates 1394 OHCI controller for isochronous communication on IEEE 1394 bus. All
+The library operates 1394 OHCI hardware for isochronous communication on IEEE 1394 bus. All
 operations are associated with [struct@GLib.Source] retrieved from each object, therefore
 applications should be programmed with [struct@GLib.MainContext].
 

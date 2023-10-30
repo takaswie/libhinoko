@@ -31,7 +31,7 @@ struct _HinokoFwIsoCtxInterface {
 	 *HinokoFwIsoCtxInterface::unmap_buffer:
 	 * @self: A [iface@FwIsoCtx].
 	 *
-	 * Virtual function to unmap intermediate buffer shared with 1394 OHCI controller for the
+	 * Virtual function to unmap intermediate buffer shared with 1394 OHCI hardware for the
 	 * context.
 	 *
 	 * Since: 0.7
@@ -42,7 +42,7 @@ struct _HinokoFwIsoCtxInterface {
 	 * HinokoFwIsoCtxInterface::release:
 	 * @self: A [iface@FwIsoCtx].
 	 *
-	 * Virtual function to release the contest from 1394 OHCI controller.
+	 * Virtual function to release the contest from 1394 OHCI hardware.
 	 *
 	 * Since: 0.7
 	 */

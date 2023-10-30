@@ -4,10 +4,8 @@ from threading import Timer
 from struct import unpack
 
 import gi
-gi.require_version('GLib', '2.0')
-from gi.repository import GLib
-gi.require_version('Hinoko', '0.0')
-from gi.repository import Hinoko
+gi.require_versions({'GLib': '2.0', 'Hinoko': '1.0'})
+from gi.repository import GLib, Hinoko
 
 class IsoIrMultiple(Hinoko.FwIsoIrMultiple):
     def new(self, path, bytes_per_packet, syt_interval):

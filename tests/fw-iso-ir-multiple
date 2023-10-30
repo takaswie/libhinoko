@@ -6,7 +6,7 @@ from errno import ENXIO
 from helper import test_object
 
 import gi
-gi.require_version('Hinoko', '0.0')
+gi.require_version('Hinoko', '1.0')
 from gi.repository import Hinoko
 
 target_type = Hinoko.FwIsoIrMultiple

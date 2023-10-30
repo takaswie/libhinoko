@@ -4,7 +4,7 @@ from threading import Timer
 from struct import unpack
 
 import gi
-gi.require_versions({'GLib': '2.0', 'Hinawa': '4.0', 'Hinoko': '0.0'})
+gi.require_versions({'GLib': '2.0', 'Hinawa': '4.0', 'Hinoko': '1.0'})
 from gi.repository import GLib, Hinawa, Hinoko
 
 class IsoIrSingle(Hinoko.FwIsoIrSingle):

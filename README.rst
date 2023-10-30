@@ -2,7 +2,7 @@
 The libhinoko project
 =====================
 
-2023/10/29
+2023/10/30
 Takashi Sakamoto
 
 Introduction
@@ -15,7 +15,7 @@ IEEE 1394 bus by any language binding of GObject Introspection. The applications
 operate 1394 OHCI hardware for any isochronous context and isochronous resources. According
 to this design, this library is an application of Linux FireWire subsystem and GLib/GObject.
 
-The latest release is `0.9.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tag/?h=v0.9.0>`_
+The latest release is `1.0.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tag/?h=v1.0.0>`_
 
 Example of Python 3 with PyGobject
 ==================================
@@ -65,9 +65,9 @@ How to build
     $ meson install -C build
     ($ meson test -C build)
 
-When working with gobject-introspection, ``Hinoko-0.0.typelib`` should be installed in your system
+When working with gobject-introspection, ``Hinoko-1.0.typelib`` should be installed in your system
 girepository so that ``libgirepository`` can find it. Of course, your system LD should find ELF
-shared object for libhinoko0. Before installing, it's good to check path of the above and configure
+shared object for libhinoko1. Before installing, it's good to check path of the above and configure
 ``--prefix`` meson option appropriately. The environment variables, ``GI_TYPELIB_PATH`` and
 ``LD_LIBRARY_PATH`` are available for ad-hoc settings of the above as well.
 
@@ -102,7 +102,7 @@ This is a sample of wrap file to satisfy dependency on libhinoko by
     [wrap-git]
     directory = hinoko
     url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git
-    revision = v0.9.1
+    revision = v1.0.0
     depth = 1
     
     [provide]
@@ -116,128 +116,12 @@ available.
 
     $ cat meson.build
     hinoko_dependency = dependency('hinoko',
-      version: '>=0.9.1'
+      version: '>=1.0.0'
     )
 
 In the case of subproject, the wrap file for ``hinawa`` should be installed as well, since
 ``hinoko`` depends on it. For ``hinawa.wrap``, please refer to README of
 [libhinawa](https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/).
-
-Loss of backward compatibility between v0.8/v0.9 releases
-=========================================================
-
-At v0.9, the library newly depends on
-`libhinawa <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/>`_ to use
-`Hinawa.CycleTime <https://alsa-project.github.io/gobject-introspection-docs/hinawa/struct.CycleTime.html>`_
-for
-`Hinoko.FwIsoCtx.read_cycle_time() <https://alsa-project.github.io/gobject-introspection-docs/hinoko/method.FwIsoCtx.read_cycle_time.html>`_
-abstract method. The previous implementation, ``Hinoko.CycleTimer`` and
-``Hinoko.FwIsoCtx.get_cycle_timer()``, is unused anymore and dropped.
-
-Loss of backward compatibility between v0.7/v0.8 releases
-=========================================================
-
-At v0.8, some main object classes are renamed so that their names are straightforward to express
-corresponding isochronous contexts in 1394 OHCI.
-
-- ``Hinoko.FwIsoIrSingle`` from ``Hinoko.FwIsoRxSingle`` for IR context of packet-per-buffer mode
-- ``Hinoko.FwIsoIrMultiple`` from ``Hinoko.FwIsoRxMultiple`` for IR context of buffer-fill mode
-- ``Hinoko.FwIsoIt`` from ``Hinoko.FwIsoTx`` for IT context
-
-The enumrations to express the mode of context are renamed as well:
-
-- ``Hinoko.FwIsoCtxMode.IR_SINGLE`` from ``Hinoko.FwIsoCtxMode.RX_SINGLE``
-- ``Hinoko.FwIsoCtxMode.IR_MULTIPLE`` from ``Hinoko.FwIsoCtxMode.RX_MULTIPLE``
-- ``Hinoko.FwIsoCtxMode.IT`` from ``Hinoko.FwIsoCtxMode.TX``
-
-
-The symbols for previous names are not public anymore.
-
-Loss of backward compatibility between v0.6/v0.7 releases
-=========================================================
-
-At v0.6, internal inheritance was heavily used to share functions, signals and properties. At v0.7,
-the inheritance is obsoleted by utilizing GObject Interface, therefore below base classes becomes
-simple interface.
-
-- ``Hinoko.FwIsoCtx``
-- ``Hinoko.FwResource``
-
-The former is implemented by below classes inherits GObject directly:
-
-- ``Hinoko.FwIsoRxSingle``
-- ``Hinoko.FwIsoRxMultiple``
-- ``Hinoko.FwIsoTx``
-
-The latter is implemented by below classes inherits GObject directly:
-
-- ``Hinoko.FwIsoResourceAuto``
-- ``Hinoko.FwIsoResourceOnce``
-
-The ``Hinoko.FwIsoResourceOnce`` is newly added for allocation of isochronous resource bound
-to current generation of bus topology, and some functions are available:
-
-- ``Hinoko.FwIsoResourceOnce.deallocate_async``
-- ``Hinoko.FwIsoResourceOnce.deallocate_sync``
-
-These functions obsolete below functions. They are removed:
-
-- ``Hinoko.FwIsoResource.allocate_once_async``
-- ``Hinoko.FwIsoResource.allocate_once_sync``
-- ``Hinoko.FwIsoResource.deallocate_once_async``
-- ``Hinoko.FwIsoResource.deallocate_once_sync``
-
-Below functions are removed as well:
-
-- ``Hinoko.FwIsoRxSingle.stop``
-- ``Hinoko.FwIsoRxSingle.unmap_buffer``
-- ``Hinoko.FwIsoRxSingle.release``
-- ``Hinoko.FwIsoRxMultiple.stop``
-- ``Hinoko.FwIsoRxMultiple.unmap_buffer``
-- ``Hinoko.FwIsoRxMultiple.release``
-- ``Hinoko.FwIsoTx.stop``
-- ``Hinoko.FwIsoTx.unmap_buffer``
-- ``Hinoko.FwIsoTx.release``
-- ``Hinoko.FwIsoResourceAuto.allocate_async``
-- ``Hinoko.FwIsoResourceAuto.allocate_sync``
-
-Alternatively, below functions are available:
-
-- ``Hinoko.FwIsoCtx.stop``
-- ``Hinoko.FwIsoCtx.unmap_buffer``
-- ``Hinoko.FwIsoCtx.release``
-- ``Hinoko.FwIsoResource.allocate_async``
-- ``Hinoko.FwIsoResource.allocate_sync``
-
-Furthermore, below puclic functions are changed to have an argument for the value of timeout to
-wait for event:
-
-- ``Hinoko.FwIsoResourceAuto.deallocate_sync``
-
-Beside, below signal is newly added to express the value of current generation for the state of
-IEEE 1394 bus:
-
-- ``Hinoko.FwIsoResource::generation``
-
-In GNOME convention, the throw function to report error at GError argument should return gboolean
-value to report the overall operation finishes successfully or not. At v0.7, the most of public
-API are rewritten according to it.
-
-Loss of backward compatibility between v0.5/v0.6 releases
-=========================================================
-
-The status of project is under development. Below public functions have been changed since v0.6
-release without backward compatibility:
-
-- ``Hinoko.FwIsoTx.start()``
-- ``Hinoko.FwIsoTx.register_packet()``
-- ``Hinoko.FwIsoRxSingle.start()``
-
-Furthermore hardware interrupt is not scheduled automatically in ``Hinoko.FwIsoTx`` and
-``Hinoko.FwIsoRxSingle`` anymore. The runtime of v0.5 or before should be rewritten to schedule the
-interrupt explicitly by calling ``Hinoko.FwIsoTx.register_packet()`` and
-``Hinoko.FwIsoRxSingle.register_packet()`` if required. ``Hinawa.FwIsoCtx.flush_completions()``
-allows applciation to process content of packet without scheduling hardware interrupt.
 
 About Hinoko
 ============

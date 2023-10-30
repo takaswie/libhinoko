@@ -4,7 +4,7 @@ from sys import exit
 from errno import ENXIO
 
 import gi
-gi.require_version('Hinoko', '0.0')
+gi.require_version('Hinoko', '1.0')
 from gi.repository import Hinoko
 
 from helper import test_functions

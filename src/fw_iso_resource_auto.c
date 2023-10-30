@@ -360,7 +360,7 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
 }
 
 /**
- * hinoko_fw_iso_resource_auto_deallocate_async:
+ * hinoko_fw_iso_resource_auto_deallocate:
  * @self: A [class@FwIsoResourceAuto]
  * @error: A [struct@GLib.Error]. Error can be generated with domains of [error@FwIsoResourceError],
  *	   and [error@FwIsoResourceAutoError].
@@ -370,10 +370,9 @@ HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new()
  *
  * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
- * Since: 0.7
+ * Since: 1.0
  */
-gboolean hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
-						      GError **error)
+gboolean hinoko_fw_iso_resource_auto_deallocate(HinokoFwIsoResourceAuto *self, GError **error)
 {
 	HinokoFwIsoResourceAutoPrivate *priv;
 	struct fw_cdev_deallocate dealloc = {0};
@@ -412,7 +411,7 @@ end:
 }
 
 /**
- * hinoko_fw_iso_resource_auto_deallocate_sync:
+ * hinoko_fw_iso_resource_auto_deallocate_wait:
  * @self: A [class@FwIsoResourceAuto]
  * @timeout_ms: The timeout to wait for allocated event by milli second unit.
  * @error: A [struct@GLib.Error]. Error can be generated with domains of [error@FwIsoResourceError],
@@ -423,9 +422,9 @@ end:
  *
  * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
  *
- * Since: 0.7
+ * Since: 1.0
  */
-gboolean hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
+gboolean hinoko_fw_iso_resource_auto_deallocate_wait(HinokoFwIsoResourceAuto *self,
 						     guint timeout_ms, GError **error)
 {
 	struct fw_iso_resource_waiter w;
@@ -436,7 +435,7 @@ gboolean hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *se
 	fw_iso_resource_waiter_init(&w, HINOKO_FW_ISO_RESOURCE(self), DEALLOCATED_SIGNAL_NAME,
 				    timeout_ms);
 
-	(void)hinoko_fw_iso_resource_auto_deallocate_async(self, error);
+	(void)hinoko_fw_iso_resource_auto_deallocate(self, error);
 
 	return fw_iso_resource_waiter_wait(&w, HINOKO_FW_ISO_RESOURCE(self), error);
 }

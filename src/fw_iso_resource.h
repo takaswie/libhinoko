@@ -36,7 +36,7 @@ struct _HinokoFwIsoResourceInterface {
 			 GError **error);
 
 	/**
-	 * HinokoFwIsoResourceInterface::allocate_async:
+	 * HinokoFwIsoResourceInterface::allocate:
 	 * @self: A [iface@FwIsoResource].
 	 * @channel_candidates: (array length=channel_candidates_count): The array with elements for
 	 *			numeric number of isochronous channel to be allocated.
@@ -49,10 +49,10 @@ struct _HinokoFwIsoResourceInterface {
 	 *
 	 * Returns: TRUE if the overall operation finished successfully, otherwise FALSE.
 	 *
-	 * Since: 0.7
+	 * Since: 1.0
 	 */
-	gboolean (*allocate_async)(HinokoFwIsoResource *self, const guint8 *channel_candidates,
-				   gsize channel_candidates_count, guint bandwidth, GError **error);
+	gboolean (*allocate)(HinokoFwIsoResource *self, const guint8 *channel_candidates,
+			     gsize channel_candidates_count, guint bandwidth, GError **error);
 
 	/**
 	 * HinokoFwIsoResourceInterface::create_source:
@@ -106,10 +106,10 @@ gboolean hinoko_fw_iso_resource_open(HinokoFwIsoResource *self, const gchar *pat
 gboolean hinoko_fw_iso_resource_create_source(HinokoFwIsoResource *self, GSource **source,
 					      GError **error);
 
-gboolean hinoko_fw_iso_resource_allocate_async(HinokoFwIsoResource *self,
-					       const guint8 *channel_candidates,
-					       gsize channel_candidates_count,
-					       guint bandwidth, GError **error);
+gboolean hinoko_fw_iso_resource_allocate(HinokoFwIsoResource *self,
+					 const guint8 *channel_candidates,
+					 gsize channel_candidates_count, guint bandwidth,
+					 GError **error);
 
 gboolean hinoko_fw_iso_resource_allocate_wait(HinokoFwIsoResource *self,
 					      const guint8 *channel_candidates,

@@ -21,9 +21,8 @@ struct _HinokoFwIsoResourceAutoClass {
 
 HinokoFwIsoResourceAuto *hinoko_fw_iso_resource_auto_new(void);
 
-gboolean hinoko_fw_iso_resource_auto_deallocate_async(HinokoFwIsoResourceAuto *self,
-						      GError **error);
-gboolean hinoko_fw_iso_resource_auto_deallocate_sync(HinokoFwIsoResourceAuto *self,
+gboolean hinoko_fw_iso_resource_auto_deallocate(HinokoFwIsoResourceAuto *self, GError **error);
+gboolean hinoko_fw_iso_resource_auto_deallocate_wait(HinokoFwIsoResourceAuto *self,
 						     guint timeout_ms, GError **error);
 
 G_END_DECLS

@@ -2,7 +2,7 @@
 The libhinoko project
 =====================
 
-2023/10/30
+2023/11/26
 Takashi Sakamoto
 
 Introduction
@@ -89,6 +89,11 @@ Supplemental information for language bindings
   libraries compatible with g-i.
 * `hinoko-rs <https://git.kernel.org/pub/scm/libs/ieee1394/hinoko-rs.git/>`_ includes crates to
   use these libraries.
+
+How to make DEB package
+=======================
+
+- Please refer to `<https://salsa.debian.org/takaswie/libhinoko>`_.
 
 Meson subproject
 ================

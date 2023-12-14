@@ -121,7 +121,7 @@ static void hinoko_fw_iso_ctx_default_init(HinokoFwIsoCtxInterface *iface)
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 1.0.
+ * Since: 1.0
  */
 gboolean hinoko_fw_iso_ctx_read_cycle_time(HinokoFwIsoCtx *self, gint clock_id,
 					   HinawaCycleTime **cycle_time, GError **error)

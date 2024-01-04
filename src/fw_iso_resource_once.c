@@ -195,7 +195,7 @@ static void fw_iso_resource_iface_init(HinokoFwIsoResourceInterface *iface)
  *
  * Returns: A [class@FwIsoResourceOnce].
  *
- * Sine: 0.7.
+ * Since: 0.7
  */
 HinokoFwIsoResourceOnce *hinoko_fw_iso_resource_once_new()
 {

@@ -42,7 +42,7 @@ struct _HinokoFwIsoCtxInterface {
 	 * HinokoFwIsoCtxInterface::release:
 	 * @self: A [iface@FwIsoCtx].
 	 *
-	 * Virtual function to release the contest from 1394 OHCI hardware.
+	 * Virtual function to release the context from 1394 OHCI hardware.
 	 *
 	 * Since: 0.7
 	 */

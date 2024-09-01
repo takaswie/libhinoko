@@ -45,7 +45,7 @@ class IsoIrSingle(Hinoko.FwIsoIrSingle):
         cycle_time = Hinawa.CycleTime.new()
         clock_id = 4    #CLOCK_MONOTONIC_RAW
         _, cycle_time = self.read_cycle_time(clock_id, cycle_time)
-        (sec, cycle, tick) = cycle_time.fields()
+        (sec, cycle, tick) = cycle_time.get_fields()
         sec, cycle = self.__increment_cycle(sec, cycle, 4000)
         cycle_match = (sec & 0x3, cycle)
 

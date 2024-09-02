@@ -2,7 +2,7 @@
 The libhinoko project
 =====================
 
-2024/04/06
+2024/09/02
 Takashi Sakamoto
 
 Introduction
@@ -15,7 +15,7 @@ IEEE 1394 bus by any language binding of GObject Introspection. The applications
 operate 1394 OHCI hardware for any isochronous context and isochronous resources. According
 to this design, this library is an application of Linux FireWire subsystem and GLib/GObject.
 
-The latest release is `1.0.2 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tag/?h=v1.0.2>`_
+The latest release is `1.0.3 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/tag/?h=v1.0.3>`_
 
 Example of Python 3 with PyGobject
 ==================================
@@ -107,7 +107,7 @@ This is a sample of wrap file to satisfy dependency on libhinoko by
     [wrap-git]
     directory = hinoko
     url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git
-    revision = v1.0.2
+    revision = v1.0.3
     depth = 1
     
     [provide]

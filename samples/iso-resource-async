@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+
+from pathlib import Path
+from sys import argv, exit
+import traceback
+
+from asyncio import Event, Future, get_running_loop, run, timeout_at
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
+
+import gi
+
+gi.require_versions({"GLib": "2.0", "Hinoko": "1.0"})
+from gi.repository import GLib, Hinoko
+
+BYTES_PER_PAYLOAD = (2 + 8 * 3) * 4
+USE_CHANNEL = 10
+USE_BANDWIDTH = Hinoko.FwIsoResource.calculate_bandwidth(
+    BYTES_PER_PAYLOAD, Hinoko.FwScode.S400
+)
+TIMEOUT_MS = 100
+
+
+class ResourceData:
+    def __init__(self):
+        self.channel = -1
+        self.bandwidth = -1
+
+
+def handle_resource_signal(
+    res: Hinoko.FwIsoResource,
+    channel: int,
+    bandwidth: int,
+    error: GLib.Error,
+    args: (ResourceData, Future, str),
+):
+    data, future, label = args
+
+    print("event:", label)
+    if error is None:
+        print("  ", channel, bandwidth, res.get_property("generation"))
+    elif error.matches(
+        Hinoko.fw_iso_resource_error_quark(), Hinoko.FwIsoResourceError.EVENT
+    ):
+        print("  ", error)
+
+    if error is not None:
+        future.set_exception(error)
+    else:
+        data.channel = channel
+        data.bandwidth = bandwidth
+        future.set_result("finished")
+
+
+def create_timeout_error() -> GLib.Error:
+    return GLib.Error.new_literal(
+        Hinoko.fw_iso_resource_error_quark(),
+        "timeout",
+        Hinoko.FwIsoResourceError.TIMEOUT,
+    )
+
+
+# The variation of Hinoko.FwIsoResource.allocate_wait() for asynchronous runtime.
+async def allocate_wait_async(
+    res: Hinoko.FwIsoResource, channels: tuple[int], bandwidth: int, timeout_ms: int
+) -> bool:
+    future = get_running_loop().create_future()
+    data = ResourceData()
+    handler_id = res.connect(
+        "allocated", handle_resource_signal, (data, future, "allocated")
+    )
+
+    when = get_running_loop().time() + timeout_ms / 1000.0
+    res.allocate(channels, bandwidth)
+
+    try:
+        async with timeout_at(when):
+            _ = await future
+    except TimeoutError:
+        raise create_timeout_error() from None
+    finally:
+        res.disconnect(handler_id)
+
+    return True
+
+
+# The variation of Hinoko.FwIsoResourceOnce.deallocate_wait() for asynchronous runtime.
+async def once_deallocate_wait_async(
+    res: Hinoko.FwIsoResourceOnce, channel: int, bandwidth: int, timeout_ms: int
+) -> bool:
+    future = get_running_loop().create_future()
+    data = ResourceData()
+    handler_id = res.connect(
+        "deallocated", handle_resource_signal, (data, future, "deallocated")
+    )
+
+    when = get_running_loop().time() + timeout_ms / 1000.0
+    res.deallocate(channel, bandwidth)
+
+    try:
+        async with timeout_at(when):
+            _ = await future
+    except TimeoutError:
+        raise create_timeout_error() from None
+    finally:
+        res.disconnect(handler_id)
+
+    return True
+
+
+# The variation of Hinoko.FwIsoResourceAuto.deallocate_wait() for asynchronous runtime.
+async def auto_deallocate_wait_async(
+    res: Hinoko.FwIsoResourceAuto, timeout_ms: int
+) -> bool:
+    future = get_running_loop().create_future()
+    data = ResourceData()
+    handler_id = res.connect(
+        "deallocated", handle_resource_signal, (data, future, "deallocated")
+    )
+
+    when = get_running_loop().time() + timeout_ms / 1000.0
+    res.deallocate()
+
+    try:
+        async with timeout_at(when):
+            _ = await future
+    except TimeoutError:
+        raise create_timeout_error() from None
+    finally:
+        res.disconnect(handler_id)
+
+    return True
+
+
+# For Once mode. The allocation is bound to current generation of the bus and lost automatically by
+# bus reset without notification.
+async def async_main_once(res: Hinoko.FwIsoResourceOnce, ctx: GLib.MainContext):
+    _, src = res.create_source()
+    _ = src.attach(ctx)
+
+    for _i in range(2):
+        await allocate_wait_async(res, (USE_CHANNEL,), USE_BANDWIDTH, TIMEOUT_MS)
+        print("result: allocate")
+        print("  ", USE_CHANNEL, USE_BANDWIDTH, res.get_property("generation"))
+
+        await once_deallocate_wait_async(res, USE_CHANNEL, USE_BANDWIDTH, TIMEOUT_MS)
+        print("result: deallocate")
+        print("  ", USE_CHANNEL, USE_BANDWIDTH, res.get_property("generation"))
+
+    src.destroy()
+
+
+# For Auto mode. The allocation is kept by Linux FireWire subsystem as long as the lifetime of
+# file descriptor. The instance of object represents state machine.
+async def async_main_auto(res: Hinoko.FwIsoResourceAuto, ctx: GLib.MainContext):
+    def print_props(res: Hinoko.FwIsoResourceAuto):
+        for prop in ("is-allocated", "channel", "bandwidth", "generation"):
+            print("  {}: {}".format(prop, res.get_property(prop)))
+
+    _, src = res.create_source()
+    _ = src.attach(ctx)
+
+    print_props(res)
+
+    for _i in range(2):
+        await allocate_wait_async(res, (USE_CHANNEL,), USE_BANDWIDTH, TIMEOUT_MS)
+        print("result: allocate")
+        print_props(res)
+
+        await auto_deallocate_wait_async(res, TIMEOUT_MS)
+        print("result: deallocate")
+        print_props(res)
+
+    src.destroy()
+
+
+@asynccontextmanager
+async def run_dispatcher_async() -> AbstractAsyncContextManager[GLib.MainContext]:
+    def dispatch_event(ctx: GLib.MainContext, state: Event):
+        if state.is_set():
+            ctx.iteration(False)
+            # Reschedule this immediately.
+            get_running_loop().call_later(0.0, dispatch_event, ctx, state)
+
+    ctx = GLib.MainContext.new()
+
+    ctx.acquire()
+
+    state = Event()
+    state.set()
+
+    get_running_loop().call_soon(dispatch_event, ctx, state)
+
+    try:
+        yield ctx
+    finally:
+        state.clear()
+        ctx.release()
+
+
+async def async_main(path: Path) -> int:
+    res_once = Hinoko.FwIsoResourceOnce.new()
+    res_once.open(str(path), 0)
+
+    res_auto = Hinoko.FwIsoResourceAuto.new()
+    res_auto.open(str(path), 0)
+
+    try:
+        async with run_dispatcher_async() as ctx:
+            await async_main_once(res_once, ctx)
+            await async_main_auto(res_auto, ctx)
+    except GLib.Error as e:
+        error_domain_map = {
+            GLib.file_error_quark(): GLib.FileError,
+            Hinoko.fw_iso_resource_error_quark(): Hinoko.FwIsoResourceError,
+            Hinoko.fw_iso_resource_auto_error_quark(): Hinoko.FwIsoResourceAutoError,
+        }
+        quark = GLib.quark_from_string(e.domain)
+        if quark in error_domain_map:
+            code_nick = error_domain_map[quark](e.code).value_nick
+            print(
+                "GLib.Error exception: '{}' due to '{}' in '{}'".format(
+                    e.message, code_nick, e.domain
+                )
+            )
+            print()
+        traceback.print_exception(e)
+        return 1
+    except Exception as e:
+        traceback.print_exception(e)
+        return 1
+
+    return 0
+
+
+def main() -> int:
+    if len(argv) < 2:
+        print(
+            "One argument is required for path to special file of Linux FireWire character "
+            "device"
+        )
+        return 1
+
+    path = Path(argv[1])
+    if not path.exists() or not path.is_char_device() or path.name.find("fw") != 0:
+        print("{} is invalid for Linux FireWire character device".format(path))
+        return 1
+
+    return run(async_main(path))
+
+
+if __name__ == "__main__":
+    exit(main())
